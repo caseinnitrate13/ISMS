@@ -1,0 +1,147 @@
+<div class="pagetitle">
+  <h1>Submission of Documents</h1>
+  <nav>
+      <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="dashboard.html">Home</a></li>
+          <li class="breadcrumb-item active">Submission of Documents</li>
+      </ol>
+  </nav>
+</div>
+
+<!-- Initial Requirements -->
+<div class="card bg-white mb-3">
+  <div class="box-title border-bottom p-3 d-flex justify-content-between">
+      <div class="d-flex align-items-center">
+          <h6 class="m-0 fw-bold">Initial Requirements</h6>
+          <div class="dropdown ms-3 me-3" id="initialDropdown">
+              <a class="d-flex align-items-center border ps-3 pe-3 pt-1 pb-1 text-secondary" href="#" data-bs-toggle="dropdown">
+                  <span id="initialStatus" class="dropdown-toggle">No Submission</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-right text-secondary">
+                  <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="No submission">No Submission</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Submitted">Submitted</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Need revision">Need Revision</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
+              </ul>
+          </div>
+      </div>
+      <span class="badge rounded-pill bg-primary p-2 ms-2 pointer" id="viewAllInitial">View All</span>
+  </div>
+  <div id="initialReq" class="box-body p-0"></div>
+</div>
+
+<!-- Final Requirements -->
+<div class="card bg-white mt-5 mb-5">
+  <div class="box-title border-bottom p-3 d-flex justify-content-between">
+      <div class="d-flex align-items-center">
+          <h6 class="m-0 fw-bold">Final Requirements</h6>
+          <div class="dropdown ms-3 me-3" id="finalDropdown">
+              <a class="d-flex align-items-center border ps-3 pe-3 pt-1 pb-1 text-secondary" href="#" data-bs-toggle="dropdown">
+                  <span id="finalStatus" class="dropdown-toggle">No Submission</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-right text-secondary">
+                  <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="No submission">No Submission</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Submitted">Submitted</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Need revision">Need Revision</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
+              </ul>
+          </div>
+      </div>
+      <span class="badge rounded-pill bg-primary p-2 ms-2 pointer" id="viewAllFinal">View All</span>
+  </div>
+  <div id="finalReq" class="box-body p-0"></div>
+</div>
+
+<script>
+const recentNotifications = [
+  { title: 'Student Information Sheet', description: 'Description.', status: 'No submission' },
+  { title: 'Medical Certificate', description: 'Description.', status: 'No submission' },
+  { title: 'Physical Examination Certificate', description: 'Description.', status: 'Need revision' },
+  { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Submitted' },
+];
+
+const earlierNotifications = [
+  { title: 'Medical Certificate', description: 'Description.', status: 'No submission' },
+  { title: 'Student Information Sheet', description: 'Description.', status: 'No submission' },
+  { title: 'Insurance', description: 'Description.', status: 'Overdue' },
+  { title: 'Vaccination Record', description: 'Description.', status: 'Submitted' },
+];
+
+const statusOrder = {
+  'No submission': 'text-primary',
+  'Overdue': 'text-danger',
+  'Need revision': 'text-warning',
+  'Submitted': 'text-success'
+};
+
+let initialSelectedStatus = "No submission";
+let finalSelectedStatus = "No submission";
+let showAllInitial = false;
+let showAllFinal = false;
+
+function loadNotifications(containerId, notifications, showAll, statusFilter) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  let filteredNotifications = (statusFilter === "All") ? notifications : notifications.filter(n => n.status === statusFilter);
+  
+  if (filteredNotifications.length === 0) {
+      container.innerHTML = "<div class='p-3 text-center'>No data to show</div>";
+      return;
+  }
+
+  let displayNotifications = showAll ? filteredNotifications : filteredNotifications.slice(0, 2);
+
+  displayNotifications.forEach(notification => {
+      container.insertAdjacentHTML('beforeend', `
+          <div class='p-3 d-flex align-items-center border-bottom'>
+              <i class='bi bi-circle-fill me-3 ${statusOrder[notification.status]}'></i>
+              <div class='flex-grow-1'>
+                  <div class='fw-bold'>${notification.title}</div>
+                  <div class='small'>${notification.description}</div>
+              </div>
+              <span class='badge ${statusOrder[notification.status]} p-2'>${notification.status}</span>
+          </div>
+      `);
+  });
+}
+
+// Dropdown selection for Initial and Final Requirements
+document.querySelectorAll('.dropdown-menu .view-option').forEach(option => {
+  option.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      const status = this.dataset.status;
+      const parentDropdown = this.closest('.dropdown');
+
+      if (parentDropdown.id === "initialDropdown") {
+          initialSelectedStatus = status;
+          document.getElementById("initialStatus").textContent = status;
+          loadNotifications('initialReq', recentNotifications, showAllInitial, initialSelectedStatus);
+      } else {
+          finalSelectedStatus = status;
+          document.getElementById("finalStatus").textContent = status;
+          loadNotifications('finalReq', earlierNotifications, showAllFinal, finalSelectedStatus);
+      }
+  });
+});
+
+// View All button for Initial and Final Requirements
+document.getElementById("viewAllInitial").addEventListener('click', function () {
+  showAllInitial = !showAllInitial;
+  loadNotifications('initialReq', recentNotifications, showAllInitial, initialSelectedStatus);
+  this.textContent = showAllInitial ? 'Show Less' : 'View All';
+});
+
+document.getElementById("viewAllFinal").addEventListener('click', function () {
+  showAllFinal = !showAllFinal;
+  loadNotifications('finalReq', earlierNotifications, showAllFinal, finalSelectedStatus);
+  this.textContent = showAllFinal ? 'Show Less' : 'View All';
+});
+
+// Initial Load
+loadNotifications('initialReq', recentNotifications, showAllInitial, initialSelectedStatus);
+loadNotifications('finalReq', earlierNotifications, showAllFinal, finalSelectedStatus);
+</script>
