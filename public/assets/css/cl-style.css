@@ -1,34 +1,105 @@
 /* DOCUMENT SUBMISSION */
 
-/* FILE UPLOAD */
-#fileUploadPreview{
-    border: 2px dashed #7a6c69;
-    text-align: center;
-    margin: 10% 15%;
-    padding: 10px 10px 0 10px;
-    cursor: pointer;
-  }
-  
-  .file-preview {
-    flex-direction: column; 
-    justify-content: center;
-    align-items: center;
-    overflow: hidden; 
-  }
-  
-  .file-preview i {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 10px;
-    color: #7a6c69;
-  }
-  
-  .file-preview p {
-    font-size: 1rem;
-    font-weight: bold;
-  }
+/* requirements */
+#initialReq .d-flex,  #preDepReq .d-flex,
+#inProgressReq .d-flex, #finalReq .d-flex{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; 
+}
 
-  #modaldescription{
-    min-width: auto;
-    margin: 10px;
+.requirementDescription {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 400px;
+}
+
+#invalidFiletype{
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+/* file upload */
+#fileUploadContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.file-preview-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f3f3f3;
+  padding: 5px 10px;
+  border-radius: 5px;
+  position: relative;
+  max-height: 80px;
+  width: auto;
+}
+
+.file-preview-wrapper img,
+.file-preview-wrapper embed {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border: 1px solid #ccc;
+}
+
+.file-preview-name {
+  font-size: 12px;
+  flex-grow: 1;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 30px;
+}
+
+.close-preview {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+}
+
+
+  #modaldescription {
+    font-size: 12px;
+    max-height: 100px;
+    padding: 5px;
+    width: auto;
+    overflow-y: auto;       
+    overflow-x: hidden;  
+    margin: 5px;
+    word-wrap: break-word;
+    white-space: normal;  
+
+   /* Hide scrollbar */
+   scrollbar-width: none;       /* Firefox */
+   -ms-overflow-style: none;    /* Internet Explorer 10+ */
+ }
+ 
+ #modaldescription::-webkit-scrollbar {
+   display: none;               /* Chrome, Safari, and Opera */
+ }
+  
+
+
+ @media (max-width: 768px) {
+  .requirementDescription {
+    max-width: 30%;
+    font-size: 14px;  
   }
+}

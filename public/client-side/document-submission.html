@@ -28,7 +28,9 @@
       </div>
       <span class="badge rounded-pill bg-primary p-2 ms-2 pointer" id="showAllInitial">Show All</span>
   </div>
-  <div id="initialReq" class="box-body p-0"></div>
+  <div id="initialReq" class="box-body p-0">
+    <!-- iinitial requirements here -->
+  </div>
 </div>
 
 <!-- Pre-Deployment Requirements -->
@@ -103,7 +105,7 @@
 
 <!-- Submission Modal -->
 <div class="modal fade" id="submissionModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-md">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
@@ -112,18 +114,20 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div id="fileUploadPreview" class="file-preview">
-          <span><i class="bi bi-plus "></i></span>
-           <h4>Drag File</h4>
-       </div>
-       <input type="file" id="fileUpload" accept=".doc,.docx" hidden> 
-       <div class="text-center mt-3">
-           <button id="fileUploadBtn" class="btn btn-outline-dark btn-rounded"> <i class="bi bi-upload me-2"></i>Upload File</button>
-       </div>
-      </div>
-      <div id="modaldescription">
+        <div id="modaldescription" class="small"> 
+          <!-- descriotion here -->
+        </div>
+        <hr>
+        <input type="file" id="fileUpload" style="display: none;" />
+        <div id="fileUploadContainer">
+          <button id="fileUploadBtn" class="btn btn-outline-dark btn-rounded" ><i class="bi bi-upload me-2"></i>Upload File</button>
+        </div>
 
+        <input type="file" id="fileUpload" style="display: none;" accept=".doc, .docx, .pdf, .jpg, .jpeg, .png" />
+
+        <div id="invalidFiletype" class="d-none text-danger text-center">* Invalid file type</div>
       </div>
+      
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button id="submitFile" type="button" class="btn btn-primary">Submit</button>

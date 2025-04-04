@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const submissionModal = new bootstrap.Modal(document.getElementById("submissionModal"));
 
     const initialRequirements = [
-        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/02' },
+        { title: 'Student Information Sheet', description: 'DescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription.', status: 'Pending', dueDate: '2025/08/02' },
         { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/20' },
         { title: 'Physical Examination Certificate', description: 'Description.', status: 'Requires Revision', dueDate: '2025/08/23' },
         { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12' },
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <i class='bi bi-circle-fill me-3 ${statusOrder[requirement.status]}'></i>
                 <div class='flex-grow-1'>
                     <div class='fw-bold'>${requirement.title}</div>
-                    <div class='small'>${requirement.description}</div>
+                    <div class='requirementDescription text-muted small'>${requirement.description}</div>
                 </div>
                 <div class='flex-grow-2'>
                     <div class='small'>Due date: ${requirement.dueDate} </div>
@@ -151,54 +151,64 @@ document.addEventListener('DOMContentLoaded', function () {
     loadRequirements('finalReq', finalRequirements, showAllFinal, finalSelectedStatus);
 
 
-    // file upload
-    const fileUploadPreview = document.getElementById("fileUploadPreview");
+    //file upload
+    const fileUploadContainer = document.getElementById("fileUploadContainer");
     const fileUpload = document.getElementById("fileUpload");
     const fileUploadBtn = document.getElementById("fileUploadBtn");
-    const submitFile = document.getElementById("submitFile");
-    let uploadedFileName = null;
-  
-    fileUploadBtn.addEventListener("click", function () {
-      fileUpload.click();
+    const invalidFiletypeMessage = document.getElementById("invalidFiletype");
+
+    fileUploadBtn.addEventListener("click", () => {
+    fileUpload.click();
     });
-  
-    // Handle file selection
-    fileUpload.addEventListener("change", function (event) {
-      if (event.target.files.length > 0) {
+
+    fileUpload.addEventListener("change", (event) => {
+    if (event.target.files.length > 0) {
         handleFile(event.target.files[0]);
-      }
-    });
-  
-    // Drag & Drop functionality
-    fileUploadPreview.addEventListener("dragover", function (event) {
-      event.preventDefault();
-      fileUploadPreview.classList.add("drag-over");
-    });
-  
-    fileUploadPreview.addEventListener("dragleave", function () {
-      fileUploadPreview.classList.remove("drag-over");
-    });
-  
-    fileUploadPreview.addEventListener("drop", function (event) {
-      event.preventDefault();
-      fileUploadPreview.classList.remove("drag-over");
-      if (event.dataTransfer.files.length > 0) {
-        handleFile(event.dataTransfer.files[0]);
-      }
-    });
-  
-    // Function to handle the file display
-    function handleFile(file) {
-      if (file) {
-        uploadedFileName = file.name;
-        fileUploadPreview.innerHTML = `
-                <div class="file-preview">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <p>${uploadedFileName}</p>
-                </div>
-            `;
-      }
     }
+    });
+
+    function handleFile(file) {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    
+    if (!allowedTypes.includes(file.type)) {
+        invalidFiletypeMessage.classList.remove("d-none"); 
+        return; 
+    }
+
+    invalidFiletypeMessage.classList.add("d-none");
+
+    const fileType = file.type;
+    const fileURL = URL.createObjectURL(file);
+
+    let previewHTML = "";
+    if (fileType.startsWith("image/")) {
+        previewHTML = `<img src="${fileURL}" alt="Image Preview">`;
+    } else if (fileType === "application/pdf") {
+        previewHTML = `<embed src="${fileURL}" type="application/pdf">`;
+    } else {
+        previewHTML = `<i class="bi bi-file-earmark-word" style="font-size: 30px; color: #2B579A;"></i>`;
+    }
+
+    fileUploadContainer.innerHTML = `
+        <div class="file-preview-wrapper">
+            ${previewHTML}
+            <span class="file-preview-name">${file.name}</span>
+            <button class="close-preview" title="Remove">&times;</button>
+        </div>
+    `;
+
+    // Add close functionality
+    const closeBtn = fileUploadContainer.querySelector(".close-preview");
+    closeBtn.addEventListener("click", () => {
+        fileUpload.value = ""; 
+        fileUploadContainer.innerHTML = `<button id="fileUploadBtn" class="btn btn-outline-dark btn-rounded"> <i class="bi bi-upload me-2"></i>Upload File</button>`;
+        document.getElementById("fileUploadBtn").addEventListener("click", () => {
+        fileUpload.click();
+        });
+    });
+    }
+
+
 
     // submit file
     submitFile.addEventListener('click', function(){
@@ -211,15 +221,16 @@ document.addEventListener('DOMContentLoaded', function () {
         loadRequirements('finalReq', finalRequirements, showAllFinal, finalSelectedStatus);
     });
 
-      // Reset modal content when closed
+    // Reset modal content when closed
     document.getElementById('submissionModal').addEventListener("hidden.bs.modal", function () {
-        document.body.style.overflow = "auto"; 
-        document.body.style.paddingRight = "0px";
+        fileUpload.value = ""; 
+        fileUploadContainer.innerHTML = `<button id="fileUploadBtn" class="btn btn-outline-dark btn-rounded"><i class="bi bi-upload me-2"></i>Upload File</button>`;
     
-        fileUploadPreview.innerHTML = `<span class="addIcon"><i class="bi bi-plus"></i></span><h4 class="mb-4 w400">Drag File</h4>`;
-    
-        uploadedFileName = null;
-        fileUpload.value = "";
+        document.getElementById("fileUploadBtn").addEventListener("click", () => {
+            fileUpload.click();
+        });
+
+        invalidFiletype.classList.add("d-none");
       });
   
 });
