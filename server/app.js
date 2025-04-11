@@ -13,18 +13,24 @@ const template = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-si
 
 
 app.get('/progress-tracker', (req, res) => {
-    const dashboard = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'progress-tracker.html'), 'utf-8');
-    res.send(template.replace('{{content}}', dashboard));
+    const progressTracker = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'progress-tracker.html'), 'utf-8');
+    res.send(template.replace('{{content}}', progressTracker));
 });
-
 
 app.get('/submission', (req, res) => {
-    const dashboard = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'document-submission.html'), 'utf-8');
-    res.send(template.replace('{{content}}', dashboard));
+    const submission = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'document-submission.html'), 'utf-8');
+    res.send(template.replace('{{content}}', submission));
 });
 
+app.get('/downloadable-forms', (req, res) => {
+    const downloadableForms = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'downloadable-forms.html'), 'utf-8');
+    res.send(template.replace('{{content}}', downloadableForms));
+});
 
-
+app.get('/partner-agencies', (req, res)=>{
+    const partnerAgencies = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'partner-agencies.html'), 'utf-8');
+    res.send(template.replace('{{content}}', partnerAgencies));
+});
 
 
 

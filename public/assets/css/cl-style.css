@@ -1,11 +1,13 @@
 /* DOCUMENT SUBMISSION */
 
 /* requirements */
-#initialReq .d-flex,  #preDepReq .d-flex,
-#inProgressReq .d-flex, #finalReq .d-flex{
+#initialReq .d-flex,
+#preDepReq .d-flex,
+#inProgressReq .d-flex,
+#finalReq .d-flex {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
 }
 
 .requirementDescription {
@@ -16,7 +18,7 @@
   width: 400px;
 }
 
-#invalidFiletype{
+#invalidFiletype {
   font-size: 12px;
   margin-top: 10px;
 }
@@ -58,7 +60,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: 30px;
+  
 }
 
 .close-preview {
@@ -75,31 +77,88 @@
 }
 
 
-  #modaldescription {
-    font-size: 12px;
-    max-height: 100px;
-    padding: 5px;
-    width: auto;
-    overflow-y: auto;       
-    overflow-x: hidden;  
-    margin: 5px;
-    word-wrap: break-word;
-    white-space: normal;  
+#modaldescription {
+  max-height: 100px;
+  width: auto;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  white-space: normal;
 
-   /* Hide scrollbar */
-   scrollbar-width: none;       /* Firefox */
-   -ms-overflow-style: none;    /* Internet Explorer 10+ */
- }
- 
- #modaldescription::-webkit-scrollbar {
-   display: none;               /* Chrome, Safari, and Opera */
- }
-  
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+}
+
+#modaldescription::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, and Opera */
+}
+
+#overdue{
+  font-size: 12px; 
+}
+
+#submissionModal button{
+  font-size: 14px;
+}
 
 
- @media (max-width: 768px) {
+/* DOWNLOADABLE FILES */
+.card{
+  border: 1px solid #c1c1c1 ;
+}
+.preview-container {
+  height: 100px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  border-radius: 5px 5px 0 0 ;
+}
+.preview-container iframe {
+  pointer-events: none;
+  width: 100%;
+  height: 400px; /* larger than container to "crop" it */
+  transform: scale(1);
+  transform-origin: top;
+  border-radius: 5px 5px 0 0 ;
+}
+.placeholder-docx {
+  background: #f1f1f1;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  color: #666;
+  cursor: pointer;
+  background-size: contain;
+  background-repeat: no-repeat;
+  border-radius: 5px 5px 0 0 ;
+}
+
+
+/* PARTNER AGENCIES */
+.agencyCard {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.agencyCard:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+
+
+@media (max-width: 768px) {
   .requirementDescription {
     max-width: 30%;
-    font-size: 14px;  
+    font-size: 14px;
   }
 }

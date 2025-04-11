@@ -2,8 +2,8 @@
   <h1>Submission of Documents</h1>
   <nav>
       <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="dashboard.html">Home</a></li>
-          <li class="breadcrumb-item active">Submission of Documents</li>
+        <li class="breadcrumb-item"><a href="progress-tracker.html">Home</a></li>
+        <li class="breadcrumb-item active">Submission of Documents</li>
       </ol>
   </nav>
 </div>
@@ -20,7 +20,7 @@
               <ul class="dropdown-menu dropdown-menu-right text-secondary">
                   <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Pending">Pending</a></li>
-                  <li><a class="dropdown-item view-option" href="#" data-status="Submitted">Submitted</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Completed">Completed</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Requires Revision">Requires Revision</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
               </ul>
@@ -45,7 +45,7 @@
               <ul class="dropdown-menu dropdown-menu-right text-secondary">
                   <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Pending">Pending</a></li>
-                  <li><a class="dropdown-item view-option" href="#" data-status="Submitted">Submitted</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Completed">Completed</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Requires Revision">Requires Revision</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
               </ul>
@@ -69,7 +69,7 @@
               <ul class="dropdown-menu dropdown-menu-right text-secondary">
                   <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Pending">Pending</a></li>
-                  <li><a class="dropdown-item view-option" href="#" data-status="Submitted">Submitted</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Completed">Completed</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Requires Revision">Requires Revision</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
               </ul>
@@ -92,7 +92,7 @@
               <ul class="dropdown-menu dropdown-menu-right text-secondary">
                   <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Pending">Pending</a></li>
-                  <li><a class="dropdown-item view-option" href="#" data-status="Submitted">Submitted</a></li>
+                  <li><a class="dropdown-item view-option" href="#" data-status="Completed">Completed</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Requires Revision">Requires Revision</a></li>
                   <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
               </ul>
@@ -109,7 +109,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-
+          <!-- requirement title here -->
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -117,20 +117,27 @@
         <div id="modaldescription" class="small"> 
           <!-- descriotion here -->
         </div>
-        <hr>
         <input type="file" id="fileUpload" style="display: none;" />
         <div id="fileUploadContainer">
-          <button id="fileUploadBtn" class="btn btn-outline-dark btn-rounded" ><i class="bi bi-upload me-2"></i>Upload File</button>
+          <button id="fileUploadBtn" class="btn btn-outline-dark" ><i class="bi bi-upload me-2"></i>Upload File</button>
         </div>
 
         <input type="file" id="fileUpload" style="display: none;" accept=".doc, .docx, .pdf, .jpg, .jpeg, .png" />
 
         <div id="invalidFiletype" class="d-none text-danger text-center">* Invalid file type</div>
+        <p id="uploadNewLabel" class="text-muted d-none mb-2">You may upload a new file to replace the current one.</p>
+
       </div>
       
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button id="submitFile" type="button" class="btn btn-primary">Submit</button>
+      <div id="modalFooter" class="modal-footer">
+        <div id="overdue" class="text-danger align-items-start">
+          <!-- pastt\ due here -->
+        </div>
+        <div>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button id="submitFile" type="button" class="btn btn-primary">Submit</button>
+        </div>
+        
       </div>
     </div>
   </div>
