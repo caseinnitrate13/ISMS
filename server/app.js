@@ -27,13 +27,25 @@ app.get('/downloadable-forms', (req, res) => {
     res.send(template.replace('{{content}}', downloadableForms));
 });
 
-app.get('/partner-agencies', (req, res)=>{
+app.get('/partner-agency', (req, res)=>{
     const partnerAgencies = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'partner-agencies.html'), 'utf-8');
     res.send(template.replace('{{content}}', partnerAgencies));
 });
 
+app.get('/review-agency', (req, res) => {
+    const reviewAgency = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'review-agency.html'), 'utf-8');
+    res.send(template.replace('{{content}}', reviewAgency));
+});
 
+app.get('/account', (req, res) => {
+    const account = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'account.html'), 'utf-8');
+    res.send(template.replace('{{content}}', account));
+});
 
+app.get('/notifications', (req, res) => {
+    const notifications = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'notifications.html'), 'utf-8');
+    res.send(template.replace('{{content}}', notifications));
+});
 
 app.use((req, res) => {
     res.status(404).send(template.replace('{{content}}', '<h3>404 - Page Not Found</h3>'));

@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
            notifications.classList.add('collapsed');
            account.classList.add('collapsed');
            logout.classList.add('collapsed');
-       } else if (path.includes('/partner-agencies')) {
+       } else if (path.includes('/partner-agency') || path.includes('/review-agency')) {
            progressTracker.classList.add('collapsed');
            submission.classList.add('collapsed');
            downloadableForms.classList.add('collapsed');
@@ -42,6 +42,26 @@ document.addEventListener('DOMContentLoaded', function () {
            notifications.classList.add('collapsed');
            account.classList.add('collapsed');
            logout.classList.add('collapsed');
+            // Highlight the correct nav-link
+            const navLinks = document.querySelectorAll('.sidebar-nav .nav-content a');
+        
+            navLinks.forEach(link => {
+              if (link.getAttribute('href') === path) {
+                link.classList.add('active');
+        
+                // Show the sub-nav
+                const navContent = link.closest('.nav-content');
+                if (navContent) {
+                  navContent.classList.add('show'); // makes dropdown stay open
+        
+                  // Show parent nav-link as expanded (remove collapsed)
+                  const parentLink = navContent.previousElementSibling;
+                  if (parentLink) {
+                    parentLink.classList.remove('collapsed');
+                  }
+                }
+              }
+            });
        } else if (path.includes('/notifications')) {
            progressTracker.classList.add('collapsed');
            submission.classList.add('collapsed');
@@ -422,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const card = document.createElement("div");
         card.className = "col-md-3";
         card.innerHTML = `
-            <div class="card shadow-sm h-100">
+            <div class="card shadow-sm h-100 mt-0">
                 ${previewHTML}
                 <div class="card-body text-center">
                     <h5 class="card-title">${doc.name}</h5>
@@ -430,8 +450,11 @@ document.addEventListener('DOMContentLoaded', function(){
                 </div>
             </div>
         `;
-        cardContainer.appendChild(card);
-        console.log('Documents Displayed');
+        if (cardContainer){
+            cardContainer.appendChild(card);
+            console.log('Documents Displayed');
+        }
+
     });
 });
 
@@ -439,49 +462,341 @@ document.addEventListener('DOMContentLoaded', function(){
 // PARTNER AGENCIES
 document.addEventListener('DOMContentLoaded', function(){
     const agencies = [
-        { name: "Project PDF", address: "Naga City, Camarines Sur", slots: "5 slots left"},
-        { name: "Lecture Notes", address: "Daet, Camarines Norte", slots: "5 slots left"},
-        { name: "Annual Report", address: "Daet, Camarines Norte", slots: "5 slots left"},
-        { name: "Meeting Minutes", address: "Daet, Camarines Norte", slots: "5 slots left"},
-        { name: "Research Paper", address: "Naga City, Camarines Sur", slots: "5 slots left"},
-        { name: "Summary Report", address: "Daet, Camarines Norte", slots: "5 slots left"},
-        { name: "User Guide", address: "Naga City, Camarines Sur", slots: "5 slots left"},
-        { name: "Invoice", address: "Naga City, Camarines Sur", slots: "5 slots left"},
-        { name: "Presentation", address: "Naga City, Camarines Sur", slots: "5 slots left"},
-        { name: "Proposal", address: "Daet, Camarines Norte", slots: "5 slots left"}
+        { name: "Camarines NorteNorteNorteNorte State College", address: "Naga City, CamarinesCamarinesCamarinesCamarines Sur", position:"1 Support1 IT Support1 slots lef slots lef slots lef slots lef slots lef slots lef slots lef slots lef slots lef IT Support1 IT Support", description: "Description", rating: "5/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Daet, Camarines Norte", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", description: "Description", rating: "4/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Daet, Camarines Norte", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description:"DescripDescriptionDescripti  Description Description DescriptiononDescriptionDescription Description DescriptiontionDescripDescriptionDescripti  Description Description DescriptiononDescriptionDescription Description DescriptiontionDescripDescriptionDescripti  Description Description DescriptiononDescriptionDescription Description DescriptiontionDescripDescriptionDescripti  Description Description DescriptiononDescriptionDescription Description Descriptiontion ", rating: "5/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Daet, Camarines Norte", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "3/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Naga City, Camarines Sur", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "3/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: AccomodatingAccomodatingAccomodatingAccomodating AccomodatingAccomodatingAccomodatingAccomodatingAccomodatingAccomodating AccomodatingAccomodatingAccomodatingAccomodating AccomodatingAccomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Daet, Camarines Norte", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "1/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Naga City, Camarines Sur", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "2/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Naga City, Camarines Sur", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "4/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Naga City, Camarines Sur", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "1/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"},
+        { name: "Camarines Norte State College", address: "Daet, Camarines Norte", position:"1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "2/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5"}
     ];
 
+    // PARTNER AGENCY
     const agencyContainer = document.getElementById('agenciesCards');
     agencies.forEach(agency =>{
         const agencyCard = document.createElement("div");
         agencyCard.className = "col-md-3";
         agencyCard.innerHTML = `
-            <div class="agencyCard card shadow-sm">
+            <div class="agencyCard mt-0 card shadow-sm">
                 <div class="card-body text-center">
-                    <h5 class="card-title">${agency.name}</h5>
-                    <div class="card-text">${agency.address}</div>
-                    <p class="small">${agency.slots}</p> 
+                    <div id="agencyNameCard">${agency.name}</div>
+                    <div id="agencyAddressCard" class="text-muted">${agency.address}</div>
                 </div>
             </div>
         `;
-        agencyContainer.appendChild(agencyCard);
-        console.log('Agency displayed');
+
+        if (agencyContainer){
+            agencyContainer.appendChild(agencyCard);
+            console.log('Agency displayed');
+        }
+
 
         agencyCard.addEventListener('click', function(){
             const agencyModal = new bootstrap.Modal(document.getElementById('agencyModal'));
-            let modalTitle = document.querySelector('#agencyModal, .modal-title');
-            let agencyName = document.getElementById('agencyName');
-            let agencyAddress = document.getElementById('agencyAddress');
-            let positionNeeded = document.getElementById('positionNeeded');
-            let agencyDescription = document.getElementById('agencyDescription');
+            const modalTitle = document.querySelector('#agencyModal .modal-title');
+            const agencyName = document.getElementById('agencyName');
+            const agencyAddress = document.getElementById('agencyAddress');
+            const positionNeeded = document.getElementById('positionNeeded');
+            const agencyDescription = document.getElementById('agencyDescription');
 
             modalTitle.textContent = agency.name;
             agencyName.textContent = agency.name;
             agencyAddress.textContent = agency.address;
-
-
+            
+            const position = agency.position.split(',').map(pos => `<li>${pos.trim()}</li>`).join('');
+            positionNeeded.innerHTML = `<ul">${position}</ul>`;
+            agencyDescription.textContent = agency.description;
             agencyModal.show();
-        })
+
+        });
     });
+
+
+    // REVIEW AGENCY
+    const reviewContainer = document.getElementById('reviewAgenciesCards');
+    agencies.forEach(agency => {
+        const reviewCard = document.createElement("div");
+        reviewCard.className = "col-md-3";
+
+        // Build stars dynamically
+        let starsHTML = '';
+        const rating = parseFloat(agency.rating);
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+
+        for (let i = 1; i <= 5; i++) {
+            if (i <= fullStars) {
+                starsHTML += `<i class="bi bi-star-fill text-warning"></i>`;
+            } else {
+                starsHTML += `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+            }
+        }
+
+        reviewCard.innerHTML = `
+            <div class="agencyCard mt-0 g-0 card shadow-sm">
+                <div class="card-body text-center">
+                    <div id="reviewNameCard">${agency.name}</div>
+                    <div id="reviewAddressCard" class="text-muted">${agency.address}</div>
+                </div>
+                <div class="text-center mt-0" id="rating">
+                    <div class="stars">${starsHTML}</div>
+                    <div>${agency.rating}</div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-outline-primary btn-sm">Review</button>
+                </div>
+            </div>
+        `;
+
+        if (reviewContainer) {
+            reviewContainer.appendChild(reviewCard);
+        }
+
+        const button = reviewCard.querySelector("button");
+        button.addEventListener("click", () => {
+            document.getElementById("reviewAgenciesCards").style.display = "none";
+            document.getElementById("reviewSelectedCard").style.display = "flex";
+
+            // reft side
+            document.getElementById("reviewAgencyName").innerText = agency.name;
+
+            const rating = parseFloat(agency.rating);
+            const fullStars = Math.floor(rating);
+            const hasHalf = rating % 1 >= 0.5;
+
+            let starsHTML = "";
+            for (let i = 1; i <= 5; i++) {
+                if (i <= fullStars) {
+                    starsHTML += `<i class="bi bi-star-fill text-warning"></i>`;
+                } else {
+                    starsHTML += `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+                }
+            }
+
+            document.getElementById("reviewStars").innerHTML = starsHTML;
+            document.getElementById("reviewRatingValue").innerText = `${agency.rating}`;
+
+            // right side
+            const reviewsContainer = document.getElementById("reviewsContainer");
+            reviewsContainer.innerHTML = "";
+
+            const reviewList = agency.reviews.split(",").map(r => r.trim());
+            reviewList.forEach(review => {
+                const [namePart, descPart, ratingPart] = review.split("|").map(item => item.trim());
+                const reviewer = namePart.replace("Name: ", "");
+                const desc = descPart.replace("Review: ", "");
+                const reviewRating = parseFloat(ratingPart.replace("Rating: ", "").split("/")[0]);
+
+                let reviewStars = "";
+                const reviewFullStars = Math.floor(reviewRating);
+                const reviewHalf = reviewRating % 1 >= 0.5;
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= reviewFullStars) {
+                    reviewStars += `<i class="bi bi-star-fill text-warning"></i>`;
+                    } else {
+                    reviewStars += `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+                    }
+                }
+
+                const reviewCard = document.createElement("div");
+                reviewCard.className = "card mb-2 p-2";
+                reviewCard.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mt-0">
+                    <strong>${reviewer}</strong>
+                    <div>${reviewStars}</div>
+                    </div>
+                    <p class="mb-0 small text-muted">${desc}</p>
+                `;
+                reviewsContainer.appendChild(reviewCard);
+            });
+        });
+
+        reviewAgenciesCards.appendChild(reviewCard);
+    });
+
+    const agencyBack = document.getElementById('agencyBack');
+    agencyBack.addEventListener('click', function () {
+        document.getElementById("reviewSelectedCard").style.display = "none";
+        document.getElementById("reviewAgenciesCards").style.display = "flex";
+    })
+
+
+    // wrire review
+    const stars = document.querySelectorAll(".star");
+    const rating = document.getElementById("totalRating");
+    let activeStars = 0;
+
+    stars.forEach((star, index) => {
+        star.addEventListener("click", () => {
+            const icon = star.querySelector("i");
+            const isSelected = icon.classList.contains("bi-star-fill");
+
+            if (isSelected) {
+                for (let i = index; i < stars.length; i++) {
+                    const iTag = stars[i].querySelector("i");
+                    iTag.classList.remove("bi-star-fill", "text-warning");
+                    iTag.classList.add("bi-star");
+                    
+                }
+            } else {
+                for (let i = 0; i <= index; i++) {
+                    const iTag = stars[i].querySelector("i");
+                    iTag.classList.remove("bi-star");
+                    iTag.classList.add("bi-star-fill", "text-warning");
+                }
+            }
+
+            // Count active stars
+            activeStars = 0;
+            stars.forEach(star => {
+                const iTag = star.querySelector("i");
+                if (iTag.classList.contains("bi-star-fill")) {
+                    activeStars++;
+                }
+            });
+
+            rating.textContent = activeStars;
+        });
+    });
+
+    const submit = document.getElementById('submitReview');
+    submit.addEventListener('click', function () {
+        const review = document.getElementById('review');
+        const reviewValue = review.value;
+        const reviewsContainer = document.getElementById("reviewsContainer");
+
+        if (reviewValue === '' && activeStars === 0) {
+            alert("Please leave a review or select stars!");
+            return;
+        }
+
+        // Create review card
+        const reviewCard = document.createElement("div");
+        reviewCard.className = "card mb-2 p-2";
+
+        // Create stars HTML dynamically
+        let starsHTML = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= activeStars) {
+                starsHTML += `<i class="bi bi-star-fill text-warning"></i>`;
+            } else {
+                starsHTML += `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+            }
+        }
+
+        reviewCard.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <strong>AccountName</strong>
+                <div class="text-muted">${starsHTML}</div>
+            </div>
+            <p class="mb-0 small text-muted text-wrap">${reviewValue}</p>
+        `;
+
+        reviewsContainer.appendChild(reviewCard);
+
+        // Reset form
+        review.value = "";
+        stars.forEach(star => {
+            const iTag = star.querySelector("i");
+            iTag.classList.remove("bi-star-fill", "text-warning");
+            iTag.classList.add("bi-star");
+        });
+        rating.textContent = "0";
+        activeStars = 0;
+    });
+
+});
+
+// NOTIFICATIONS
+
+document.addEventListener('DOMContentLoaded', function() {
+    const notifications = [
+        {
+          title: 'DAILY RUNDOWN: MONDAY',
+          description: 'Tech market trends, new policies, and your morning coffee.',
+          time: '2h',
+        },
+        {
+          title: 'DAILY RUNDOWN: TUESDAY',
+          description: 'Startups on the rise, and what to watch out for.',
+          time: '1d',
+        },
+        {
+          title: 'DAILY RUNDOWN: WEDNESDAY',
+          description: 'Income tax sops on the cards, The bias in VC funding, and other top news for you',
+          time: '3d',
+        },
+        {
+          title: 'DAILY RUNDOWN: THURSDAY',
+          description: 'Global stocks rally as markets regain confidence.',
+          time: '4d',
+        },
+        {
+          title: 'DAILY RUNDOWN: FRIDAY',
+          description: 'New tech innovations in AI and robotics.',
+          time: '5d',
+        },
+        {
+            title: 'DAILY RUNDOWN: FRIDAY',
+            description: 'New tech innovations in AI and robotics.',
+            time: '5d',
+        },
+        {
+        title: 'DAILY RUNDOWN: FRIDAY',
+        description: 'New tech innovations in AI and robotics.',
+        time: '5d',
+        },
+      ];
+      
+      // Function to load notifications dynamically
+      function loadNotifications() {
+        const recentContainer = document.getElementById('recentBody');
+        const earlierContainer = document.getElementById('earlierBody');
+      
+        // Limit the recent notifications to the first 4 items
+        const recentNotifications = notifications.slice(0, 4);
+        const earlierNotifications = notifications.slice(4); // The rest go to earlier
+      
+        // Helper function to create notification HTML
+        function createNotificationHTML(notification) {
+          return `
+            <div class="p-3 d-flex align-items-center border-bottom osahan-post-header">
+              <div class=" flex-grow-1 ms-3">
+                <div class="fw-bold ">${notification.title}</div>
+                <div class="small">${notification.description}</div>
+              </div>
+               <span class="ms-auto mb-auto">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-sm rounded" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="bi bi-three-dots"></i>
+                  </button>
+                  <div class="dropdown-menu dropdown-menu-end">
+                    <button class="dropdown-item" type="button"><i class="mdi mdi-delete"></i> Delete</button>
+                    <button class="dropdown-item" type="button"><i class="mdi mdi-close"></i> Turn Off</button>
+                  </div>
+                </div>
+                <br />
+                <div class="text-end text-muted pt-1">${notification.time}</div>
+              </span>
+            </div>
+          `;
+        }
+      
+        // Load recent notifications (up to 4)
+        recentNotifications.forEach(notification => {
+          recentContainer.classList.add('bg-light2')
+          recentContainer.insertAdjacentHTML('beforeend', createNotificationHTML(notification));
+        });
+      
+        // Load earlier notifications (any after the 4th)
+        earlierNotifications.forEach(notification => {
+          earlierContainer.insertAdjacentHTML('beforeend', createNotificationHTML(notification));
+        });
+      }
+
+      loadNotifications();
 });
 

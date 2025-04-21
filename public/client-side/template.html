@@ -201,12 +201,33 @@
         </a>
       </li><!-- End Subscription Nav -->
 
-      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+      <!-- <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
         <a id="partner-agencies" class="nav-link collapsed" href="/partner-agencies">
           <i class="bi bi-receipt"></i>
           <span>Partner Agencies</span>
         </a>
-      </li><!-- End Payment Nav -->
+      </li>End Payment Nav -->
+
+
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="partner-agencies" class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-receipt"></i><span>Partner Agency</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="/partner-agency">
+              <i class="bi bi-circle"></i><span>Partner Agencies</span>
+            </a>
+          </li>
+          <li>
+            <a href="/review-agency">
+              <i class="bi bi-circle"></i><span>Review Agency</span>
+            </a>
+          </li>
+        </ul>
+      </li><!-- End Tables Nav -->
+
+
 
       <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
         <a id="notifications" class="nav-link collapsed" href="/notifications">
@@ -218,7 +239,7 @@
       <li class="nav-heading mt-3">Personal</li>
   
         <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
-          <a id="account" class="nav-link collapsed" href="/users-profile">
+          <a id="account" class="nav-link collapsed" href="/account">
             <i class="bi bi-person"></i>
             <span>Account</span>
           </a>
