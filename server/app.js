@@ -17,6 +17,8 @@ app.get('/progress-tracker', (req, res) => {
     res.send(template.replace('{{content}}', progressTracker));
 });
 
+
+
 app.get('/submission', (req, res) => {
     const submission = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'document-submission.html'), 'utf-8');
     res.send(template.replace('{{content}}', submission));
