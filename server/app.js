@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const port = 3080;
 
+const { db } = require('./config');
+const { doc, setDoc, getDoc } = require('firebase/firestore');
+
 
 const app = express();
 
@@ -29,7 +32,7 @@ app.get('/downloadable-forms', (req, res) => {
     res.send(template.replace('{{content}}', downloadableForms));
 });
 
-app.get('/partner-agency', (req, res)=>{
+app.get('/partner-agency', (req, res) => {
     const partnerAgencies = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'partner-agencies.html'), 'utf-8');
     res.send(template.replace('{{content}}', partnerAgencies));
 });
@@ -49,10 +52,30 @@ app.get('/notifications', (req, res) => {
     res.send(template.replace('{{content}}', notifications));
 });
 
+
+app.get('/test-firestore', async (req, res) => {
+    try {
+        const testRef = doc(db, 'testCollection', 'testDoc');
+
+        await setDoc(testRef, { message: 'Hello from Firebase!' });
+
+        const docSnap = await getDoc(testRef);
+
+        console.log('Document fetched:', docSnap.data());
+
+        res.send(`📦 Firebase Firestore is working! Message: ${docSnap.data().message}`);
+    } catch (error) {
+        console.error('🔥 Firebase Firestore test failed:', error);
+        res.status(500).send('Error connecting to Firebase.');
+    }
+});
+
+
 app.use((req, res) => {
     res.status(404).send(template.replace('{{content}}', '<h3>404 - Page Not Found</h3>'));
 });
 
-app.listen(port, () =>{
+
+app.listen(port, () => {
     console.log(`Server successful, listening on port http://127.0.0.1:${port}`)
 })

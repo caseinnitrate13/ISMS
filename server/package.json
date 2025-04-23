@@ -19,6 +19,9 @@
   },
   "homepage": "https://github.com/caseinnitrate13/ISMS#readme",
   "dependencies": {
-    "express": "^4.21.2"
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase": "^11.6.0",
+    "nodemon": "^3.1.9"
   }
 }
