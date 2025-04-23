@@ -283,7 +283,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 25px solid #c6c7c8;
+  border: 25px solid #dde5ee;
   position: absolute;
   top: 0;
   left: 0;
@@ -350,17 +350,23 @@
 
 /* Color Themes */
 .progress.blue .progress-bar {
-  border-color: #00c2cb; /* Aqua Blue */
+  border-color: #0dcaf0;
 }
 
 .progress.yellow .progress-bar {
-  border-color: #ff7f11; /* Vivid Orange */
+  border-color: #20c997; 
 }
 
 .progress.red .progress-bar {
-  border-color: #d7263d; /* Crimson Raspberry */
+  border-color: #ff7f50;
 }
 
 .progress.purple .progress-bar {
-  border-color: #845ec2; /* Deep Lilac */
+  border-color: #845ec2;
+}
+
+.table-responsive-scroll {
+  max-height: 400px;           /* Adjust as needed */
+  overflow-y: auto;
+  overflow-x: auto;
 }
