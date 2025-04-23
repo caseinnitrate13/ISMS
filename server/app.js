@@ -57,7 +57,7 @@ app.get('/test-firestore', async (req, res) => {
     try {
         const testRef = doc(db, 'testCollection', 'testDoc');
 
-        await setDoc(testRef, { message: 'Hello from Firebase! Succesfully written' });
+        await setDoc(testRef, { message: 'Hello from Firebase!' });
 
         const docSnap = await getDoc(testRef);
 
