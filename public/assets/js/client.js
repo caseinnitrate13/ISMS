@@ -800,3 +800,53 @@ document.addEventListener('DOMContentLoaded', function() {
       loadNotifications();
 });
 
+// PROGRESS TRACKER
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const progressData = [
+        { label: "Initial Requirements", percent: 50, color: "blue" },
+        { label: "Pre-Deployment Requirements", percent: 37.5, color: "yellow" },
+        { label: "In-Progress Requirements", percent: 80.5, color: "red" },
+        { label: "Final Requirements", percent: 30, color: "purple" }
+      ];
+    
+      const progressCardsContainer = document.getElementById('progressCards');
+    
+      progressData.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'col-md-3 mb-4';
+        card.innerHTML = `
+          <div class="card text-center progress-card">
+            <div class="card-body">
+              <div class="progress ${item.color}" id="progress-${index}">
+                <span class="progress-left">
+                  <span class="progress-bar"></span>
+                </span>
+                <span class="progress-right">
+                  <span class="progress-bar"></span>
+                </span>
+                <div class="progress-value">${item.percent}%</div>
+              </div>
+              <p class="mt-3 mb-0 fw-bold">${item.label}</p>
+            </div>
+          </div>
+        `;
+        progressCardsContainer.appendChild(card);
+    
+        // Animate rotation based on percentage
+        const rightBar = card.querySelector('.progress-right .progress-bar');
+        const leftBar = card.querySelector('.progress-left .progress-bar');
+    
+        if (item.percent <= 50) {
+          const rightDeg = (item.percent / 100) * 360;
+          rightBar.style.transform = `rotate(${rightDeg}deg)`;
+          leftBar.style.transform = 'rotate(0deg)';
+        } else {
+          rightBar.style.transform = 'rotate(180deg)';
+          const leftDeg = ((item.percent - 50) / 100) * 360;
+          leftBar.style.transform = `rotate(${leftDeg}deg)`;
+        }
+      });
+
+});
