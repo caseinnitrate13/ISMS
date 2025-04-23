@@ -8,7 +8,7 @@
 body {
   font-family: "Open Sans", sans-serif;
   background: #ffffff;
-  color: #444444;
+  color: #000;
   font-size: 14px;
 }
 
@@ -260,7 +260,7 @@ h6 {
   padding: 20px 0 15px 0;
   font-size: 18px;
   font-weight: 500;
-  color: #000000;
+  color: #191970;
   font-family: "Poppins", sans-serif;
 }
 
@@ -1262,14 +1262,14 @@ h6 {
 
 .footer .copyright {
   text-align: center;
-  color: #444444;
+  color: #000000;
 }
 
 .footer .credits {
   padding-top: 5px;
   text-align: center;
   font-size: 13px;
-  color: #444444;
+  color: #000000;
 }
 
 /*Login*/

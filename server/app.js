@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const port = 3080;
 
-const { db } = require('./config');
+// const { db } = require('./config');
 const { doc, setDoc, getDoc } = require('firebase/firestore');
 
 
@@ -12,15 +12,20 @@ const app = express();
 // Serve static files from the "public" folder
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-const template = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'template.html'), 'utf-8');
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
 
+app.get('/registration', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'registration.html'));
+});
+
+const template = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'template.html'), 'utf-8');
 
 app.get('/progress-tracker', (req, res) => {
     const progressTracker = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'progress-tracker.html'), 'utf-8');
     res.send(template.replace('{{content}}', progressTracker));
 });
-
-
 
 app.get('/submission', (req, res) => {
     const submission = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'document-submission.html'), 'utf-8');
