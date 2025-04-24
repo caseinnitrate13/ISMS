@@ -16,4 +16,163 @@
 
 
 
-<!-- progress -->
+<!-- Initial Requirements Table -->
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex justify-content-start gap-1 mb-3 mt-4">
+      <h5 class="fw-bold">Initial Requirements</h5>
+      <div class="dropdown ms-3 me-3" id="initialDropdown">
+        <a class="d-flex align-items-center border ps-3 pe-3 pt-1 pb-1 text-secondary" href="#" data-bs-toggle="dropdown">
+            <span id="initialStatus" class="dropdown-toggle text-dark">All</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-right text-secondary">
+            <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Pending">Pending</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Completed">Completed</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="ToRevise">ToRevise</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="container p-0">
+      <div class="table-responsive table-responsive-scroll">
+        <table id="initTable" class="table table-bordered table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Status</th>
+              <th>Requirements</th>
+              <th>Due Date</th>
+              <th>Date Complied</th>
+            </tr>
+          </thead>
+          <tbody id="initBody">
+            <!-- Rows go here -->
+          </tbody>
+        </table>
+      </div>
+    </div>    
+  </div>
+</div>
+
+
+<!-- Pre-Deployment Requirements Table -->
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-start gap-1 mb-3 mt-4">
+      <h5 class="fw-bold">Pre-Deployment Requirements</h5>
+      <div class="dropdown ms-3 me-3" id="preDepDropdown">
+        <a class="d-flex align-items-center border ps-3 pe-3 pt-1 pb-1 text-secondary" href="#" data-bs-toggle="dropdown">
+            <span id="preDepStatus" class="dropdown-toggle text-dark">All</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-right text-secondary">
+            <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Pending">Pending</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Completed">Completed</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="ToRevise">ToRevise</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="container p-0">
+      <div class="table-responsive table-responsive-scroll">
+        <table id="preDepTable" class="table table-bordered table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Status</th>
+              <th>Requirements</th>
+              <th>Due Date</th>
+              <th>Date Complied</th>
+            </tr>
+          </thead>
+          <tbody id="preDepBody">
+            <!-- Rows go here -->
+          </tbody>
+        </table>
+      </div>
+    </div>    
+  </div>
+</div>
+
+
+
+<!-- In-Progress Requirements Table -->
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-start gap-1 mb-3 mt-4">
+      <h5 class="fw-bold">In-Progress Requirements</h5>
+      <div class="dropdown ms-3 me-3" id="inProgressDropdown">
+        <a class="d-flex align-items-center border ps-3 pe-3 pt-1 pb-1 text-secondary" href="#" data-bs-toggle="dropdown">
+            <span id="inProgressStatus" class="dropdown-toggle text-dark">All</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-right text-secondary">
+            <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Pending">Pending</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Completed">Completed</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="ToRevise">ToRevise</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="container p-0">
+      <div class="table-responsive table-responsive-scroll">
+        <table id="inProgressTable" class="table table-bordered table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Status</th>
+              <th>Requirements</th>
+              <th>Due Date</th>
+              <th>Date Complied</th>
+            </tr>
+          </thead>
+          <tbody id="inProgressBody">
+            <!-- Rows go here -->
+          </tbody>
+        </table>
+      </div>
+    </div>    
+  </div>
+</div>
+
+
+
+<!-- Final Requirements Table -->
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-start gap-1 mb-3 mt-4">
+      <h5 class="fw-bold">Final Requirements</h5>
+      <div class="dropdown ms-3 me-3" id="finalDropdown">
+        <a class="d-flex align-items-center border ps-3 pe-3 pt-1 pb-1 text-secondary" href="#" data-bs-toggle="dropdown">
+            <span id="finalStatus" class="dropdown-toggle text-dark">All</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-right text-secondary">
+            <li><a class="dropdown-item view-option" href="#" data-status="All">All</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Pending">Pending</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Completed">Completed</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="ToRevise">ToRevise</a></li>
+            <li><a class="dropdown-item view-option" href="#" data-status="Overdue">Overdue</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="container p-0">
+      <div class="table-responsive table-responsive-scroll">
+        <table id="finalTable" class="table table-bordered table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Status</th>
+              <th>Requirements</th>
+              <th>Due Date</th>
+              <th>Date Complied</th>
+            </tr>
+          </thead>
+          <tbody id="finalBody">
+            <!-- Rows go here -->
+          </tbody>
+        </table>
+      </div>
+    </div>    
+  </div>
+</div>

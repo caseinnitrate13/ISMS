@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const initialRequirements = [
         { title: 'Student Information Sheet', description: 'Description Description Description Description Description Description Description Description DescriptionDescriptionDescriptionDescriptionDescription DescriptionDescriptionDescription Description Description DescriptionDescription DescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription.', status: 'Pending', dueDate: '2025/08/02' },
         { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/20' },
-        { title: 'Physical Examination Certificate', description: 'Description.', status: 'Requires Revision', dueDate: '2025/08/23', file:'assets/img/logo-fav.png' },
+        { title: 'Physical Examination Certificate', description: 'Description.', status: 'ToRevise', dueDate: '2025/08/23', file:'assets/img/logo-fav.png' },
         { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/3.pdf' },
     ];
 
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const inProgressRequirements = [
         { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/02' },
         { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/20' },
-        { title: 'Physical Examination Certificate', description: 'Description.', status: 'Requires Revision', dueDate: '2025/08/23', file:'assets/img/logo-fav.png' },
+        { title: 'Physical Examination Certificate', description: 'Description.', status: 'ToRevise', dueDate: '2025/08/23', file:'assets/img/logo-fav.png' },
         { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/logo-fav.png' },
     ];
 
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const statusOrder = {
         'Pending': 'text-primary',
         'Overdue': 'text-danger',
-        'Requires Revision': 'text-warning',
+        'ToRevise': 'text-warning',
         'Completed': 'text-success'
     };
 
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     overdue.textContent = `Overdue: ${requirement.pastDue}`;
                 }
 
-                if(requirement.status === "Requires Revision" || requirement.status === "Completed"){
+                if(requirement.status === "ToRevise" || requirement.status === "Completed"){
                     const submitFile = document.getElementById('submitFile');
 
                     submitFile.disabled = true;
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                     `;
 
-                    if (requirement.status === "Requires Revision") {
+                    if (requirement.status === "ToRevise") {
 
                         fileUploadContainer.innerHTML = `
                             <div class="file-preview-wrapper">
@@ -803,7 +803,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // PROGRESS TRACKER
 
 document.addEventListener('DOMContentLoaded', function() {
-
+    // progess circle
     const progressData = [
         { label: "Initial Requirements", percent: 50, color: "blue" },
         { label: "Pre-Deployment Requirements", percent: 37.5, color: "yellow" },
@@ -848,5 +848,132 @@ document.addEventListener('DOMContentLoaded', function() {
           leftBar.style.transform = `rotate(${leftDeg}deg)`;
         }
       });
+
+
+    //   progress table
+
+    const initRequirements = [
+        { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' }
+    ];
+
+    const preDepRequirements = [
+        { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' }
+    ];
+
+
+    const inProgressRequirements = [
+        { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' }
+    ];
+
+    
+    const finalRequirements = [
+        { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' }
+    ];
+
+    const statusOrder = {
+        'Pending': 'bg-primary',
+        'Overdue': 'bg-danger',
+        'ToRevise': 'bg-warning text-dark',
+        'Completed': 'bg-success'
+    };
+
+
+    let initialStatus = "All";
+    let preDepStatus = "All";
+    let inProgressStatus = "All";
+    let finalStatus = "All";
+
+    function showTableData(tableID, requirements, statusFilter) {
+        const tbody = document.getElementById(tableID);
+        tbody.innerHTML = "";
+    
+        const filtered = statusFilter === "All" ? requirements : requirements.filter(req => req.status === statusFilter);
+    
+        if (filtered.length === 0) {
+            container.innerHTML = "<td class='p-3 text-center col-md-12'>No data to show</td>";
+            return;
+        }
+
+        filtered.forEach(req => {
+            const row = document.createElement("tr");
+    
+            const badgeClass = statusOrder[req.status] || 'bg-secondary';
+            const statusCell = `<td><span class="badge ${badgeClass}">${req.status}</span></td>`;
+            const nameCell = `<td>${req.title}</td>`;
+            const dueDateCell = `<td>${req.dueDate}</td>`;
+    
+            let submittedCell = '<td></td>';
+            if (req.dateSubmitted) {
+                const [date, time] = req.dateSubmitted.split(', ');
+                submittedCell = `<td>${date} <span class="text-muted fst-italic">${time}</span></td>`;
+            }
+    
+            row.innerHTML = statusCell + nameCell + dueDateCell + submittedCell;
+            tbody.appendChild(row);
+        });
+    }
+
+        // status dropdown
+        document.querySelectorAll('.dropdown-menu .view-option').forEach(option => {
+            option.addEventListener('click', function (e) {
+                e.preventDefault();
+                const status = this.dataset.status;
+                const parentDropdown = this.closest('.dropdown');
+
+                if (parentDropdown.id === "initialDropdown") {
+                    initialStatus = status;
+                    document.getElementById("initialStatus").textContent = status;
+                    showTableData('initBody', initRequirements, initialStatus);
+                    
+                } else if (parentDropdown.id === "preDepDropdown") {
+                    preDepStatus = status;
+                    document.getElementById("preDepStatus").textContent = status;
+                    showTableData('preDepBody', preDepRequirements, preDepStatus);
+                    
+                } else if (parentDropdown.id === "inProgressDropdown") {
+                    inProgressStatus = status;
+                    document.getElementById("inProgressStatus").textContent = status;
+                    showTableData('inProgressBody', inProgressRequirements, inProgressStatus);
+                } else if (parentDropdown.id === "finalDropdown") {
+                    finalStatus = status;
+                    document.getElementById("finalStatus").textContent = status;
+                    showTableData('finalBody', finalRequirements, finalStatus);
+                }
+
+            });
+        });
+
+        showTableData('initBody', initRequirements, initialStatus);
+        showTableData('preDepBody', preDepRequirements, preDepStatus);    
+        showTableData('inProgressBody', inProgressRequirements, inProgressStatus);    
+        showTableData('finalBody', finalRequirements, finalStatus);
 
 });
