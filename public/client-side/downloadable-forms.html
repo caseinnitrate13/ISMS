@@ -9,8 +9,125 @@
 </div><!-- End Page Title -->
 
 
-<div class="row g-4" id="documentCards">
-  <!-- files here -->
+<div class="row text-center">
+  <!-- Card 1 -->
+  <div class="col-md-3 mb-4">
+    <div class="card shadow-lg p-4 h-100" style="min-height: 320px;" data-bs-toggle="modal" data-bs-target="#initRequirementsForms">
+      <div class="card-body d-flex flex-column justify-content-center align-items-center">
+        <i class="bi bi-lightbulb-fill display-4 text-info mb-3"></i>
+        <h5 class="fw-bold text-primary">Initial Requirements</h5>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="col-md-3 mb-4">
+    <div class="card shadow-lg p-4 h-100" style="min-height: 320px;" data-bs-toggle="modal" data-bs-target="#preDepRequirementsForms">
+      <div class="card-body d-flex flex-column justify-content-center align-items-center">
+        <i class="bi bi-rocket-takeoff-fill display-4 text-success mb-3"></i>
+        <h5 class="fw-bold text-success">Pre-Deployment Requirements</h5>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="col-md-3 mb-4">
+    <div class="card shadow-lg p-4 h-100" style="min-height: 320px;" data-bs-toggle="modal" data-bs-target="#inProgressRequirementsForms">
+      <div class="card-body d-flex flex-column justify-content-center align-items-center">
+        <i class="bi bi-arrow-repeat display-4 text-warning mb-3"></i>
+        <h5 class="fw-bold text-warning">In-Progress Requirements</h5>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 4 -->
+  <div class="col-md-3 mb-4">
+    <div class="card shadow-lg p-4 h-100" style="min-height: 320px;" data-bs-toggle="modal" data-bs-target="#finalRequirementsForms">
+      <div class="card-body d-flex flex-column justify-content-center align-items-center">
+        <i class="bi bi-check2-circle display-4  mb-3 purple"></i>
+        <h5 class="fw-bold purple">Final Requirements</h5>
+      </div>
+    </div>
+  </div>
 </div>
 
-  
+
+<!-- initial requirements modal-->
+<div id="initRequirementsForms" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Initial Requirements</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4" id="initDocuments">
+          <!-- files here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary rounded-pill">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- pre-deployment requirements modal-->
+<div id="preDepRequirementsForms" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Pre-Deployment Requirements</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4" id="preDepDocuments">
+          <!-- files here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary rounded-pill">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- in-progress requirements modal-->
+<div id="inProgressRequirementsForms" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">In-Progress Requirements</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4" id="inProgDocuments">
+          <!-- files here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary rounded-pill">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- final requirements modal-->
+<div id="finalRequirementsForms" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Final Requirements</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4" id="finalDocuments">
+          <!-- files here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary rounded-pill">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

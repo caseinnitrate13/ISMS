@@ -110,12 +110,23 @@
 
 
 /* DOWNLOADABLE FILES */
+.purple{
+  color: #6f42c1;
+}
+
+#initRequirementsForms .modal-body, #preDepRequirementsForms .modal-body, 
+#inProgressRequirementsForms .modal-body, #finalRequirementsForms .modal-body    {
+  margin: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
 .card{
   border: 1px solid #c1c1c1 ;
   margin: 0;
 }
 .preview-container {
-  height: 100px;
+  height: 130px;
   overflow: hidden;
   position: relative;
   cursor: pointer;
@@ -131,7 +142,7 @@
 }
 .placeholder-docx {
   background: #f1f1f1;
-  height: 100px;
+  height: 130px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -214,6 +225,8 @@
   -ms-overflow-style: none;
 }
 
+
+
 /* RREVIEW AGENCY */
 .stars{
   font-size: 20px;
@@ -257,7 +270,6 @@
 
 
 /* PROGRESS TRACKER */
-
 
 .progress-card {
   min-height: 220px;
@@ -354,15 +366,15 @@
 }
 
 .progress.yellow .progress-bar {
-  border-color: #20c997; 
+  border-color: #198754; 
 }
 
 .progress.red .progress-bar {
-  border-color: #ff7f50;
+  border-color: #FFC107;
 }
 
 .progress.purple .progress-bar {
-  border-color: #845ec2;
+  border-color: #6f42c1;
 }
 
 .table-responsive-scroll {

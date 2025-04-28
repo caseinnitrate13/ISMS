@@ -391,72 +391,114 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // DOWNLOADABLE FORMS
-document.addEventListener('DOMContentLoaded', function(){
-    const documents = [
-        { name: "Project PDF", file: "assets/img/3.pdf" },
-        { name: "Lecture Notes", file: "assets/img/a.png" },
-        { name: "Annual Report", file: "assets/img/1.docx" },
-        { name: "Meeting Minutes", file: "assets/img/1.docx" },
-        { name: "Research Paper", file: "assets/img/1.docx" },
-        { name: "Summary Report", file: "assets/img/1.docx" },
-        { name: "User Guide", file: "assets/img/1.docx" },
-        { name: "Invoice", file: "assets/img/1.docx" },
-        { name: "Presentation", file: "assets/img/1.docx" },
-        { name: "Proposal", file: "assets/img/1.docx" }
-    ];
-      
-    const cardContainer = document.getElementById("documentCards");
-    
-    documents.forEach(doc => {
-        const fileExtension = doc.file.split('.').pop().toLowerCase();
-        let previewHTML = "";
-        
-        if (fileExtension === "pdf") {
-            previewHTML = `
-            <div class="preview-container" onclick="window.open('${doc.file}', '${doc.name}')">
-                <iframe src="${doc.file}#toolbar=0&navpanes=0&scrollbar=0"></iframe>
-            </div>
-            `;
-        } else if (["png", "jpg", "jpeg"].includes(fileExtension)) {
-            previewHTML = `
-                <div class="preview-container" onclick="window.open('${doc.file}', '${doc.name}')">
-                <img src="${doc.file}" alt="${doc.name}" style="width: 100%; height: 150px; object-fit: cover;" />
-                </div>
-            `;
-        } else if (fileExtension === "docx") {
-            previewHTML = `
-            <div class="placeholder-docx" onclick="window.open('${doc.file}', '${doc.name}')">
-                <i class="bi bi-file-earmark-word" style="font-size: 50px; color: #2B579A;"></i>
-            </div>
-            `;
-        } else {
-            previewHTML = `
-            <div class="placeholder-docx" onclick="window.open('${doc.file}', '${doc.name}')">
-                No Preview Available
-            </div>
-            `;
-        }
-        
-        console.log(`Adding document: ${doc.name}`);
-        
-        const card = document.createElement("div");
-        card.className = "col-md-3";
-        card.innerHTML = `
-            <div class="card shadow-sm h-100 mt-0">
-                ${previewHTML}
-                <div class="card-body text-center">
-                    <h5 class="card-title">${doc.name}</h5>
-                    <a href="${doc.file}" download class="btn btn-primary">Download</a>
-                </div>
-            </div>
-        `;
-        if (cardContainer){
-            cardContainer.appendChild(card);
-            console.log('Documents Displayed');
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    const allDocuments = {
+        initDocuments: [
+            { name: "Project PDF1", file: "assets/img/3.pdf" },
+            { name: "Lecture Notes", file: "assets/img/a.png" },
+            { name: "Annual Report", file: "assets/img/1.docx" },
+            { name: "Meeting Minutes", file: "assets/img/1.docx" },
+            { name: "Research Paper", file: "assets/img/1.docx" },
+            { name: "Summary Report", file: "assets/img/1.docx" },
+            { name: "User Guide", file: "assets/img/1.docx" },
+            { name: "Invoice", file: "assets/img/1.docx" },
+            { name: "Presentation", file: "assets/img/1.docx" },
+            { name: "Proposal", file: "assets/img/1.docx" }
+        ],
+        preDepDocuments: [
+            { name: "Project PDF2", file: "assets/img/3.pdf" },
+            { name: "Lecture Notes", file: "assets/img/a.png" },
+            { name: "Annual Report", file: "assets/img/1.docx" },
+            { name: "Meeting Minutes", file: "assets/img/1.docx" },
+            { name: "Research Paper", file: "assets/img/1.docx" },
+            { name: "Summary Report", file: "assets/img/1.docx" },
+            { name: "User Guide", file: "assets/img/1.docx" },
+            { name: "Invoice", file: "assets/img/1.docx" },
+            { name: "Presentation", file: "assets/img/1.docx" },
+            { name: "Proposal", file: "assets/img/1.docx" }
+        ],
+        inProgDocuments: [
+            { name: "Project PDF3", file: "assets/img/3.pdf" },
+            { name: "Lecture Notes", file: "assets/img/a.png" },
+            { name: "Annual Report", file: "assets/img/1.docx" },
+            { name: "Meeting Minutes", file: "assets/img/1.docx" },
+            { name: "Research Paper", file: "assets/img/1.docx" },
+            { name: "Summary Report", file: "assets/img/1.docx" },
+            { name: "User Guide", file: "assets/img/1.docx" },
+            { name: "Invoice", file: "assets/img/1.docx" },
+            { name: "Presentation", file: "assets/img/1.docx" },
+            { name: "Proposal", file: "assets/img/1.docx" }
+        ],
+        finalDocuments: [
+            { name: "Project PDF4", file: "assets/img/3.pdf" },
+            { name: "Lecture Notes", file: "assets/img/a.png" },
+            { name: "Annual Report", file: "assets/img/1.docx" },
+            { name: "Meeting Minutes", file: "assets/img/1.docx" },
+            { name: "Research Paper", file: "assets/img/1.docx" },
+            { name: "Summary Report", file: "assets/img/1.docx" },
+            { name: "User Guide", file: "assets/img/1.docx" },
+            { name: "Invoice", file: "assets/img/1.docx" },
+            { name: "Presentation", file: "assets/img/1.docx" },
+            { name: "Proposal", file: "assets/img/1.docx" }
+        ]
+    };
 
-    });
+    function createDocumentCards(containerId, documents) {
+        const cardContainer = document.getElementById(containerId);
+        if (!cardContainer) return;
+
+        documents.forEach(doc => {
+            const fileExtension = doc.file.split('.').pop().toLowerCase();
+            let previewHTML = "";
+
+            if (fileExtension === "pdf") {
+                previewHTML = `
+                    <div class="preview-container" onclick="window.open('${doc.file}', '${doc.name}')">
+                        <iframe src="${doc.file}#toolbar=0&navpanes=0&scrollbar=0"></iframe>
+                    </div>
+                `;
+            } else if (["png", "jpg", "jpeg"].includes(fileExtension)) {
+                previewHTML = `
+                    <div class="preview-container" onclick="window.open('${doc.file}', '${doc.name}')">
+                        <img src="${doc.file}" alt="${doc.name}" style="width: 100%; height: 130px; object-fit: cover;" />
+                    </div>
+                `;
+            } else if (fileExtension === "docx") {
+                previewHTML = `
+                    <div class="placeholder-docx" onclick="window.open('${doc.file}', '${doc.name}')">
+                        <i class="bi bi-file-earmark-word" style="font-size: 50px; color: #2B579A;"></i>
+                    </div>
+                `;
+            } else {
+                previewHTML = `
+                    <div class="placeholder-docx" onclick="window.open('${doc.file}', '${doc.name}')">
+                        No Preview Available
+                    </div>
+                `;
+            }
+
+            const card = document.createElement("div");
+            card.className = "col-md-3";
+            card.innerHTML = `
+                <div class="card shadow-sm h-100 mt-0">
+                    ${previewHTML}
+                    <div class="card-body text-center">
+                        <h5 class="card-title">${doc.name}</h5>
+                        <a href="${doc.file}" download class="btn btn-primary">Download</a>
+                    </div>
+                </div>
+            `;
+
+            cardContainer.appendChild(card);
+        });
+    }
+
+    // Loop through all document sets
+    for (const [containerId, documents] of Object.entries(allDocuments)) {
+        createDocumentCards(containerId, documents);
+    }
 });
+
 
 
 // PARTNER AGENCIES
