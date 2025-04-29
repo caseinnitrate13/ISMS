@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>INTERNSHIP SUPPORT AND MANAGEMENT SYSTEM</title>
+  <title>Internship Document Management System</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -50,7 +50,7 @@
                 <img class="loginLogo" src="assets/img/3GX LOGO HD.png" alt="">
               </div>
 
-              <div class="card mb-3">
+              <div class="card mb-3 border border-primary">
 
                 <div class="card-body">
 
@@ -62,14 +62,14 @@
                   <form id="registerForm" class="row g-3 needs-validation d-flex justify-content-center w600" novalidate>
                     <div class="row gy-1 gx-5">
                       <div class="col-md-6">
-                        <label for="regUsername" class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control table-fs border-secondary" id="regUsername" placeholder="Username" required>
+                        <label for="userName" class="form-label">Username</label>
+                        <input type="text" name="userName" class="form-control table-fs border-secondary" id="userName" placeholder="Username" required>
                         <div class="invalid-feedback">Please enter a username, at least 8-15 characters</div>
                       </div>
 
                       <div class="col-md-6">
-                        <label for="regPassword" class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control table-fs border-secondary" id="regPassword" placeholder="Password" required>
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control table-fs border-secondary" id="password" placeholder="Password" required>
                         <div class="invalid-feedback">Must contain 10-15 characters, and at least one uppercase letter, one lowercase letter, one number, and one special character(@$!%*?&).</div>
                       </div>
                     </div>
@@ -83,36 +83,32 @@
                       </div>
 
                       <div class="col-md-6">
-                        <label for="regCompanyName" class="form-label">Company Name</label>
-                        <input type="text" name="regCompanyName" class="form-control table-fs border-secondary" id="regCompanyName" placeholder="Company Name" required>
-                        <div class="invalid-feedback">Please enter your company name.</div>
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input type="text" name="fullName" class="form-control table-fs border-secondary" id="fullName" placeholder="Full Name" required>
+                        <div class="invalid-feedback">Please enter your full name.</div>
                       </div>
                     </div>
 
                     <div class="row gy-1 gx-5">
                       
                       <div class="col-md-6">
-                        <label for="regCompanyAddress" class="form-label">Company Address</label>
-                        <input type="text" name="regCompanyaddress" class="form-control table-fs border-secondary" id="regCompanyAddress" placeholder="Company Address" required>
-                        <div class="invalid-feedback">Please enter your company address.</div>
+                        <label for="sudentNumber" class="form-label">Student No.</label>
+                        <input type="text" name="sudentNumber" class="form-control table-fs border-secondary" id="sudentNumber" placeholder="Student Number" required>
+                        <div class="invalid-feedback">Please enter your student no.</div>
                       </div>
 
                       <div class="col-md-6">
-                        <label for="regCompanyEmail" class="form-label">Company Email</label>
-                        <input type="email" name="regCompanyEmail" class="form-control table-fs border-secondary" id="regCompanyEmail" placeholder="Company Email" required>
+                        <label for="Email" class="form-label"> Email</label>
+                        <input type="email" name="regCompanyEmail" class="form-control table-fs border-secondary" id="Email" placeholder="Email" required>
                         <div class="invalid-feedback">Please enter a valid email address</div>
                       </div>
                     </div>
                   
                     <div class="row gy-1 gx-5">
-                      
                       <div class="col-md-6">
-                        <label class="form-label">Business Permit</label>
-                        <label class="btn btn-outline-secondary form-control text-start table-fs">
-                            <span id="busPermitLabel">Upload Business Permit</span>
-                            <input type="file" class="form-control required d-none" id="busPermit" name="file"accept="image/*, .pdf, .doc, .docx" required>
-                        </label>
-                        <div class="invalid-feedback" id="busPermitError">Please upload your business permit.</div>
+                        <label for="block" class="form-label">Block</label>
+                        <input type="text" name="block" class="form-control table-fs border-secondary" id="block" placeholder="Block" required>
+                        <div class="invalid-feedback">Please enter your block.</div>
                       </div>
                     
                       <div class="col-md-6">
@@ -123,26 +119,8 @@
 
                     </div>
 
-                    <div class="row gy-1 gx-5">
-                      <div class="col-md-6">
-                        <label for="regRepName" class="form-label">Representative Name</label>
-                        <input type="text" name="repName" class="form-control table-fs border-secondary" id="regRepName" placeholder="Representative Name" required>
-                        <div class="invalid-feedback">Please enter the representative's name</div>
-                      </div>
-
-                      <div class="col-md-6">
-                        <label class="form-label">Upload Valid ID</label>
-                        <label class="btn btn-outline-secondary form-control text-start table-fs">
-                            <span id="validIdLabel">Upload Valid ID</span>
-                            <input type="file" class="form-control required d-none" id="validId" name="file" accept="image/*" required>
-                        </label>
-                        <div class="invalid-feedback" id="validIdError">Please upload a valid ID.</div>
-                      </div>
-
-                    </div>
-
                     <!-- Terms & Submit -->
-                    <div class="col-10 mt-4 small w500">
+                    <!-- <div class="col-10 mt-4 small w500">
                       <div class="form-check">
                         <input class="form-check-input border-secondary" name="terms" type="checkbox" value="" id="acceptTerms" required>
                         <label class="form-check-label" for="acceptTerms">
@@ -152,10 +130,10 @@
                         
                         <div class="invalid-feedback">You must agree before submitting.</div>
                       </div>
-                    </div>
+                    </div> -->
                   
                     <div class="col-6">
-                      <button id="createAccount" class="btn blue w-100" type="submit">Create Account</button>
+                      <button id="createAccount" class="btn btn-primary w-100" type="submit">Create Account</button>
                     </div>
                   
                     <div class="col-12 text-center w500">
@@ -168,13 +146,8 @@
               </div>
 
               <div class="copyright small">
-                  &copy; Copyright <strong><span>3GX Solutions</span></strong>. All Rights Reserved
+                  &copy; Copyright <strong><span>Internship Document Management System</span></strong>. All Rights Reserved
                 </div>
-                <!-- <div class="credits">
-                  Powered by 3GX Solutions and IT Computers Technoshop
-                </div> -->
-
-
             </div>
           </div>
         </div>
