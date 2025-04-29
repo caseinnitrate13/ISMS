@@ -4,10 +4,10 @@ const path = require('path');
 const port = 3080;
 
 //Firebase Connection
-const { db } = require('./config');
-const { doc, setDoc, getDoc } = require('firebase/firestore');
-const { storage } = require('./config');
-const { ref, uploadBytes } = require('firebase/storage');
+// const { db } = require('./config');
+// const { doc, setDoc, getDoc } = require('firebase/firestore');
+// const { storage } = require('./config');
+// const { ref, uploadBytes } = require('firebase/storage');
 
 const app = express();
 

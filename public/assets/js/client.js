@@ -96,44 +96,45 @@ document.addEventListener('DOMContentLoaded', function () {
     const submissionModal = new bootstrap.Modal(document.getElementById("submissionModal"));
 
     const initialRequirements = [
-        { title: 'Student Information Sheet', description: 'Description Description Description Description Description Description Description Description DescriptionDescriptionDescriptionDescriptionDescription DescriptionDescriptionDescription Description Description DescriptionDescription DescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription.', status: 'Pending', dueDate: '2025/08/02' },
-        { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/20' },
+        { title: 'Student Information Sheet', description: 'ptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription.', status: 'Pending', dueDate: '2025/08/02', file:'assets/img/sample-file.pdf' },
+        { title: 'Medical Certificate', description: 'Description.', status: 'NoSubmission', dueDate: '2025/08/20' },
         { title: 'Physical Examination Certificate', description: 'Description.', status: 'ToRevise', dueDate: '2025/08/23', file:'assets/img/logo-fav.png' },
-        { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/3.pdf' },
+        { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/sample-file.pdf' },
     ];
 
     const preDepRequirements = [
         { title: 'Medical Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/logo-fav.png' },
-        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/12' },
+        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/12', file:'assets/img/sample-file.pdf' },
         { title: 'Insurance', description: 'Description.', status: 'Overdue', dueDate: '2025/01/20', pastDue: '3 days past due' },
         { title: 'Vaccination Record', description: 'Description.', status: 'Overdue', dueDate: '2025/02/12', pastDue: '3 days past due' },
     ];
 
     const inProgressRequirements = [
-        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/02' },
-        { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/20' },
+        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/02', file:'assets/img/sample-file.pdf' },
+        { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/20', file:'assets/img/sample-file.pdf' },
         { title: 'Physical Examination Certificate', description: 'Description.', status: 'ToRevise', dueDate: '2025/08/23', file:'assets/img/logo-fav.png' },
         { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/logo-fav.png' },
     ];
 
     const finalRequirements = [
-        { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/12' },
-        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/12' },
+        { title: 'Medical Certificate', description: 'Description.', status: 'NoSubmission', dueDate: '2025/08/12' },
+        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/12',  file:'assets/img/sample-file.pdf' },
         { title: 'Insurance', description: 'Description.', status: 'Overdue', dueDate: '2025/01/20', pastDue: '13 days past due'},
-        { title: 'Vaccination Record', description: 'Description.', status: 'Completed', dueDate: '2025/02/12', file:'assets/img/logo-fav.png'},
+        { title: 'Vaccination Record', description: 'Description.', status: 'Completed', dueDate: '2025/02/12', file:'assets/img/sample-file.pdf'},
     ];
 
     const statusOrder = {
+        'NoSubmission': 'text-secondary',
         'Pending': 'text-primary',
         'Overdue': 'text-danger',
         'ToRevise': 'text-warning',
         'Completed': 'text-success'
     };
 
-    let initialSelectedStatus = "Pending";
-    let preDepSelectedStatus = "Pending";
-    let inProgressSelectedStatus = "Pending";
-    let finalSelectedStatus = "Pending";
+    let initialSelectedStatus = "NoSubmission";
+    let preDepSelectedStatus = "NoSubmission";
+    let inProgressSelectedStatus = "NoSubmission";
+    let finalSelectedStatus = "NoSubmission";
     let showAllInitial = false;
     let showAllPreDep = false;
     let showAllInProgress = false;
@@ -169,14 +170,23 @@ document.addEventListener('DOMContentLoaded', function () {
                
             `;
 
+            const submitFile = document.getElementById('submitFile');
+            const cancelBtn = document.getElementById('cancelBtn');
+
             // open moedal with necessary data
             requirementElement.addEventListener('click', function () {
-                overdue.classList.add('d-none');
-                    modalTitle.textContent = requirement.title;
-                    modalDescription.textContent = requirement.description;
-                    selectedRequirement = requirement;
 
-                if (requirement.status === 'Pending' || requirement.status === 'Overdue'){
+                cancelBtn.classList.remove("d-none");
+                submitFile.classList.remove("d-none");
+
+                overdue.classList.add('d-none');
+                modalFooter.classList.remove('d-flex','justify-content-between');
+                
+                modalTitle.textContent = requirement.title;
+                modalDescription.textContent = requirement.description;
+                selectedRequirement = requirement;
+
+                if (requirement.status === 'NoSubmission' || requirement.status === 'Overdue'){
                     submissionModal.show();
                 }
 
@@ -186,16 +196,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     overdue.textContent = `Overdue: ${requirement.pastDue}`;
                 }
 
-                if(requirement.status === "ToRevise" || requirement.status === "Completed"){
-                    const submitFile = document.getElementById('submitFile');
+                if(requirement.status === "Pending" || requirement.status === "ToRevise" || requirement.status === "Completed"){
+                    
 
-                    submitFile.disabled = true;
+                    cancelBtn.classList.add("d-none");
+                    submitFile.classList.add("d-none");
+                    
                     
                     const fileURL = requirement.file;
                     let previewHTML = "";
             
                     if (fileURL.endsWith(".pdf")) {
-                        previewHTML = `<embed src="${fileURL}" type="application/pdf" width="100%" height="400px">`;
+                        previewHTML = `<iframe src="${fileURL}"#toolbar=0&navpanes=0&scrollbar=0" type="application/pdf" ></iframe>`;
                     } else if (fileURL.match(/\.(jpeg|jpg|gif|png)$/)) {
                         previewHTML = `<img src="${fileURL}" alt="Image Preview" class="img-fluid mb-2" style="max-height: 300px;">`;
                     } else {
@@ -203,19 +215,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
             
                     fileUploadContainer.innerHTML = `
-                        <div class="file-preview-wrapper">
+                        <div class="file-preview-wrapper pointer" onclick="window.open('${fileURL}')">
                             ${previewHTML}
                             <span class="file-preview-name">${fileURL.split('/').pop()}</span>
                         </div>
                     `;
 
                     if (requirement.status === "ToRevise") {
+                        submitFile.disabled = true;
+                        cancelBtn.classList.remove("d-none");
+                        submitFile.classList.remove("d-none");
 
                         fileUploadContainer.innerHTML = `
-                            <div class="file-preview-wrapper">
-                                ${previewHTML}
-                                <span class="file-preview-name">${fileURL.split('/').pop()}</span>
-                                <button class="close-preview" title="Remove">&times;</button>
+                            <div class="file-preview-wrapper pointer">
+                                <span  onclick="window.open('${fileURL}')">
+                                    ${previewHTML}
+                                    <span class="file-preview-name">${fileURL.split('/').pop()}</span>
+                                </span>
+                                <button class="close-preview fs-4" title="Remove">&times;</button>
                             </div>
                         `;
 
@@ -234,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 fileUpload.click();
                             });
                             
-                            submitFile.disabled = false;
+                            
                         });
                     }
                     submissionModal.show();
@@ -331,6 +348,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const fileType = file.type;
         const fileURL = URL.createObjectURL(file);
 
+        if (fileType !== ""){
+            submitFile.disabled = false;
+        }
+
         let previewHTML = "";
         if (fileType.startsWith("image/")) {
             previewHTML = `<img src="${fileURL}" alt="Image Preview">`;
@@ -343,8 +364,9 @@ document.addEventListener('DOMContentLoaded', function () {
         fileUploadContainer.innerHTML = `
             <div class="file-preview-wrapper">
                 ${previewHTML}
-                <span class="file-preview-name">${file.name}</span>
-                <button class="close-preview" title="Remove">&times;</button>
+                <span class="file-preview-name pointer"  onclick="window.open('${fileURL}')">${file.name}</span>
+            
+                <button class="close-preview fs-4" title="Remove">&times;</button>
             </div>
         `;
 
@@ -394,52 +416,52 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function() {
     const allDocuments = {
         initDocuments: [
-            { name: "Project PDF1", file: "assets/img/3.pdf" },
+            { name: "Project PDF1", file: "assets/img/sample-file.pdf" },
             { name: "Lecture Notes", file: "assets/img/a.png" },
-            { name: "Annual Report", file: "assets/img/1.docx" },
-            { name: "Meeting Minutes", file: "assets/img/1.docx" },
-            { name: "Research Paper", file: "assets/img/1.docx" },
-            { name: "Summary Report", file: "assets/img/1.docx" },
-            { name: "User Guide", file: "assets/img/1.docx" },
-            { name: "Invoice", file: "assets/img/1.docx" },
-            { name: "Presentation", file: "assets/img/1.docx" },
-            { name: "Proposal", file: "assets/img/1.docx" }
+            { name: "Annual Report", file: "assets/img/sample-file.docx" },
+            { name: "Meeting Minutes", file: "assets/img/sample-file.docx" },
+            { name: "Research Paper", file: "assets/img/sample-file.docx" },
+            { name: "Summary Report", file: "assets/img/sample-file.docx" },
+            { name: "User Guide", file: "assets/img/sample-file.docx" },
+            { name: "Invoice", file: "assets/img/sample-file.docx" },
+            { name: "Presentation", file: "assets/img/sample-file.docx" },
+            { name: "Proposal", file: "assets/img/sample-file.docx" }
         ],
         preDepDocuments: [
-            { name: "Project PDF2", file: "assets/img/3.pdf" },
+            { name: "Project PDF2", file: "assets/img/sample-file.pdf" },
             { name: "Lecture Notes", file: "assets/img/a.png" },
-            { name: "Annual Report", file: "assets/img/1.docx" },
-            { name: "Meeting Minutes", file: "assets/img/1.docx" },
-            { name: "Research Paper", file: "assets/img/1.docx" },
-            { name: "Summary Report", file: "assets/img/1.docx" },
-            { name: "User Guide", file: "assets/img/1.docx" },
-            { name: "Invoice", file: "assets/img/1.docx" },
-            { name: "Presentation", file: "assets/img/1.docx" },
-            { name: "Proposal", file: "assets/img/1.docx" }
+            { name: "Annual Report", file: "assets/img/sample-file.docx" },
+            { name: "Meeting Minutes", file: "assets/img/sample-file.docx" },
+            { name: "Research Paper", file: "assets/img/sample-file.docx" },
+            { name: "Summary Report", file: "assets/img/sample-file.docx" },
+            { name: "User Guide", file: "assets/img/sample-file.docx" },
+            { name: "Invoice", file: "assets/img/sample-file.docx" },
+            { name: "Presentation", file: "assets/img/sample-file.docx" },
+            { name: "Proposal", file: "assets/img/sample-file.docx" }
         ],
         inProgDocuments: [
-            { name: "Project PDF3", file: "assets/img/3.pdf" },
+            { name: "Project PDF3", file: "assets/img/sample-file.pdf" },
             { name: "Lecture Notes", file: "assets/img/a.png" },
-            { name: "Annual Report", file: "assets/img/1.docx" },
-            { name: "Meeting Minutes", file: "assets/img/1.docx" },
-            { name: "Research Paper", file: "assets/img/1.docx" },
-            { name: "Summary Report", file: "assets/img/1.docx" },
-            { name: "User Guide", file: "assets/img/1.docx" },
-            { name: "Invoice", file: "assets/img/1.docx" },
-            { name: "Presentation", file: "assets/img/1.docx" },
-            { name: "Proposal", file: "assets/img/1.docx" }
+            { name: "Annual Report", file: "assets/img/sample-file.docx" },
+            { name: "Meeting Minutes", file: "assets/img/sample-file.docx" },
+            { name: "Research Paper", file: "assets/img/sample-file.docx" },
+            { name: "Summary Report", file: "assets/img/sample-file.docx" },
+            { name: "User Guide", file: "assets/img/sample-file.docx" },
+            { name: "Invoice", file: "assets/img/sample-file.docx" },
+            { name: "Presentation", file: "assets/img/sample-file.docx" },
+            { name: "Proposal", file: "assets/img/sample-file.docx" }
         ],
         finalDocuments: [
-            { name: "Project PDF4", file: "assets/img/3.pdf" },
+            { name: "Project PDF4", file: "assets/img/sample-file.pdf" },
             { name: "Lecture Notes", file: "assets/img/a.png" },
-            { name: "Annual Report", file: "assets/img/1.docx" },
-            { name: "Meeting Minutes", file: "assets/img/1.docx" },
-            { name: "Research Paper", file: "assets/img/1.docx" },
-            { name: "Summary Report", file: "assets/img/1.docx" },
-            { name: "User Guide", file: "assets/img/1.docx" },
-            { name: "Invoice", file: "assets/img/1.docx" },
-            { name: "Presentation", file: "assets/img/1.docx" },
-            { name: "Proposal", file: "assets/img/1.docx" }
+            { name: "Annual Report", file: "assets/img/sample-file.docx" },
+            { name: "Meeting Minutes", file: "assets/img/sample-file.docx" },
+            { name: "Research Paper", file: "assets/img/sample-file.docx" },
+            { name: "Summary Report", file: "assets/img/sample-file.docx" },
+            { name: "User Guide", file: "assets/img/sample-file.docx" },
+            { name: "Invoice", file: "assets/img/sample-file.docx" },
+            { name: "Presentation", file: "assets/img/sample-file.docx" },
+            { name: "Proposal", file: "assets/img/sample-file.docx" }
         ]
     };
 
@@ -524,6 +546,7 @@ document.addEventListener('DOMContentLoaded', function(){
         agencyCard.innerHTML = `
             <div class="agencyCard mt-0 card shadow-sm">
                 <div class="card-body text-center">
+                    <i class="bi bi-building fs-3 dark-purple"></i>
                     <div id="agencyNameCard">${agency.name}</div>
                     <div id="agencyAddressCard" class="text-muted">${agency.address}</div>
                 </div>
@@ -580,6 +603,7 @@ document.addEventListener('DOMContentLoaded', function(){
         reviewCard.innerHTML = `
             <div class="agencyCard mt-0 g-0 card shadow-sm">
                 <div class="card-body text-center">
+                <i class="bi bi-building fs-3 dark-purple"></i>
                     <div id="reviewNameCard">${agency.name}</div>
                     <div id="reviewAddressCard" class="text-muted">${agency.address}</div>
                 </div>
@@ -757,39 +781,39 @@ document.addEventListener('DOMContentLoaded', function(){
 document.addEventListener('DOMContentLoaded', function() {
     const notifications = [
         {
-          title: 'DAILY RUNDOWN: MONDAY',
-          description: 'Tech market trends, new policies, and your morning coffee.',
-          time: '2h',
+          title: 'A New Requirement has been posted.',
+          description: 'Insurance: 3 photocopies ...',
+          time: '1 minute ago',
         },
         {
-          title: 'DAILY RUNDOWN: TUESDAY',
-          description: 'Startups on the rise, and what to watch out for.',
-          time: '1d',
+            title: 'A New Requirement has been posted.',
+            description: 'Insurance: 3 photocopies ...',
+            time: '20 minute ago',
         },
         {
-          title: 'DAILY RUNDOWN: WEDNESDAY',
-          description: 'Income tax sops on the cards, The bias in VC funding, and other top news for you',
-          time: '3d',
+            title: 'A New Requirement has been posted.',
+            description: 'Insurance: 3 photocopies ...',
+            time: '1 hour ago',
         },
         {
-          title: 'DAILY RUNDOWN: THURSDAY',
-          description: 'Global stocks rally as markets regain confidence.',
-          time: '4d',
+            title: 'A New Requirement has been posted.',
+            description: 'Insurance: 3 photocopies ...',
+            time: '5 hours ago',
         },
         {
-          title: 'DAILY RUNDOWN: FRIDAY',
-          description: 'New tech innovations in AI and robotics.',
-          time: '5d',
+            title: 'A New Requirement has been posted.',
+            description: 'Insurance: 3 photocopies ...',
+            time: '3 days ago',
         },
         {
-            title: 'DAILY RUNDOWN: FRIDAY',
-            description: 'New tech innovations in AI and robotics.',
-            time: '5d',
+            title: 'A New Requirement has been posted.',
+            description: 'Insurance: 3 photocopies ...',
+            time: '5 days ago',
         },
         {
-        title: 'DAILY RUNDOWN: FRIDAY',
-        description: 'New tech innovations in AI and robotics.',
-        time: '5d',
+            title: 'A New Requirement has been posted.',
+            description: 'Insurance: 3 photocopies ...',
+            time: '2 weeks ago',
         },
       ];
       
@@ -800,36 +824,35 @@ document.addEventListener('DOMContentLoaded', function() {
       
         // Limit the recent notifications to the first 4 items
         const recentNotifications = notifications.slice(0, 4);
-        const earlierNotifications = notifications.slice(4); // The rest go to earlier
+        const earlierNotifications = notifications.slice(4); 
       
         // Helper function to create notification HTML
         function createNotificationHTML(notification) {
-          return `
-            <div class="p-3 d-flex align-items-center border-bottom osahan-post-header">
-              <div class=" flex-grow-1 ms-3">
-                <div class="fw-bold ">${notification.title}</div>
-                <div class="small">${notification.description}</div>
-              </div>
-               <span class="ms-auto mb-auto">
-                <div class="btn-group">
-                  <button type="button" class="btn btn-sm rounded" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="bi bi-three-dots"></i>
-                  </button>
-                  <div class="dropdown-menu dropdown-menu-end">
-                    <button class="dropdown-item" type="button"><i class="mdi mdi-delete"></i> Delete</button>
-                    <button class="dropdown-item" type="button"><i class="mdi mdi-close"></i> Turn Off</button>
+            return `
+              <div class="p-3 d-flex align-items-start justify-content-between border-bottom osahan-post-header">
+                  <i class="bi bi-bell-fill me-3 mt-1"></i>
+                  <div class="flex-grow-1">
+                      <div class="fw-bold">${notification.title}</div>
+                      <div class="small notification">${notification.description}</div>
+                      <div class="text-muted small pt-1">${notification.time}</div>
                   </div>
-                </div>
-                <br />
-                <div class="text-end text-muted pt-1">${notification.time}</div>
-              </span>
-            </div>
-          `;
-        }
+                  <div class="dropdown">
+                      <button type="button" class="btn btn-sm rounded" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i class="bi bi-three-dots"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-end">
+                          <button class="dropdown-item" type="button"><i class="mdi mdi-delete"></i> Delete</button>
+                          <button class="dropdown-item" type="button"><i class="mdi mdi-close"></i> Turn Off</button>
+                      </div>
+                  </div>
+              </div>
+            `;
+          }
+          
       
         // Load recent notifications (up to 4)
         recentNotifications.forEach(notification => {
-          recentContainer.classList.add('bg-light2')
+          recentContainer.classList.add('bg-light')
           recentContainer.insertAdjacentHTML('beforeend', createNotificationHTML(notification));
         });
       
