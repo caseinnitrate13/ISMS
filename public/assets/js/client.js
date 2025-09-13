@@ -96,45 +96,45 @@ document.addEventListener('DOMContentLoaded', function () {
     const submissionModal = new bootstrap.Modal(document.getElementById("submissionModal"));
 
     const initialRequirements = [
-        { title: 'Student Information Sheet', description: 'ptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription.', status: 'Pending', dueDate: '2025/08/02', file:'assets/img/sample-file.pdf' },
-        { title: 'Medical Certificate', description: 'Description.', status: 'NoSubmission', dueDate: '2025/08/20' },
-        { title: 'Physical Examination Certificate', description: 'Description.', status: 'ToRevise', dueDate: '2025/08/23', file:'assets/img/logo-fav.png' },
-        { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/sample-file.pdf' },
+        { title: 'Student Information Sheet', description: 'ptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription.', status: 'Pending', dueDate: '2025/08/02,8:30 PM', file:'assets/img/sample-file.pdf' },
+        { title: 'Medical Certificate', description: 'Description.', status: 'To Submit', dueDate: '2025/08/20,8:30 PM' },
+        { title: 'Physical Examination Certificate', description: 'Description.', status: 'ToRevise', dueDate: '2025/08/23,8:30 PM', file:'assets/img/logo-fav.png' },
+        { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12,8:30 PM', file:'assets/img/sample-file.pdf' },
     ];
 
     const preDepRequirements = [
-        { title: 'Medical Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/logo-fav.png' },
-        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/12', file:'assets/img/sample-file.pdf' },
-        { title: 'Insurance', description: 'Description.', status: 'Overdue', dueDate: '2025/01/20', pastDue: '3 days past due' },
-        { title: 'Vaccination Record', description: 'Description.', status: 'Overdue', dueDate: '2025/02/12', pastDue: '3 days past due' },
+        { title: 'Medical Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12,8:30 PM', file:'assets/img/logo-fav.png' },
+        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/12,8:30 PM', file:'assets/img/sample-file.pdf' },
+        { title: 'Insurance', description: 'Description.', status: 'Overdue', dueDate: '2025/01/20,8:30 PM', pastDue: '3 days past due' },
+        { title: 'Vaccination Record', description: 'Description.', status: 'Overdue', dueDate: '2025/02/12,8:30 PM', pastDue: '3 days past due' },
     ];
 
     const inProgressRequirements = [
-        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/02', file:'assets/img/sample-file.pdf' },
-        { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/20', file:'assets/img/sample-file.pdf' },
-        { title: 'Physical Examination Certificate', description: 'Description.', status: 'ToRevise', dueDate: '2025/08/23', file:'assets/img/logo-fav.png' },
-        { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12', file:'assets/img/logo-fav.png' },
+        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/02,8:30 PM', file:'assets/img/sample-file.pdf' },
+        { title: 'Medical Certificate', description: 'Description.', status: 'Pending', dueDate: '2025/08/20,8:30 PM', file:'assets/img/sample-file.pdf' },
+        { title: 'Physical Examination Certificate', description: 'Description.', status: 'ToRevise', dueDate: '2025/08/23,8:30 PM', file:'assets/img/logo-fav.png' },
+        { title: 'Neurology Exam Certificate', description: 'Description.', status: 'Completed', dueDate: '2025/08/12,8:30 PM', file:'assets/img/logo-fav.png' },
     ];
 
     const finalRequirements = [
-        { title: 'Medical Certificate', description: 'Description.', status: 'NoSubmission', dueDate: '2025/08/12' },
-        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/12',  file:'assets/img/sample-file.pdf' },
-        { title: 'Insurance', description: 'Description.', status: 'Overdue', dueDate: '2025/01/20', pastDue: '13 days past due'},
-        { title: 'Vaccination Record', description: 'Description.', status: 'Completed', dueDate: '2025/02/12', file:'assets/img/sample-file.pdf'},
+        { title: 'Medical Certificate', description: 'Description.', status: 'To Submit', dueDate: '2025/08/12,8:30 PM' },
+        { title: 'Student Information Sheet', description: 'Description.', status: 'Pending', dueDate: '2025/08/12,8:30 PM',  file:'assets/img/sample-file.pdf' },
+        { title: 'Insurance', description: 'Description.', status: 'Overdue', dueDate: '2025/01/20,8:30 PM', pastDue: '13 days past due'},
+        { title: 'Vaccination Record', description: 'Description.', status: 'Completed', dueDate: '2025/02/12,8:30 PM', file:'assets/img/sample-file.pdf'},
     ];
 
     const statusOrder = {
-        'NoSubmission': 'text-secondary',
+        'To Submit': 'text-secondary',
         'Pending': 'text-primary',
         'Overdue': 'text-danger',
         'ToRevise': 'text-warning',
         'Completed': 'text-success'
     };
 
-    let initialSelectedStatus = "NoSubmission";
-    let preDepSelectedStatus = "NoSubmission";
-    let inProgressSelectedStatus = "NoSubmission";
-    let finalSelectedStatus = "NoSubmission";
+    let initialSelectedStatus = "To Submit";
+    let preDepSelectedStatus = "To Submit";
+    let inProgressSelectedStatus = "To Submit";
+    let finalSelectedStatus = "To Submit";
     let showAllInitial = false;
     let showAllPreDep = false;
     let showAllInProgress = false;
@@ -155,6 +155,18 @@ document.addEventListener('DOMContentLoaded', function () {
         let displayRequirements = showAll ? filteredRequirements : filteredRequirements.slice(0, 2);
 
         displayRequirements.forEach(requirement => {
+            
+            const now = new Date();
+            const dueDate = new Date(requirement.dueDate);
+
+            // If past due and not completed or to be revised
+            if (now > dueDate && requirement.status !== "Completed" && requirement.status !== "ToRevise") {
+                requirement.status = "Overdue";
+                requirement.pastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24)) + " days past due";
+            }
+
+            const [datePart, timePart] = requirement.dueDate.split(',');
+
             const requirementElement = document.createElement("div");
             requirementElement.classList.add('p-3', 'd-flex', 'align-items-center', 'border-bottom', 'pointer');
             requirementElement.innerHTML = `
@@ -164,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class='requirementDescription text-muted small'>${requirement.description}</div>
                 </div>
                 <div class='flex-grow-2'>
-                    <div class='small'>Due date: ${requirement.dueDate} </div>
+                    <div class='small'>Due date: ${datePart} <i class="text-secondary">${timePart}</i> </div>
                     <div class='badge ${statusOrder[requirement.status]} p-2'>${requirement.status}</div>
                 </div>
                
@@ -186,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 modalDescription.textContent = requirement.description;
                 selectedRequirement = requirement;
 
-                if (requirement.status === 'NoSubmission' || requirement.status === 'Overdue'){
+                if (requirement.status === 'To Submit' || requirement.status === 'Overdue'){
                     submissionModal.show();
                 }
 
@@ -865,15 +877,16 @@ document.addEventListener('DOMContentLoaded', function() {
       loadNotifications();
 });
 
+
 // PROGRESS TRACKER
 
 document.addEventListener('DOMContentLoaded', function() {
     // progess circle
     const progressData = [
-        { label: "Initial Requirements", percent: 50, color: "blue" },
-        { label: "Pre-Deployment Requirements", percent: 37.5, color: "yellow" },
-        { label: "In-Progress Requirements", percent: 80.5, color: "red" },
-        { label: "Final Requirements", percent: 30, color: "purple" }
+        { label: "Initial", percent: 50, color: "blue", progress: "10/20" },
+        { label: "Pre-Deployment", percent: 37, color: "yellow", progress: "7/20" },
+        { label: "In-Progress", percent: 80, color: "red", progress: "18/20" },
+        { label: "Final", percent: 30, color: "purple", progress: "6/20"}
       ];
     
       const progressCardsContainer = document.getElementById('progressCards');
@@ -893,7 +906,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </span>
                 <div class="progress-value">${item.percent}%</div>
               </div>
-              <p class="mt-3 mb-0 fw-bold">${item.label}</p>
+              <p class="mt-3 mb-0 fw-bold">${item.label} <br> Requirements</p>
+              <p class="text-muted fs-6 mb-0"><small>${item.progress}<small></p>
             </div>
           </div>
         `;
@@ -919,7 +933,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const initRequirements = [
         { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
         { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
         { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
@@ -930,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const preDepRequirements = [
         { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
         { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
         { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
@@ -942,7 +956,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const inProgressRequirements = [
         { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
         { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
         { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
@@ -955,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const finalRequirements = [
         { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
-        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
+        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
         { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
         { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
@@ -964,12 +978,12 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     const statusOrder = {
+        'To Submit': 'bg-secondary',
         'Pending': 'bg-primary',
         'Overdue': 'bg-danger',
         'ToRevise': 'bg-warning text-dark',
         'Completed': 'bg-success'
     };
-
 
     let initialStatus = "All";
     let preDepStatus = "All";
@@ -993,8 +1007,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const badgeClass = statusOrder[req.status] || 'bg-secondary';
             const statusCell = `<td><span class="badge ${badgeClass}">${req.status}</span></td>`;
             const nameCell = `<td>${req.title}</td>`;
-            const dueDateCell = `<td>${req.dueDate}</td>`;
+            let dueDateCell = `<td></td>`;
     
+            if (req.dueDate) {
+                const [date, time] = req.dueDate.split(', ');
+                dueDateCell = `<td>${date} <span class="text-muted fst-italic">${time}</span></td>`;
+            }
+
             let submittedCell = '<td></td>';
             if (req.dateSubmitted) {
                 const [date, time] = req.dateSubmitted.split(', ');
