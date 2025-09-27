@@ -94,6 +94,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const overdue = document.getElementById("overdue");
     const modalFooter = document.getElementById("modalFooter");
     const submissionModal = new bootstrap.Modal(document.getElementById("submissionModal"));
+    const initDocsToPass = document.getElementById("initDocsToPass");
+    const preDepDocsToPass = document.getElementById("preDepDocsToPass");
+    const inProgDocsToPass = document.getElementById("inProgDocsToPass");
+    const finalDocsToPass = document.getElementById("finalDocsToPass");
+
 
     const initialRequirements = [
         { title: 'Student Information Sheet', description: 'ptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription.', status: 'Pending', dueDate: '2025/08/02,8:30 PM', file:'assets/img/sample-file.pdf' },
@@ -140,6 +145,21 @@ document.addEventListener('DOMContentLoaded', function () {
     let showAllInProgress = false;
     let showAllFinal = false;
     let selectedRequirement = null;
+
+    const totalDocsInitial = initialRequirements.length;
+    const totalDocsPreDep = preDepRequirements.length;
+    const totalDocsInProg = inProgressRequirements.length;
+    const totalDocsFinal = finalRequirements.length;
+
+    const completedDocsInitial = initialRequirements.filter(req => req.status === "Completed").length;
+    const completedDocsPreDep = preDepRequirements.filter(req => req.status === "Completed").length;
+    const completedDocsInProg = inProgressRequirements.filter(req => req.status === "Completed").length;
+    const completedDocsFinal = finalRequirements.filter(req => req.status === "Completed").length;
+
+    initDocsToPass.textContent = `${completedDocsInitial}/${totalDocsInitial}`;
+    preDepDocsToPass.textContent = `${completedDocsPreDep}/${totalDocsPreDep}`;
+    inProgDocsToPass.textContent = `${completedDocsInProg}/${totalDocsInProg}`;
+    finalDocsToPass.textContent = `${completedDocsFinal}/${totalDocsFinal}`;
 
     function loadRequirements(containerId, requirements, showAll, statusFilter) {
         const container = document.getElementById(containerId);
@@ -686,7 +706,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     <strong>${reviewer}</strong>
                     <div>${reviewStars}</div>
                     </div>
-                    <p class="mb-0 small text-muted">${desc}</p>
+                    <p class="mb-0 small text-muted clamped-text">${desc}</p>
                 `;
                 reviewsContainer.appendChild(reviewCard);
             });
@@ -755,6 +775,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const reviewCard = document.createElement("div");
         reviewCard.className = "card mb-2 p-2";
 
+
         // Create stars HTML dynamically
         let starsHTML = '';
         for (let i = 1; i <= 5; i++) {
@@ -770,7 +791,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 <strong>AccountName</strong>
                 <div class="text-muted">${starsHTML}</div>
             </div>
-            <p class="mb-0 small text-muted text-wrap">${reviewValue}</p>
+            <p class="mb-0 small text-muted text-wrap clamped-text">${reviewValue}</p>
         `;
 
         reviewsContainer.appendChild(reviewCard);
@@ -784,7 +805,53 @@ document.addEventListener('DOMContentLoaded', function(){
         });
         rating.textContent = "0";
         activeStars = 0;
+
+        // Toggle expand/collapse on review text
+        document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("clamped-text")) {
+            e.target.classList.toggle("expanded");
+        }
+        });
+
+
+        // Add see more/less toggle
+        reviewsContainer.querySelectorAll(".clamped-text").forEach(p => {
+        // Check if content overflows
+        if (p.scrollHeight > p.clientHeight) {
+            const toggle = document.createElement("span");
+            toggle.className = "see-toggle";
+            toggle.textContent = " See more";
+
+            toggle.addEventListener("click", () => {
+            if (p.classList.contains("expanded")) {
+                p.classList.remove("expanded");
+                toggle.textContent = " See more";
+            } else {
+                p.classList.add("expanded");
+                toggle.textContent = " See less";
+            }
+            });
+
+            p.after(toggle);
+        }
+        });
+
+
     });
+
+    // Toggle expand/collapse on review text
+    document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("clamped-text")) {
+        if (e.target.style.webkitLineClamp === "unset") {
+        e.target.style.display = "-webkit-box";
+        e.target.style.webkitLineClamp = "7";
+        } else {
+        e.target.style.display = "block";
+        e.target.style.webkitLineClamp = "unset";
+        }
+    }
+    });
+
 
 });
 
@@ -881,54 +948,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // PROGRESS TRACKER
 
 document.addEventListener('DOMContentLoaded', function() {
-    // progess circle
-    const progressData = [
-        { label: "Initial", percent: 50, color: "blue", progress: "10/20" },
-        { label: "Pre-Deployment", percent: 37, color: "yellow", progress: "7/20" },
-        { label: "In-Progress", percent: 80, color: "red", progress: "18/20" },
-        { label: "Final", percent: 30, color: "purple", progress: "6/20"}
-      ];
     
-      const progressCardsContainer = document.getElementById('progressCards');
-    
-      progressData.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'col-md-3 mb-4';
-        card.innerHTML = `
-          <div class="card text-center progress-card">
-            <div class="card-body">
-              <div class="progress ${item.color}" id="progress-${index}">
-                <span class="progress-left">
-                  <span class="progress-bar"></span>
-                </span>
-                <span class="progress-right">
-                  <span class="progress-bar"></span>
-                </span>
-                <div class="progress-value">${item.percent}%</div>
-              </div>
-              <p class="mt-3 mb-0 fw-bold">${item.label} <br> Requirements</p>
-              <p class="text-muted fs-6 mb-0"><small>${item.progress}<small></p>
-            </div>
-          </div>
-        `;
-        progressCardsContainer.appendChild(card);
-    
-        // Animate rotation based on percentage
-        const rightBar = card.querySelector('.progress-right .progress-bar');
-        const leftBar = card.querySelector('.progress-left .progress-bar');
-    
-        if (item.percent <= 50) {
-          const rightDeg = (item.percent / 100) * 360;
-          rightBar.style.transform = `rotate(${rightDeg}deg)`;
-          leftBar.style.transform = 'rotate(0deg)';
-        } else {
-          rightBar.style.transform = 'rotate(180deg)';
-          const leftDeg = ((item.percent - 50) / 100) * 360;
-          leftBar.style.transform = `rotate(${leftDeg}deg)`;
-        }
-      });
-
-
     //   progress table
 
     const initRequirements = [
@@ -1060,4 +1080,459 @@ document.addEventListener('DOMContentLoaded', function() {
         showTableData('inProgressBody', inProgressRequirements, inProgressStatus);    
         showTableData('finalBody', finalRequirements, finalStatus);
 
+    
+    // progess circle
+
+    function calculateProgress(requirements) {
+    const total = requirements.length;
+    const completed = requirements.filter(r => r.status === "Completed").length;
+    const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+    return {
+        completed,
+        total,
+        percent,
+        progressText: `${completed}/${total}`
+    };
+    }
+
+    const progressData = [
+        { label: "Initial", color: "blue", ...calculateProgress(initRequirements) },
+        { label: "Pre-Deployment", color: "yellow", ...calculateProgress(preDepRequirements) },
+        { label: "In-Progress", color: "red", ...calculateProgress(inProgressRequirements) },
+        { label: "Final", color: "purple", ...calculateProgress(finalRequirements) }
+    ];
+    
+    const progressCardsContainer = document.getElementById('progressCards');
+
+    progressData.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'col-md-3 mb-4';
+        card.innerHTML = `
+            <div class="card text-center progress-card">
+            <div class="card-body">
+                <div class="progress ${item.color}" id="progress-${index}">
+                <span class="progress-left">
+                    <span class="progress-bar"></span>
+                </span>
+                <span class="progress-right">
+                    <span class="progress-bar"></span>
+                </span>
+                <div class="progress-value">${item.percent}%</div>
+                </div>
+                <p class="mt-3 mb-0 fw-bold">${item.label} <br> Requirements</p>
+                <p class="text-muted fs-6 mb-0"><small>${item.progressText}<small></p>
+            </div>
+            </div>
+        `;
+        progressCardsContainer.appendChild(card);
+
+        // Animate circle
+        const rightBar = card.querySelector('.progress-right .progress-bar');
+        const leftBar = card.querySelector('.progress-left .progress-bar');
+
+        if (item.percent <= 50) {
+            const rightDeg = (item.percent / 100) * 360;
+            rightBar.style.transform = `rotate(${rightDeg}deg)`;
+            leftBar.style.transform = 'rotate(0deg)';
+        } else {
+            rightBar.style.transform = 'rotate(180deg)';
+            const leftDeg = ((item.percent - 50) / 100) * 360;
+            leftBar.style.transform = `rotate(${leftDeg}deg)`;
+        }
+    });
+});
+
+// PROFILE
+document.addEventListener('DOMContentLoaded', function() {
+  // EDIT PROFILE
+  const profileUpload = document.getElementById('uploadProfile');
+  const deleteProfile = document.getElementById('deleteProfile');
+  const profileInput = document.getElementById('profileInput');
+  const profileImage = document.querySelector('.profile-img');
+
+  // save changes
+  const saveEdit = document.getElementById('editDetails');
+
+  const usernameEdit = document.getElementById('usernameEdit');
+  const companyNameEdit = document.getElementById('companyNameEdit');
+  const companyAddressEdit = document.getElementById('companyAddressEdit');
+  const emailEdit = document.getElementById('emailEdit');
+  const phoneNumEdit = document.getElementById('phoneNumEdit');
+
+  const username = document.getElementById('username');
+  const companyName = document.getElementById('companyName');
+  const companyAddress = document.getElementById('companyAddress');
+  const email = document.getElementById('email');
+  const phoneNumber = document.getElementById('phoneNumber');
+
+  const formValidation = document.getElementById('editProfileForm');
+
+  const profilecompanyName = document.getElementById('profilecompanyName');
+  const headerCompanyName = document.getElementById('headerCompanyName');
+  const headerProfileImg = document.getElementById('headerProfileImg');
+  const ProfileImgDisplay = document.getElementById('profileDisplay');
+  const defaultImage = "/assets/img/account.png";
+
+  let isEditing = false;
+  let uploadedImageURL = defaultImage;
+
+  profileUpload.disabled = true;
+  profileUpload.style.pointerEvents = 'none';
+  deleteProfile.disabled = true;
+  deleteProfile.style.pointerEvents = 'none';
+
+  saveEdit.addEventListener('click', function () {
+    if (!isEditing) {
+      profileUpload.disabled = false;
+      profileUpload.style.pointerEvents = 'auto';
+      deleteProfile.style.pointerEvents = 'auto';
+      deleteProfile.disabled = false;
+
+      profileUpload.addEventListener("click", function (event) {
+        event.preventDefault();
+        profileInput.click();
+      });
+
+      profileInput.addEventListener("change", function (event) {
+        if (event.target.files.length > 0) {
+          const file = event.target.files[0];
+          uploadedImageURL = URL.createObjectURL(file);
+          profileImage.src = uploadedImageURL;
+        }
+      });
+
+      deleteProfile.addEventListener('click', function () {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const userID = storedUser?.userID;
+
+        if (!userID) return;
+        profileImage.src = defaultImage;
+        profileInput.value = "";
+        uploadedImageURL = defaultImage;
+
+        fetch('/delete-profile-pic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userID })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              console.log('Profile picture deleted successfully.');
+            } else {
+              console.error('Error deleting profile picture:', data.message);
+            }
+          })
+          .catch(err => console.error('Error:', err));
+      });
+
+
+      usernameEdit.readOnly = false;
+      companyNameEdit.readOnly = false;
+      companyAddressEdit.readOnly = false;
+      emailEdit.readOnly = false;
+      phoneNumEdit.readOnly = false;
+
+      usernameEdit.focus();
+      saveEdit.textContent = "Save Changes";
+
+    } else {
+      if (!formValidation.checkValidity()) {
+        formValidation.classList.add("was-validated");
+        return;
+      }
+
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const userID = storedUser?.userID;
+
+      const formData = new FormData();
+      formData.append("userID", userID);
+      formData.append("username", usernameEdit.value.trim());
+      formData.append("companyName", companyNameEdit.value.trim());
+      formData.append("companyAddress", companyAddressEdit.value.trim());
+      formData.append("email", emailEdit.value.trim());
+      formData.append("phoneNumber", phoneNumEdit.value.trim());
+
+      if (profileInput.files.length > 0) {
+        formData.append("profilePic", profileInput.files[0]);
+      }
+
+      fetch('/update-profile', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log('Profile updated successfully.');
+
+            username.textContent = usernameEdit.value.trim();
+            companyName.textContent = companyNameEdit.value.trim();
+            companyAddress.textContent = companyAddressEdit.value.trim();
+            email.textContent = emailEdit.value.trim();
+            phoneNumber.textContent = phoneNumEdit.value.trim();
+
+            profilecompanyName.textContent = companyNameEdit.value.trim();
+            headerCompanyName.textContent = companyNameEdit.value.trim();
+
+            const imagePath = data.profilepicPath || uploadedImageURL;
+            profileImage.src = imagePath;
+            ProfileImgDisplay.src = imagePath;
+            headerProfileImg.src = imagePath;
+
+            location.reload()
+          } else {
+            console.error('Error updating profile:', data.message);
+          }
+        })
+        .catch(error => console.error('Error:', error));
+
+      // Disable editing
+      usernameEdit.readOnly = true;
+      companyNameEdit.readOnly = true;
+      companyAddressEdit.readOnly = true;
+      emailEdit.readOnly = true;
+      phoneNumEdit.readOnly = true;
+
+      profileUpload.disabled = true;
+      profileUpload.style.pointerEvents = 'none';
+      deleteProfile.disabled = true;
+      deleteProfile.style.pointerEvents = 'none';
+
+      saveEdit.textContent = "Edit Details";
+    }
+
+    isEditing = !isEditing;
+  });
+
+
+  //CHANGE PASSWORD
+  document.querySelector('#profile-change-password form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const userID = storedUser?.userID;
+    const currentPasswordInput = document.getElementById("currentPassword");
+    const newPasswordInput = document.getElementById("newPassword");
+    const renewPasswordInput = document.getElementById("renewPassword");
+
+    const currentPassword = currentPasswordInput.value;
+    const newPassword = newPasswordInput.value;
+    const renewPassword = renewPasswordInput.value;
+
+    const currentFeedback = document.getElementById("currentPasswordFeedback");
+    const newFeedback = document.getElementById("newPasswordFeedback");
+    const renewFeedback = document.getElementById("renewPasswordFeedback");
+
+    [currentPasswordInput, newPasswordInput, renewPasswordInput].forEach(input => input.classList.remove("is-invalid"));
+    [currentFeedback, newFeedback, renewFeedback].forEach(fb => fb.style.display = "none");
+
+    if (!userID) return alert("User not logged in.");
+
+    let hasError = false;
+
+    if (!newPassword) {
+      newPasswordInput.classList.add("is-invalid");
+      newFeedback.style.display = "block";
+      newFeedback.textContent = "New password is required.";
+      hasError = true;
+    }
+
+    if (newPassword !== renewPassword) {
+      renewPasswordInput.classList.add("is-invalid");
+      renewFeedback.style.display = "block";
+      renewFeedback.textContent = "Passwords do not match.";
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    try {
+      const res = await fetch('/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userID, currentPassword, newPassword })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        currentPasswordInput.value = "";
+        newPasswordInput.value = "";
+        renewPasswordInput.value = "";
+        document.getElementById("alertModalLabel").textContent = "Success";
+        document.getElementById("alertModalBody").textContent = data.message || "Password changed successfully.";
+        const alertModal = new bootstrap.Modal(document.getElementById('alertModal'));
+        alertModal.show();
+      } else {
+        currentPasswordInput.classList.add("is-invalid");
+        currentFeedback.style.display = "block";
+        currentFeedback.textContent = data.message || "Current password is incorrect.";
+      }
+    } catch (err) {
+      console.error("Error changing password:", err);
+      alert("Server error.");
+    }
+  });
+
+
+});
+
+// EDIT PROFILE 
+document.addEventListener("DOMContentLoaded", function () {
+
+  const fileInput = document.getElementById("profileUpload");
+  const previewImg = document.getElementById("previewImg");
+  const placeholder = document.getElementById("placeholder");
+  const previewBox = document.getElementById("profilePreview");
+  const uploadBtn = document.getElementById("profileUploadBtn");
+  const saveBtn = document.getElementById("saveProfileBtn");
+  const deleteBtn = document.getElementById("deleteBtn");
+
+    // edit/save toggle
+  const editBtn = document.getElementById("editBtn");
+  const editFormInputs = document.querySelectorAll(
+    "#profile-edit input, #profile-edit a.btn"
+  );
+
+  // initially disable all inputs
+  function setFormDisabled(disabled) {
+    editFormInputs.forEach((el) => {
+      el.disabled = disabled;
+      if (disabled) {
+        el.classList.add("disabled");
+        el.setAttribute("tabindex", "-1"); // prevent tabbing to disabled links
+      } else {
+        el.classList.remove("disabled");
+        el.removeAttribute("tabindex");
+      }
+    });
+  }
+
+  setFormDisabled(true);
+
+  editBtn?.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    if (editBtn.textContent === "Edit Profile") {
+      // editing mode
+      setFormDisabled(false);
+      editBtn.textContent = "Save Changes";
+    } else {
+      // Save & disable again (trigger existing submit logic)
+      editForm.dispatchEvent(new Event("submit"));
+      setFormDisabled(true);
+      editBtn.textContent = "Edit Profile";
+    }
+  });
+
+  let tempImage = null; 
+  const defaultImg = "/assets/img/account.png"; 
+
+  const savedImage = localStorage.getItem("profileImage");
+  const savedData = JSON.parse(localStorage.getItem("profileData")) || {};
+
+  if (savedImage) updateAllProfiles(savedImage);
+  if (Object.keys(savedData).length > 0) applyProfileData(savedData);
+
+  // --- File Upload Trigger ---
+  uploadBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    fileInput.click();
+  });
+  previewBox?.addEventListener("click", () => fileInput.click());
+
+  // --- Preview new image ---
+  fileInput?.addEventListener("change", function () {
+    const file = this.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        tempImage = e.target.result;
+
+        // Show preview inside modal
+        previewImg.src = tempImage;
+        previewImg.classList.remove("d-none");
+        placeholder.classList.add("d-none");
+
+        // Only update changeProfile for now
+        const changeProfile = document.getElementById("changeProfile");
+        if (changeProfile) changeProfile.src = tempImage;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // --- Save button (in modal) ---
+  saveBtn?.addEventListener("click", function () {
+    if (tempImage) {
+      console.log("Temporary image stored, waiting for submit...");
+    }
+    const modalEl = document.getElementById("uploadProfile");
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+  });
+
+  // --- Delete Profile Image ---
+  deleteBtn?.addEventListener("click", function () {
+    tempImage = defaultImg; 
+    const changeProfile = document.getElementById("changeProfile");
+    if (changeProfile) changeProfile.src = defaultImg;
+
+    // Close delete modal
+    const modalEl = document.getElementById("deleteModal");
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+
+    console.log("🗑️ Profile image reset to default. Will apply on submit.");
+  });
+
+  // --- Submit Main Edit Form ---
+  const editForm = document.querySelector("#profile-edit form");
+  editForm?.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    if (tempImage) {
+      updateAllProfiles(tempImage);
+      localStorage.setItem("profileImage", tempImage);
+      tempImage = null;
+    }
+
+    const newData = {
+      fullname: document.getElementById("editFullname").value,
+      company: document.getElementById("editCompany").value,
+      position: document.getElementById("editPosition").value,
+      address: document.getElementById("editAddress").value,
+      phone: document.getElementById("editPhone").value,
+      email: document.getElementById("editEmail").value,
+    };
+
+    applyProfileData(newData);
+
+    localStorage.setItem("profileData", JSON.stringify(newData));
+
+    console.log("Profile updated & saved");
+  });
+
+  // --- Helpers ---
+  function updateAllProfiles(image) {
+    ["accountProfile", "changeProfile", "headerProfile"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.src = image;
+    });
+  }
+
+  function applyProfileData(data) {
+    if (data.fullname) {
+      document.getElementById("accountName").textContent = data.fullname;
+      document.getElementById("fullname").textContent = data.fullname;
+    }
+    if (data.company) document.getElementById("company").textContent = data.company;
+    if (data.position) document.getElementById("position").textContent = data.position;
+    if (data.address) document.getElementById("address").textContent = data.address;
+    if (data.phone) document.getElementById("phone").textContent = data.phone;
+    if (data.email) document.getElementById("email").textContent = data.email;
+  }
 });
