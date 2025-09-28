@@ -1,0 +1,310 @@
+
+    <div class="pagetitle d-flex align-items-center justify-content-between">
+      <div>
+        <h1>Partner Establishments</h1>
+      </div>
+    </div>
+  
+    <!-- Filter Icon, Search Bar, and Action Buttons -->
+    <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mb-3">
+      
+      <!-- Search Bar -->
+      <div class="input-group" style="max-width: 250px;">
+        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control" placeholder="Search Es..." id="searchBar">
+      </div>
+      <!-- Sort Dropdown -->
+      <div class="dropdown d-inline-block">
+        <button class="btn btn-outline-secondary btn-same-size dropdown-toggle" 
+                type="button" id="sortIconButton" data-bs-toggle="dropdown" 
+                aria-expanded="false" title="Sort">
+          <i class="bi bi-sort-alpha-down"></i>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="sortIconButton">
+          <li><a class="dropdown-item sort-option" data-sort="nameAsc">Name (A–Z)</a></li>
+          <li><a class="dropdown-item sort-option" data-sort="nameDesc">Name (Z–A)</a></li>
+          <li><a class="dropdown-item sort-option" data-sort="dateNew">MOA Date (Newest)</a></li>
+          <li><a class="dropdown-item sort-option" data-sort="dateOld">MOA Date (Oldest)</a></li>
+        </ul>
+      </div>
+
+      
+      <!-- Filter Dropdown (hidden, appears when clicking filter button) -->
+      <div class="dropdown d-inline-block">
+        <button class="btn btn-outline-secondary btn-same-size dropdown-toggle" 
+                type="button" id="filterIconButton" data-bs-toggle="dropdown" 
+                aria-expanded="false" title="Filter">
+          <i class="bi bi-funnel-fill"></i>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="filterIconButton">
+          <li><a class="dropdown-item filter-option" data-filter="All">All</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="New">New</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="Renewed">Renewed</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="Expired">Expired</a></li>
+        </ul>
+      </div>
+
+      
+      <!-- Delete Button -->
+      <button class="btn btn-outline-danger btn-same-size" id="deleteBtn" title="Delete">
+        <i class="bi bi-trash-fill"></i>
+      </button>
+  
+      <!-- Add Button -->
+      <button class="btn btn-main btn-same-size" id="addButton">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    </div>
+    
+
+    <section class="section dashboard me-5 ms-5">
+      <div class="row align-items-top justify-content-center">
+
+        <!-- HTE 1 -->
+        <div class="col-lg-4 mb-4" data-moa-status="New" data-name="Amazon Web Service" data-moa-date="2022-01-10">
+          <div class="card hte-card shadow-lg border-0 h-100 custom-card-hover position-relative" style="transition: all 0.3s;">
+            <div class="card-body custom-card-shadow">
+              <div class="d-flex justify-content-left">
+                <div class="flex align-items-center justify-content-left">
+                  <input type="checkbox" style="width: 16px; height: 16px; margin-top: 16px;" />
+                </div>
+              </div>
+
+              <div class="text-center mt-4 mb-3">
+                <h5 class="card-title fw-semibold text-uppercase" style="font-size: 1.1rem;">
+                  Amazon Web Service
+                </h5>
+              </div>
+
+            </div>
+            <!-- Icon Button to trigger modal -->
+            <button class="btn btn-light position-absolute bottom-0 end-0 m-3 rounded-circle shadow border" data-bs-toggle="modal" data-bs-target="#detailsModal1">
+              <i class="bi bi-card-list color-violet"></i>
+            </button>
+          </div>
+        </div>
+        
+
+        <!-- HTE 2 -->
+        <div class="col-lg-4 mb-4" data-moa-status="Renewed" data-name="3GX SOLUTIONS" data-moa-date="2019-03-15">
+          <div class="card hte-card shadow-lg border-0 h-100 custom-card-hover position-relative" style="transition: all 0.3s;">
+            <div class="card-body custom-card-shadow">
+              <div class="d-flex justify-content-left">
+                <div class="flex align-items-center justify-content-left">
+                  <input type="checkbox" style="width: 16px; height: 16px; margin-top: 16px;" />
+                </div>
+              </div>
+              <div class="text-center mt-4 mb-3">
+                <h5 class="card-title fw-semibold text-uppercase" style="font-size: 1.1rem;">
+                  3GX SOLUTIONS
+                </h5>
+              </div>
+            </div>
+            <button class="btn btn-light position-absolute bottom-0 end-0 m-3 rounded-circle shadow border" data-bs-toggle="modal" data-bs-target="#detailsModal2">
+              <i class="bi bi-card-list color-violet"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- HTE 3 -->
+        <div class="col-lg-4 mb-4" data-moa-status="Expired" data-name="IT FIRM" data-moa-date="2023-07-20">
+          <div class="card hte-card shadow-lg border-0 h-100 custom-card-hover position-relative" style="transition: all 0.3s;">
+            <div class="card-body custom-card-shadow">
+              <div class="d-flex justify-content-left">
+                <div class="flex align-items-center justify-content-left">
+                  <input type="checkbox" style="width: 16px; height: 16px; margin-top: 16px;" />
+                </div>
+              </div>
+              <div class="text-center mt-4 mb-3">
+                <h5 class="card-title fw-semibold text-uppercase" style="font-size: 1.1rem;">
+                  IT FIRM
+                </h5>
+              </div>
+            </div>
+            <button class="btn btn-light position-absolute bottom-0 end-0 m-3 rounded-circle shadow border" data-bs-toggle="modal" data-bs-target="#detailsModal3">
+              <i class="bi bi-card-list color-violet"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal for HTE 1 -->
+        <div class="modal fade" id="detailsModal1" tabindex="-1" aria-labelledby="detailsModalLabel1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel1">Establisment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <label><strong>Name:</strong></label>
+                <input type="text" class="form-control" id="hte1Name" value="Amazon Web Service">
+                <label><strong>Address:</strong></label>
+                <input type="text" class="form-control" id="hte1Address" value="123 Business Street, City, Province">
+                <label><strong>Company Profile (PDF/DOC):</strong></label>
+                <input type="file" class="form-control" id="hte1ProfileFile" accept=".pdf,.doc,.docx">
+                <label> <strong> MOA Status: </strong></label>
+                <select class="form-control" id="hte1MoaStatus">
+                  <option value="Yes">New</option>
+                  <option value="No">Renewed</option>
+                  <option value="No">Expired</option>
+                </select>
+                <label><strong>MOA Established Since:</strong></label>
+                <input type="date" class="form-control" id="hte1MoaDate" value="2022-01-10">
+                <label><strong>Signed MOA Image (JPG/PNG):</strong></label>
+                <input type="file" class="form-control" id="hte1MoaImage" accept=".jpg,.jpeg,.png">
+                <label><strong>Available Positions:</strong></label>
+                <input type="text" class="form-control" id="hteAve1" value="Data Analyst">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-main" onclick="saveDetails(1)">Save</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal for HTE 2 -->
+        <div class="modal fade" id="detailsModal2" tabindex="-1" aria-labelledby="detailsModalLabel2" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel2">Establisment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <label><strong>Name:</strong></label>
+                <input type="text" class="form-control" id="hte2Name" value="3GX SOLUTIONS">
+                <label><strong>Address:</strong></label>
+                <input type="text" class="form-control" id="hte2Address" value="456 Industry Lane, City, Province">
+                <label><strong>Company Profile (PDF/DOC):</strong></label>
+                <input type="file" class="form-control" id="hte2ProfileFile" accept=".pdf,.doc,.docx">  
+                <label> <strong> MOA Status: </strong></label>
+                <select class="form-control" id="hte2MoaStatus">
+                  <option value="Yes">New</option>
+                  <option value="No">Renewed</option>
+                  <option value="No">Expired</option>
+                </select>
+                <label><strong>MOA Established Since:</strong></label>
+                <input type="date" class="form-control" id="hte2MoaDate" value="2019-03-15">
+                <label><strong>Signed MOA Image (JPG/PNG):</strong></label>
+                <input type="file" class="form-control" id="hte2MoaImage" accept=".jpg,.jpeg,.png">
+                <label><strong>Available Positions:</strong></label>
+                <input type="text" class="form-control" id="hteAve2" value="Data Analyst">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-main" onclick="saveDetails(2)">Save</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal for HTE 3 -->
+        <div class="modal fade" id="detailsModal3" tabindex="-1" aria-labelledby="detailsModalLabel3" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel3">Establisment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <label><strong>Name:</strong></label>
+                <input type="text" class="form-control" id="hte3Name" value="IT FIRM">
+                <label><strong>Address:</strong></label>
+                <input type="text" class="form-control" id="hte3Address" value="789 Enterprise Ave, City, Province">
+                <label><strong>Company Profile (PDF/DOC):</strong></label>
+                <input type="file" class="form-control" id="hte1ProfileFile" accept=".pdf,.doc,.docx">
+                <label> <strong> MOA Status: </strong></label>
+                <select class="form-control" id="hte3MoaStatus">
+                  <option value="Yes">New</option>
+                  <option value="No">Renewed</option>
+                  <option value="No">Expired</option>
+                </select>
+                <label><strong>MOA Established Since:</strong></label>
+                <input type="date" class="form-control" id="hte3MoaDate" value="2023-07-20">
+                <label><strong>Signed MOA Image (JPG/PNG):</strong></label>
+                <input type="file" class="form-control" id="hte3MoaImage" accept=".jpg,.jpeg,.png">
+                <label><strong>Available Positions:</strong></label>
+                <input type="text" class="form-control" id="hteAve3" value="Data Analyst">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-main" onclick="saveDetails(3)">Save</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- Notoce Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+          <div class="modal-header custom-modal-header-sm">
+            <h5 class="modal-title" id="errorModalLabel">Notice</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p id="errorMessage"></p>
+            <div class="mt-auto d-flex justify-content-end">
+              <button type="button" class="btn btn-sm custom-btn-primary" data-bs-dismiss="modal">Okay</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Establishment Modal -->
+    <div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addCardModalLabel">Add Partner Establishment</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="addCardForm">
+              <div class="mb-3">
+                <label for="establishmentName" class="form-label">Establishment Name:</label>
+                <input type="text" class="form-control" id="establishmentName" required>
+              </div>
+              <div class="mb-3">
+                <label for="establishmentAddress" class="form-label">Address:</label>
+                <input type="text" class="form-control" id="establishmentAddress" required>
+              </div>
+              <div class="mb-3">
+                <label for="companyProfile" class="form-label">Upload Company Profile (PDF/DOC):</label>
+                <input type="file" class="form-control" id="companyProfile" accept=".pdf,.doc,.docx" required>
+              </div>
+              <div class="mb-3">
+                <label for="moaStatus" class="form-label">MOA Status:</label>
+                <select class="form-select" id="moaStatus">
+                  <option value="Yes">New</option>
+                  <option value="No">Renewed</option>
+                  <option value="No">Expired</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="moaSince" class="form-label">MOA Established Since:</label>
+                <input type="date" class="form-control" id="moaSince">
+              </div>
+              <div class="mb-3">
+                <label for="signedMoa" class="form-label">Upload Signed MOA Image (JPG/PNG):</label>
+                <input type="file" class="form-control" id="signedMoa" accept=".jpg,.jpeg,.png" required>
+              </div>
+              <div class="mb-3">
+                <label for="availablePositions" class="form-label">Available Positions:</label>
+                <textarea class="form-control" id="availablePositions" rows="3" required></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" id="saveCardBtn">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>

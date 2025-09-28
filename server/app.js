@@ -61,7 +61,7 @@ app.get('/admin/notifications', (req, res) => {
 });
 
 app.get('/admin/user-profile', (req, res) => {
-    const userProfile = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'user-profile.html'), 'utf-8');
+    const userProfile = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'users-profile.html'), 'utf-8');
     res.send(adminTemplate.replace('{{content}}', userProfile));
 });
 

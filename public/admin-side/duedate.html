@@ -1,0 +1,151 @@
+
+  <div class="pagetitle d-flex justify-content-between">
+    <div>
+      <h1>Post New Requirement</h1>
+    </div>
+    
+    <div class="d-flex align-items-center gap-2">
+      <!-- Sorting Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary btn-same-size dropdown-toggle" 
+                type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-sort-down"></i>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+          <li><a class="dropdown-item sort-option" data-sort="newest">Newest</a></li>
+          <li><a class="dropdown-item sort-option" data-sort="oldest">Oldest</a></li>
+        </ul>
+      </div>
+      <!-- Edit Button -->
+      <button class="btn btn-outline-primary btn-same-size" title="Edit">
+        <i class="bi bi-pencil-square"></i>
+      </button>
+  
+      <!-- Delete Button -->
+      <button class="btn btn-outline-danger btn-same-size" title="Delete">
+        <i class="bi bi-trash"></i>
+      </button>
+  
+      <!-- Add Button -->
+      <button class="btn btn-main" data-bs-toggle="modal" data-bs-target="#addDeadlineModal">
+        <i class="bi bi-plus-circle me-1"></i> Add Requirements
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-4" id="deadlineContainer">
+    <!-- Card Template -->
+    <div class="col-md-4 position-relative">
+      <input type="checkbox" class="form-check-input position-absolute top-0 start-0 m-2 z-3">
+      <div class="card h-100 border-success">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Initial Requirements</h5>
+          <h5>Student Information Sheet</h5>
+          <p><strong>Due:</strong> April 30, 2025</p>
+          <p><strong>Date Posted:</strong> March 15, 2025</p>
+          <p class="text-muted small" style="flex-grow: 1;">
+            Submit 3 printed copies and 1 digital copy through this system. Include 2x2 ID photo on your SIS.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 position-relative">
+      <input type="checkbox" class="form-check-input position-absolute top-0 start-0 m-2 z-3">
+      <div class="card h-100 border-success">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Pre-Deployment</h5>
+          <h5>Memorandum of Agreement</h5>
+          <p><strong>Due:</strong> May 10, 2025</p>
+          <p><strong>Date Posted:</strong> March 20, 2025</p>
+          <p class="text-muted small" style="flex-grow: 1;">
+            Submit 2 notarized copies of the signed Memorandum of Agreement (MOA).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 position-relative">
+      <input type="checkbox" class="form-check-input position-absolute top-0 start-0 m-2 z-3">
+      <div class="card h-100 border-success">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">In-Progress</h5>
+          <h5>Monthly Report</h5>
+          <p><strong>Due:</strong> June 5, 2025</p>
+          <p><strong>Date Posted:</strong> April 10, 2025</p>
+          <p class="text-muted small" style="flex-grow: 1;">
+            Submit a detailed report on activities and accomplishments.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 position-relative">
+      <input type="checkbox" class="form-check-input position-absolute top-0 start-0 m-2 z-3">
+      <div class="card h-100 border-success">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Final Requirements</h5>
+          <h5>Final Narrative Report</h5>
+          <p><strong>Due:</strong> July 20, 2025</p>
+          <p><strong>Date Posted:</strong> April 20, 2025</p>
+          <p class="text-muted small" style="flex-grow: 1;">
+            Submit 1 hardbound final report, digital copy in PDF, and signed evaluation form from company supervisor.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addDeadlineModal" tabindex="-1" aria-labelledby="addDeadlineLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" id="deadlineForm">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addDeadlineLabel">Add New Requirement</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Requirement Category -->
+        <div class="mb-3">
+          <label for="requirementType" class="form-label">Requirement Category</label>
+          <select class="form-select" id="requirementType" required>
+            <option value="">Select Category</option>
+            <option value="Initial Requirements">Initial Requirements</option>
+            <option value="Pre-Deployment">Pre-Deployment</option>
+            <option value="In-Progress">In-Progress</option>
+            <option value="Final Requirements">Final Requirements</option>
+          </select>
+        </div>
+
+        <!-- Title -->
+        <div class="mb-3">
+          <label for="deadlineTitle" class="form-label">Title</label>
+          <input type="text" class="form-control" id="deadlineTitle" placeholder="e.g., Submit Resume Template" required>
+        </div>
+
+        <!-- Due Date -->
+        <div class="mb-3">
+          <label for="dueDate" class="form-label">Due Date</label>
+          <input type="date" class="form-control" id="dueDate" required>
+        </div>
+
+        <!-- Date Posted -->
+        <div class="mb-3">
+          <label for="datePosted" class="form-label">Date Posted</label>
+          <input type="date" class="form-control" id="datePosted" required>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-3">
+          <label for="notes" class="form-label">Description / Notes</label>
+          <textarea class="form-control" id="notes" rows="4" placeholder="Include required documents, number of copies, signatures, notarization, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-main">Save & Post</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,571 @@
+
+  <div class="pagetitle">
+    <h1>Registered Accounts</h1>
+  </div><!-- End Page Title -->
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+
+      <!-- BLOCK A --> 
+      <div class="card">
+        <div class="card-body">
+          <!-- Title + Add Button Row -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Block A</h5>
+            <!-- Add Account Button -->
+            <button class="btn btn-primary d-flex align-items-center justify-content-center" 
+                    style="width: 40px; height: 40px; border-radius: 8px;" 
+                    data-bs-toggle="modal" data-bs-target="#addAccountModal">
+              <i class="bi bi-person-plus"></i>
+            </button>
+          </div>
+
+            <!-- Search Bar, Reload Button, Delete Button, and Filter -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <p>This section contains a list of registered accounts for Block A</p>
+              <div class="d-flex align-items-center">
+
+                <!-- Search -->
+                <input type="text" id="searchInputLGU" class="form-control form-control-sm me-2" placeholder="Search...">
+
+                <!-- Filter (dropdown style but keeps select hidden for compatibility) -->
+                <div class="dropdown d-inline-block me-2">
+                  <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                          type="button" id="filterActionLGUButton" data-bs-toggle="dropdown" 
+                          aria-expanded="false" title="Filter">
+                    <i class="bi bi-funnel-fill"></i> <span id="filterLabelLGU"></span>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="filterActionLGUButton">
+                    <li><a class="dropdown-item filter-option" data-value="All">All Status</a></li>
+                    <li><a class="dropdown-item filter-option" data-value="active">Active</a></li>
+                    <li><a class="dropdown-item filter-option" data-value="Completed">Completed</a></li>
+                    <li><a class="dropdown-item filter-option" data-value="inactive">Inactive</a></li>
+                  </ul>
+                </div>
+
+                <!-- Hidden select (kept for existing JS compatibility) -->
+                <select id="filterActionLGU" style="display:none;">
+                  <option value="All" selected>All Status</option>
+                  <option value="active">Active</option>
+                  <option value="Completed">Completed</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+
+
+                
+
+                <!-- Reload -->
+                <button type="button" class="btn btn-sm btn-warning" title="Reload" onclick="location.reload();">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+
+                <!-- Delete -->
+                <button type="button" class="btn btn-sm btn-danger ms-2" id="deleteBtnLGU" title="Delete" disabled
+                  data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tip Legend -->
+            <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 12px;">
+              💡 Tip: Click a column header to sort.
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+              <table class="table" id="lguTable">
+                <thead class="table-light align-middle text-center" style="font-size: 13px;">
+                  <tr>
+                    <th></th>
+                    <th>Student ID #</th>
+                    <th>Email address</th>
+                    <th>Surname</th>
+                    <th>First Name</th>
+                    <th>Middle Name</th>
+                    <th>Suffix</th>
+                    <th data-type="date">Birthdate</th>
+                    <th>Gender</th>
+                    <th>Contact number</th>
+                    <th data-type="date">Reg Date</th>
+                    <th>Temp Password</th>
+                    <th>Password Reset Log</th> 
+                    <th>Action</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+
+                <tbody class="align-middle text-center" style="font-size: 13px;">
+                  <!-- Row 1 -->
+                  <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>21-0615</td>
+                    <td>john.doe@example.com</td>
+                    <td>Doe</td>
+                    <td>John</td>
+                    <td>A.</td>
+                    <td>Jr.</td>
+                    <td>1990/01/01</td>
+                    <td>Male</td>
+                    <td>09123456789</td>
+                    <td>2024/04/17</td>
+                    <td>Tmp123!@#</td>
+                    <td class="reset-log">2025/09/21 15:45</td> 
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'active')">active</button>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'inactive')">inactive</button>
+                      </div>
+                    </td>
+                    <td class="status-cell">active</td>
+                    <td>--</td>
+                  </tr>
+
+                  <!-- Row 2 -->
+                  <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>21-0520</td>
+                    <td>maria.cruz@example.com</td>
+                    <td>Cruz</td>
+                    <td>Maria</td>
+                    <td>S.</td>
+                    <td></td>
+                    <td>1995/07/21</td>
+                    <td>Female</td>
+                    <td>09124567890</td>
+                    <td>2024/04/15</td>
+                    <td>Abc789$%&</td>
+                    <td class="reset-log">2025/09/21 15:45</td> 
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'active')">active</button>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'inactive')">inactive</button>
+                      </div>
+                    </td>
+                    <td class="status-cell">Completed</td>
+                    <td>--</td>
+                  </tr>
+
+                  <!-- Row 3 -->
+                  <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>21-0788</td>
+                    <td>pedro.santos@example.com</td>
+                    <td>Santos</td>
+                    <td>Pedro</td>
+                    <td>L.</td>
+                    <td>III</td>
+                    <td>1993/12/11</td>
+                    <td>Male</td>
+                    <td>09129876543</td>
+                    <td>2024/04/19</td>
+                    <td>Xyz456#@!</td>
+                    <td class="reset-log">2025/09/21 15:45</td> 
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'active')">active</button>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'inactive')">inactive</button>
+                      </div>
+                    </td>
+                    <td class="status-cell">inactive</td>
+                    <td>--</td>
+                  </tr>
+
+                  <!-- Row 4 -->
+                  <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>21-0322</td>
+                    <td>angelica.reyes@example.com</td>
+                    <td>Reyes</td>
+                    <td>Angelica</td>
+                    <td>M.</td>
+                    <td></td>
+                    <td>1998/03/05</td>
+                    <td>Female</td>
+                    <td>09127654321</td>
+                    <td>2024/04/12</td>
+                    <td>Lmn654*&^</td>
+                    <td class="reset-log">2025/09/21 15:45</td> 
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'active')">active</button>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'inactive')">inactive</button>
+                      </div>
+                    </td>
+                    <td class="status-cell">active</td>
+                    <td>--</td>
+                  </tr>
+
+                  <!-- No Entries Message -->
+                  <tr id="noEntriesMessageLGU" style="display: none;">
+                    <td colspan="15" style="text-align: center; vertical-align: middle;">
+                      <div>No entries found</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Dropdown below the table -->
+              <div class="mt-3 d-flex align-items-center">
+                <label for="entriesSelectBlockA" class="me-2">Show</label>
+                <select id="entriesSelectBlockA" class="form-select form-select-sm me-2" style="width: auto;">
+                  <option value="5">5</option>
+                  <option value="10" selected>10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <span>entries</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOCK B -->
+        <div class="card">
+          <div class="card-body">
+            <!-- Title + Add Button Row -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title mb-0">Block B</h5>
+              <!-- Add Account Button -->
+              <button class="btn btn-primary d-flex align-items-center justify-content-center" 
+                      style="width: 40px; height: 40px; border-radius: 8px;" 
+                      data-bs-toggle="modal" data-bs-target="#addAccountModal">
+                <i class="bi bi-person-plus"></i>
+              </button>
+            </div>
+            <!-- Search Bar, Reload Button, Delete Button, and Filter -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <p>This section contains a list of registered accounts for Block B</p>
+              <div class="d-flex align-items-center">
+                <!-- Search -->
+                <input type="text" id="searchInputAdmin" class="form-control form-control-sm me-2" placeholder="Search...">
+
+                <!-- Admin Filter (funnel style but keeps original select for functionality) -->
+                <div class="dropdown d-inline-block me-2">
+                  <!-- Funnel button -->
+                  <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                          type="button" id="filterActionAdminBtn" data-bs-toggle="dropdown" 
+                          aria-expanded="false" title="Filter">
+                    <i class="bi bi-funnel-fill"></i>
+                  </button>
+
+                  <!-- Dropdown list -->
+                  <ul class="dropdown-menu" aria-labelledby="filterActionAdminBtn">
+                    <li><a class="dropdown-item admin-filter-option" data-value="All">All Status</a></li>
+                    <li><a class="dropdown-item admin-filter-option" data-value="active">Active</a></li>
+                    <li><a class="dropdown-item admin-filter-option" data-value="Completed">Completed</a></li>
+                    <li><a class="dropdown-item admin-filter-option" data-value="inactive">Inactive</a></li>
+                  </ul>
+
+                  <!-- Original hidden select (kept for JS functionality) -->
+                  <select id="filterActionAdmin" class="form-select form-select-sm d-none">
+                    <option value="All">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="Completed">Completed</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+                
+                <!-- Reload -->
+                <button type="button" class="btn btn-sm btn-warning" title="Reload" onclick="location.reload();">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+
+                <!-- Delete -->
+                <button type="button" class="btn btn-sm btn-danger ms-2" id="deleteBtnAdmin" title="Delete" disabled
+                  data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tip Legend -->
+            <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 12px;">
+              💡 Tip: Click a column header to sort.
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+              <table class="table" id="adminTable">
+                <thead class="table-light align-middle text-center" style="font-size: 13px;">
+                  <tr>
+                    <th></th>
+                    <th>Student ID #</th>
+                    <th>Email address</th>
+                    <th>Surname</th>
+                    <th>First Name</th>
+                    <th>Middle Name</th>
+                    <th>Suffix</th>
+                    <th data-type="date">Birthdate</th>
+                    <th>Gender</th>
+                    <th>Contact number</th>
+                    <th data-type="date">Reg Date</th>
+                    <th>Temp Password</th>
+                    <th>Password Reset Log</th>
+                    <th>Action</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+
+                <tbody class="align-middle text-center" style="font-size: 13px;">
+                  <!-- Row 1 -->
+                  <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>22-0743</td>
+                    <td>jane.smith@example.com</td>
+                    <td>Smith</td>
+                    <td>Jane</td>
+                    <td>B.</td>
+                    <td></td>
+                    <td>1992/02/14</td>
+                    <td>Female</td>
+                    <td>09987654321</td>
+                    <td>2024/04/20</td>
+                    <td>Abc123!@#</td>
+                    <td class="reset-log">2025/09/21 15:45</td> 
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'active')">Active</button>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'inactive')">Inactive</button>
+                      </div>
+                    </td>
+                    <td class="status-cell">Active</td>
+                    <td>--</td>
+                  </tr>
+
+                  <!-- Row 2 -->
+                  <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>22-0650</td>
+                    <td>carlos.ramos@example.com</td>
+                    <td>Ramos</td>
+                    <td>Carlos</td>
+                    <td>T.</td>
+                    <td>Sr.</td>
+                    <td>1989/06/09</td>
+                    <td>Male</td>
+                    <td>09981234567</td>
+                    <td>2024/04/18</td>
+                    <td>Xyz789@12</td>
+                    <td class="reset-log">2025/09/21 15:45</td> 
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'active')">Active</button>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'inactive')">Inactive</button>
+                      </div>
+                    </td>
+                    <td class="status-cell">Completed</td>
+                    <td>--</td>
+                  </tr>
+
+                  <!-- Row 3 -->
+                  <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>22-0881</td>
+                    <td>lea.delacruz@example.com</td>
+                    <td>Dela Cruz</td>
+                    <td>Lea</td>
+                    <td>R.</td>
+                    <td></td>
+                    <td>1997/11/23</td>
+                    <td>Female</td>
+                    <td>09985432109</td>
+                    <td>2024/04/10</td>
+                    <td>Pqrs456#@</td>
+                    <td class="reset-log">2025/09/21 15:45</td> 
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'active')">Active</button>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'inactive')">Inactive</button>
+                      </div>
+                    </td>
+                    <td class="status-cell">Inactive</td>
+                    <td>--</td>
+                  </tr>
+
+                  <!-- Row 4 -->
+                  <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>22-0592</td>
+                    <td>mark.garcia@example.com</td>
+                    <td>Garcia</td>
+                    <td>Mark</td>
+                    <td>V.</td>
+                    <td></td>
+                    <td>1991/04/30</td>
+                    <td>Male</td>
+                    <td>09986753124</td>
+                    <td>2024/04/22</td>
+                    <td>Lmn987*&^</td>
+                    <td class="reset-log">2025/09/21 15:45</td> 
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'active')">Active</button>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'inactive')">Inactive</button>
+                      </div>
+                    </td>
+                    <td class="status-cell">Active</td>
+                    <td>--</td>
+                  </tr>
+
+                  <!-- No Entries Message -->
+                  <tr id="noEntriesMessageAdmin" style="display: none;">
+                    <td colspan="15" style="text-align: center; vertical-align: middle;">
+                      <div>No entries found</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Dropdown below the table -->
+              <div class="mt-3 d-flex align-items-center">
+                <label for="entriesSelectBlockB" class="me-2">Show</label>
+                <select id="entriesSelectBlockB" class="form-select form-select-sm me-2" style="width: auto;">
+                  <option value="5">5</option>
+                  <option value="10" selected>10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <span>entries</span>
+              </div>
+            </div>
+
+            
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Add Account Modal -->
+  <div class="modal fade" id="addAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <form id="addAccountForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Create New Student Account</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          
+          <div class="modal-body">
+            <div class="row g-3">
+              
+              <!-- Student ID -->
+              <div class="col-md-4">
+                <label class="form-label">Student ID #</label>
+                <input type="text" name="student_id" class="form-control" required>
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-4">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" required>
+              </div>
+
+              <!-- Temp Password -->
+              <div class="col-md-4">
+                <label class="form-label">Temporary Password</label>
+                <div class="input-group">
+                  <input type="text" id="tempPassword" name="password" class="form-control" 
+                        placeholder="Auto-generated password" required readonly>
+                  <button type="button" class="btn btn-outline-secondary" id="regenPassBtn">↻</button>
+                </div>
+              </div>
+
+              <!-- Surname -->
+              <div class="col-md-4">
+                <label class="form-label">Surname</label>
+                <input type="text" name="surname" class="form-control" required>
+              </div>
+
+              <!-- First Name -->
+              <div class="col-md-4">
+                <label class="form-label">First Name</label>
+                <input type="text" name="firstname" class="form-control" required>
+              </div>
+
+              <!-- Middle Name -->
+              <div class="col-md-4">
+                <label class="form-label">Middle Name</label>
+                <input type="text" name="middlename" class="form-control">
+              </div>
+
+              <!-- Suffix -->
+              <div class="col-md-3">
+                <label class="form-label">Suffix</label>
+                <input type="text" name="suffix" class="form-control">
+              </div>
+
+              <!-- Birthdate -->
+              <div class="col-md-3">
+                <label class="form-label">Birthdate</label>
+                <input type="date" name="birthdate" class="form-control" required>
+              </div>
+
+              <!-- Gender -->
+              <div class="col-md-3">
+                <label class="form-label">Gender</label>
+                <select name="gender" class="form-select" required>
+                  <option value="">Select...</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
+              </div>
+
+              <!-- Contact Number -->
+              <div class="col-md-3">
+                <label class="form-label">Contact Number</label>
+                <input type="text" name="contact" class="form-control" required>
+              </div>
+
+              <!-- Registration Date -->
+              <div class="col-md-4">
+                <label class="form-label">Reg Date</label>
+                <input type="date" name="reg_date" class="form-control" required>
+              </div>
+
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Save Account</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Confirmation Modal -->
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm Delete</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Do you really want to delete the selected data?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger">Yes</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
