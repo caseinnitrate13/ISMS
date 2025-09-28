@@ -19,9 +19,54 @@ app.get('/', (req, res) => {
 });
 
 app.get('/registration', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'registration.html'));
+    res.sendFile(path.join(__dirname, '..', 'public', 'register.html'));
 });
 
+// ADMIN SIDE PAGES
+const adminTemplate = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'template-admin.html'), 'utf-8');
+
+app.get('/admin/downloadable', (req, res) => {
+    const downloadable = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'downloadable.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', downloadable));
+});
+
+app.get('/admin/registered-accounts', (req, res) => {
+    const registeredAccounts = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'reg-accounts.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', registeredAccounts));
+});
+
+app.get('/admin/partner-establishments', (req, res) => {
+    const partnerEstablishments = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'partner-establishments.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', partnerEstablishments));
+});
+
+app.get('/admin/submitted-documents', (req, res) => {
+    const submittedDocuments = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'submission.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', submittedDocuments));
+});
+
+app.get('/admin/student-progress', (req, res) => {
+    const studentProgress = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'student-checklist.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', studentProgress));
+});
+
+app.get('/admin/publish-requirements', (req, res) => {
+    const publishRequirements = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'duedate.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', publishRequirements));
+});
+
+app.get('/admin/notifications', (req, res) => {
+    const notifications = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'notifications.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', notifications));
+});
+
+app.get('/admin/user-profile', (req, res) => {
+    const userProfile = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'user-profile.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', userProfile));
+});
+
+
+// CLIENT SIDE PAGES
 const template = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'template.html'), 'utf-8');
 
 app.get('/progress-tracker', (req, res) => {
@@ -94,9 +139,12 @@ app.get('/test-storage', async (req, res) => {
 
 
 app.use((req, res) => {
-    res.status(404).send(template.replace('{{content}}', '<h3>404 - Page Not Found</h3>'));
+    if (req.originalUrl.startsWith('/admin')) {
+        res.status(404).send(adminTemplate.replace('{{content}}', '<h3>404 - Page Not Found</h3>'));
+    } else {
+        res.status(404).send(template.replace('{{content}}', '<h3>404 - Page Not Found</h3>'));
+    }
 });
-
 
 app.listen(port, () => {
     console.log(`Server successful, listening on port http://127.0.0.1:${port}`)
