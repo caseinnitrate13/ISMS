@@ -396,7 +396,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const notifConfirmDeleteBtn = document.getElementById('notifConfirmDeleteBtn');
   let selectedCards = [];
 
-  // ✅ Sorting
+  // Sorting
   sortOptions.forEach(option => {
     option.addEventListener('click', function () {
       const sortType = this.getAttribute('data-sort');
@@ -412,7 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ✅ Mark selected as Read/Unread
+  // Mark selected as Read/Unread
   const markOptions = document.querySelectorAll('.mark-option');
   markOptions.forEach(option => {
     option.addEventListener('click', function () {
@@ -431,7 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ✅ Delete selected (show modal first)
+  // Delete selected (show modal first)
   notifDeleteBtn.addEventListener('click', function () {
     selectedCards = document.querySelectorAll('.notif-checkbox:checked');
     if (selectedCards.length === 0) {
@@ -442,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.show();
   });
 
-  // ✅ Confirm delete inside modal
+  // Confirm delete inside modal
   notifConfirmDeleteBtn.addEventListener('click', function () {
     selectedCards.forEach(checkbox => {
       const card = checkbox.closest('.notification-card');
@@ -451,5 +451,590 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalEl = document.getElementById('confirmDeleteModal');
     const modal = bootstrap.Modal.getInstance(modalEl);
     modal.hide();
+  });
+});
+
+
+// USER ACCOUNTS (REG-ACCOUNTS)
+document.addEventListener("DOMContentLoaded", () => {
+
+  const addAccountForm = document.getElementById("addAccountForm");
+  const addAccountModal = document.getElementById("addAccountModal");
+
+  let targetBlock = "A"; 
+
+  // --- Track which Add button was clicked ---
+  document.querySelectorAll('[data-bs-target="#addAccountModal"]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      targetBlock = btn.getAttribute("data-block"); // "A" or "B"
+    });
+  });
+
+  // --- Insert a new row into the correct table ---
+  function addAccountToTable(tableId, accountData) {
+    const tableBody = document.querySelector(`#${tableId} tbody`);
+    const newRow = document.createElement("tr");
+
+    newRow.innerHTML = `
+      <td><input type="checkbox" /></td>
+      <td>${accountData.student_id}</td>
+      <td>${accountData.email}</td>
+      <td>${accountData.surname}</td>
+      <td>${accountData.firstname}</td>
+      <td>${accountData.middlename || ""}</td>
+      <td>${accountData.suffix || ""}</td>
+      <td>${accountData.birthdate}</td>
+      <td>${accountData.gender}</td>
+      <td>${accountData.contact}</td>
+      <td>${accountData.reg_date}</td>
+      <td>${accountData.password}</td>
+      <td class="reset-log">--</td>
+      <td>
+        <div class="d-flex gap-1">
+          <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'Active')">Active</button>
+          <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
+          <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'Inactive')">Inactive</button>
+        </div>
+      </td>
+      <td class="status-cell">Active</td>
+      <td>--</td>
+    `;
+
+    tableBody.appendChild(newRow);
+  }
+
+  // --- Handle form submission ---
+  addAccountForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(addAccountForm);
+    const accountData = Object.fromEntries(formData.entries());
+
+    // Auto-generate registration date
+    const now = new Date();
+    accountData.reg_date = now.toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
+
+    // Use targetBlock instead of student_id rules
+    let tableId = targetBlock === "A" ? "blockATable" : "blockBTable";
+
+    addAccountToTable(tableId, accountData);
+
+    addAccountForm.reset();
+    bootstrap.Modal.getInstance(addAccountModal).hide();
+  });
+
+
+    // Sorting Function (keeps previous behavior)
+    function makeTableSortable(tableId) {
+      const table = document.getElementById(tableId);
+      const headers = table.querySelectorAll("th");
+
+      headers.forEach((header, index) => {
+        if (header.textContent.trim() === "" || header.textContent === "Action") return;
+
+        header.classList.add("sortable");
+        header.title = "Click to sort"; // tooltip
+
+        header.addEventListener("click", () => {
+          const rows = Array.from(table.querySelector("tbody").querySelectorAll("tr:not([id])"));
+          const type = header.getAttribute("data-type") || "string";
+          const asc = header.classList.contains("asc") ? false : true;
+
+          headers.forEach(h => h.classList.remove("asc", "desc"));
+          header.classList.add(asc ? "asc" : "desc");
+
+          rows.sort((a, b) => {
+            // skip rows that are hidden (filtering), but keep them in sorted order by value
+            let valA = (a.cells[index] ? a.cells[index].innerText.trim() : "");
+            let valB = (b.cells[index] ? b.cells[index].innerText.trim() : "");
+
+            if (type === "date") {
+              valA = valA ? new Date(valA).getTime() : 0;
+              valB = valB ? new Date(valB).getTime() : 0;
+            } else if (!isNaN(valA) && !isNaN(valB)) {
+              valA = Number(valA);
+              valB = Number(valB);
+            }
+
+            if (valA < valB) return asc ? -1 : 1;
+            if (valA > valB) return asc ? 1 : -1;
+            return 0;
+          });
+
+          rows.forEach(row => table.querySelector("tbody").appendChild(row));
+        });
+      });
+    }
+
+    // Apply a single filter (Action/Status) to a table
+    function applyFilterSingle(tableId, filterId, noEntriesMessageId) {
+      const table = document.getElementById(tableId);
+      const filter = document.getElementById(filterId);
+      const noEntriesMessage = document.getElementById(noEntriesMessageId);
+      if (!table || !filter || !noEntriesMessage) return;
+
+      const value = filter.value;
+      let visibleRows = 0;
+
+      Array.from(table.querySelectorAll("tbody tr")).forEach(row => {
+        // skip the "No entries" row and any rows that do not have a status cell
+        if (row.id && row.id === noEntriesMessageId) return;
+        const statusCell = row.querySelector(".status-cell");
+        if (!statusCell) return;
+
+        const status = statusCell.textContent.trim();
+        if (value === "All" || status === value) {
+          row.style.display = "";
+          visibleRows++;
+        } else {
+          row.style.display = "none";
+        }
+      });
+
+      noEntriesMessage.style.display = visibleRows === 0 ? "" : "none";
+    }
+
+    // make filter dropdown reactive (attach change listener and apply initial filter)
+    function makeTableFilterable(tableId, filterId, noEntriesMessageId) {
+      const filter = document.getElementById(filterId);
+      if (!filter) return;
+      filter.addEventListener("change", () => {
+        applyFilterSingle(tableId, filterId, noEntriesMessageId);
+      });
+      // apply initial state
+      applyFilterSingle(tableId, filterId, noEntriesMessageId);
+    }
+
+    // Initialize sorting and filtering
+
+      makeTableSortable("blockATable");
+      makeTableSortable("blockBTable");
+      makeTableFilterable("blockATable", "filterActionBlockA", "noEntriesMessageBlockA");
+      makeTableFilterable("blockBTable", "filterActionBlockB", "noEntriesMessageBlockB");
+
+
+  document.querySelectorAll('#filterActionBlockAButton + .dropdown-menu .filter-option')
+    .forEach(option => {
+      option.addEventListener('click', function () {
+        let value = this.getAttribute('data-value');
+        
+        // update hidden select
+        let hiddenSelect = document.getElementById('filterActionBlockA');
+        hiddenSelect.value = value;
+
+        // update dropdown label
+        document.getElementById('filterLabelBlockA').textContent = this.textContent;
+
+        hiddenSelect.dispatchEvent(new Event('change'));
+      });
+    });
+
+    // Sync dropdown click → update hidden select → trigger change
+    document.querySelectorAll('.blockB-filter-option').forEach(item => {
+      item.addEventListener('click', function () {
+        const value = this.getAttribute('data-value');
+        const hiddenSelect = document.getElementById('filterActionBlockB');
+        hiddenSelect.value = value;
+        hiddenSelect.dispatchEvent(new Event('change')); 
+      });
+    });
+
+    
+      // Delete buttons
+      const blockADeleteBtn = document.getElementById("blockADeleteBtn");
+      const blockBDeleteBtn = document.getElementById("blockBDeleteBtn");
+
+      // Tables
+      const blockATable = document.getElementById("blockATable");
+      const blockBTable = document.getElementById("blockBTable");
+
+      const confirmDeleteBtn = document.querySelector("#regAccConfirmDeleteModal .btn-danger");
+
+      let selectedTable = null; 
+
+      // Enable delete button when checkbox is selected
+      function toggleDeleteButton(table, deleteBtn) {
+        const checkboxes = table.querySelectorAll("tbody input[type='checkbox']");
+        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+        deleteBtn.disabled = !anyChecked;
+      }
+
+      // Attach listeners to both tables
+      function attachCheckboxListeners(table, deleteBtn) {
+        table.querySelectorAll("tbody input[type='checkbox']").forEach(cb => {
+          cb.addEventListener("change", () => toggleDeleteButton(table, deleteBtn));
+        });
+      }
+
+      attachCheckboxListeners(blockATable, blockADeleteBtn);
+      attachCheckboxListeners(blockBTable, blockBDeleteBtn);
+
+      // Track which delete button was clicked (Block A or Block B)
+      blockADeleteBtn.addEventListener("click", () => { selectedTable = blockATable; });
+      blockBDeleteBtn.addEventListener("click", () => { selectedTable = blockBTable; });
+
+      // Confirm delete action
+      confirmDeleteBtn.addEventListener("click", () => {
+        if (!selectedTable) return;
+
+        const checkboxes = selectedTable.querySelectorAll("tbody input[type='checkbox']:checked");
+        checkboxes.forEach(cb => cb.closest("tr").remove());
+
+        // Disable delete button again
+        if (selectedTable.id === "blockATable") {
+          toggleDeleteButton(blockATable, blockADeleteBtn);
+        } else {
+          toggleDeleteButton(blockBTable, blockBDeleteBtn);
+        }
+
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById("regAccConfirmDeleteModal"));
+        modal.hide();
+      });
+    
+  // Auto-generate Password
+  function generatePassword(length = 10) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
+    let pass = "";
+    for (let i = 0; i < length; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+  }
+
+  // Auto-generate password when modal opens
+  addAccountModal.addEventListener('shown.bs.modal', function () {
+    document.getElementById('tempPassword').value = generatePassword();
+  });
+
+  // Regenerate password button
+  document.getElementById('regenPassBtn').addEventListener('click', function () {
+    document.getElementById('tempPassword').value = generatePassword();
+  });
+});
+
+// Update status function 
+function updateStatus(button, newStatus) {
+  const row = button.closest("tr");
+  const statusCell = row.querySelector(".status-cell");
+  statusCell.textContent = newStatus;
+}
+
+// PARTNER ESTABLISHMENTS 
+document.addEventListener("DOMContentLoaded", () => {
+  const mainEl = document.getElementById('main') || document.body;
+  const deleteBtn = document.getElementById('deleteBtn');
+  const deleteModalEl = document.getElementById('deleteConfirmModal');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+  if (!deleteBtn || !deleteModalEl || !confirmDeleteBtn) {
+    console.warn('Delete button / modal elements not found. Make sure IDs: deleteBtn, deleteConfirmModal, confirmDeleteBtn exist.');
+    return;
+  }
+
+  const deleteModal = new bootstrap.Modal(deleteModalEl);
+
+  // find checkboxes that represent selectable rows/cards
+  function getAllSelectableCheckboxes() {
+    return Array.from(mainEl.querySelectorAll('input[type="checkbox"]'))
+      .filter(cb => cb.closest('table') || cb.closest('.notification-card') || cb.closest('.col-lg-4') || cb.closest('.hte-card') || cb.closest('.card'));
+  }
+
+  function anyChecked() {
+    return getAllSelectableCheckboxes().some(cb => cb.checked);
+  }
+
+  function updateDeleteButtonState() {
+    deleteBtn.disabled = !anyChecked();
+  }
+
+  mainEl.addEventListener('change', function (e) {
+    if (!e.target || e.target.type !== 'checkbox') return;
+    const pcs = getAllSelectableCheckboxes();
+    if (pcs.includes(e.target)) updateDeleteButtonState();
+  });
+
+  updateDeleteButtonState();
+
+  deleteBtn.addEventListener('click', function () {
+    if (!anyChecked()) return;
+    deleteModal.show();
+  });
+
+  function getRemovableElementFromCheckbox(cb) {
+    return cb.closest('tr') ||
+           cb.closest('.notification-card') ||
+           cb.closest('.col-lg-4') ||
+           cb.closest('.hte-card') ||
+           cb.closest('.card') ||
+           cb.closest('li') ||
+           cb.parentElement;
+  }
+
+  confirmDeleteBtn.addEventListener('click', function () {
+    const checked = getAllSelectableCheckboxes().filter(cb => cb.checked);
+
+    if (checked.length === 0) {
+      deleteModal.hide();
+      updateDeleteButtonState();
+      return;
+    }
+
+    checked.forEach(cb => {
+      const removable = getRemovableElementFromCheckbox(cb);
+      if (removable) {
+        removable.remove();
+      } else {
+        cb.remove();
+      }
+    });
+
+    deleteModal.hide();
+    updateDeleteButtonState();
+    console.log(`${checked.length} item(s) deleted.`);
+  });
+
+  deleteModalEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      confirmDeleteBtn.click();
+    }
+  });
+
+  // ---- FILTER ----
+  const filterOptions = document.querySelectorAll(".filter-option");
+  const cardContainer = document.querySelector(".row.align-items-top");
+
+  filterOptions.forEach(option => {
+    option.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      const selectedRaw = (this.getAttribute("data-filter") || "");
+      const selected = selectedRaw.trim().toLowerCase();
+
+      // re-query cards each time
+      const cards = Array.from(cardContainer.querySelectorAll(".col-lg-4"));
+
+      cards.forEach(card => {
+        const status = (card.dataset.moaStatus || "").trim().toLowerCase();
+        if (selected === "all" || status === selected) {
+          card.style.display = "";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    });
+  });
+
+  // ---- SORT ----
+  const sortOptions = document.querySelectorAll(".sort-option");
+
+  sortOptions.forEach(option => {
+    option.addEventListener("click", function () {
+      const selected = this.getAttribute("data-sort");
+      const cards = Array.from(cardContainer.querySelectorAll(".col-lg-4"));
+
+      cards.sort((a, b) => {
+        const nameA = (a.dataset.name || "").toLowerCase();
+        const nameB = (b.dataset.name || "").toLowerCase();
+        const dateA = new Date(a.dataset.moaDate || 0);
+        const dateB = new Date(b.dataset.moaDate || 0);
+
+        switch (selected) {
+          case "nameAsc":  return nameA.localeCompare(nameB);
+          case "nameDesc": return nameB.localeCompare(nameA);
+          case "dateNew":  return dateB - dateA; 
+          case "dateOld":  return dateA - dateB;
+          default: return 0;
+        }
+      });
+
+      cards.forEach(card => cardContainer.appendChild(card));
+    });
+  });
+
+  // ---- ADD & SAVE CARDS ----
+  let hteCounter = document.querySelectorAll(".hte-card").length;
+
+  // click handler to open Add modal
+  document.getElementById("addButton").addEventListener("click", function () {
+    const addCardModal = new bootstrap.Modal(document.getElementById("addCardModal"));
+    addCardModal.show();
+  });
+
+  // Save edits from detail modal
+  function saveDetails(hteNumber) {
+    const name = document.getElementById(`hte${hteNumber}Name`).value.trim();
+    const address = document.getElementById(`hte${hteNumber}Address`).value.trim();
+    const moaStatus = document.getElementById(`hte${hteNumber}MoaStatus`).value.trim();
+    const moaDate = document.getElementById(`hte${hteNumber}MoaDate`).value || "";
+    const positions = document.getElementById(`hteAve${hteNumber}`).value.trim();
+
+    const modalEl = document.getElementById(`detailsModal${hteNumber}`);
+    // find the button that opens this modal, then the card
+    const openerBtn = document.querySelector(`[data-bs-target="#detailsModal${hteNumber}"]`);
+    const cardEl = openerBtn ? openerBtn.closest(".hte-card") : null;
+    if (!cardEl) {
+      // nothing to update
+      const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
+      document.getElementById("feedbackMessage").textContent = "⚠ Unable to find the related card to update.";
+      fb.show();
+      setTimeout(() => fb.hide(), 1500);
+      // Close modal if exists
+      const instance = bootstrap.Modal.getInstance(modalEl);
+      if (instance) instance.hide();
+      return;
+    }
+
+    const parentCol = cardEl.closest(".col-lg-4");
+    const currentName = (cardEl.querySelector(".card-title")?.textContent || "").trim();
+    const currentMoaStatus = (parentCol?.dataset.moaStatus || "").trim();
+    const currentMoaDate = (parentCol?.dataset.moaDate || "").trim();
+    const currentAddress = (parentCol?.dataset.address || "").trim();
+    const currentPositions = (parentCol?.dataset.positions || "").trim();
+
+    const hasChanges = (
+      name !== currentName ||
+      address !== currentAddress ||
+      moaStatus !== currentMoaStatus ||
+      moaDate !== currentMoaDate ||
+      positions !== currentPositions
+    );
+
+    // close details modal first
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+
+    const feedbackModal = new bootstrap.Modal(document.getElementById("feedbackModal"));
+
+    if (!hasChanges) {
+      document.getElementById("feedbackMessage").textContent = "⚠ No changes made.";
+      feedbackModal.show();
+      setTimeout(() => feedbackModal.hide(), 1500);
+      return;
+    }
+
+    // Apply changes to card DOM & data-attributes
+    const titleEl = cardEl.querySelector(".card-title");
+    if (titleEl) titleEl.textContent = name;
+
+    if (parentCol) {
+      parentCol.dataset.name = name;
+      parentCol.dataset.address = address;
+      parentCol.dataset.moaStatus = moaStatus;
+      parentCol.dataset.moaDate = moaDate;
+      parentCol.dataset.positions = positions;
+    }
+
+    document.getElementById("feedbackMessage").textContent = `✅ "${name}" details updated successfully!`;
+    feedbackModal.show();
+    setTimeout(() => feedbackModal.hide(), 1500);
+  }
+  window.saveDetails = saveDetails; 
+
+  // SINGLE saveCardBtn handler (create new card)
+  document.getElementById("saveCardBtn").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    const name = document.getElementById("establishmentName").value.trim();
+    const address = document.getElementById("establishmentAddress").value.trim();
+    const moaStatus = document.getElementById("moaStatus").value;
+    const moaSince = document.getElementById("moaSince").value;
+    const positions = document.getElementById("availablePositions").value.trim();
+
+    // Validation
+    if (!name || !address || !positions) {
+      document.getElementById("feedbackMessage").textContent = "⚠ Please fill in all required fields.";
+      const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
+      fb.show();
+      setTimeout(() => fb.hide(), 1500);
+      return;
+    }
+
+    // Add card
+    hteCounter++;
+    const newCol = document.createElement("div");
+    newCol.className = "col-lg-4 mb-4";
+    // set dataset attributes (use dataset for easy access)
+    newCol.dataset.moaStatus = moaStatus;
+    newCol.dataset.name = name;
+    newCol.dataset.moaDate = moaSince;
+    newCol.dataset.address = address;
+    newCol.dataset.positions = positions;
+
+    newCol.innerHTML = `
+      <div class="card hte-card shadow-lg border-0 h-100 custom-card-hover position-relative">
+        <div class="card-body custom-card-shadow">
+          <div class="d-flex justify-content-left">
+            <div class="flex align-items-center justify-content-left">
+              <input type="checkbox" style="width: 16px; height: 16px; margin-top: 16px;" />
+            </div>
+          </div>
+          <div class="text-center mt-4 mb-3">
+            <h5 class="card-title fw-semibold text-uppercase" style="font-size: 1.1rem;">${name}</h5>
+          </div>
+        </div>
+        <button class="btn btn-light position-absolute bottom-0 end-0 m-3 rounded-circle shadow border"
+          data-bs-toggle="modal" data-bs-target="#detailsModal${hteCounter}">
+          <i class="bi bi-card-list color-violet"></i>
+        </button>
+      </div>
+    `;
+
+    cardContainer.appendChild(newCol);
+
+    // Create modal for this card
+    const newModal = document.createElement("div");
+    newModal.className = "modal fade";
+    newModal.id = `detailsModal${hteCounter}`;
+    newModal.setAttribute("tabindex", "-1");
+    newModal.setAttribute("aria-labelledby", `detailsModalLabel${hteCounter}`);
+    newModal.setAttribute("aria-hidden", "true");
+    newModal.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-dark-purple text-white">
+            <h5 class="modal-title" id="detailsModalLabel${hteCounter}">Establishment Details</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <label><strong>Name:</strong></label>
+            <input type="text" class="form-control" id="hte${hteCounter}Name" value="${name}">
+            <label><strong>Address:</strong></label>
+            <input type="text" class="form-control" id="hte${hteCounter}Address" value="${address}">
+            <label><strong>MOA Status:</strong></label>
+            <select class="form-control" id="hte${hteCounter}MoaStatus">
+              <option ${moaStatus==="New"?"selected":""}>New</option>
+              <option ${moaStatus==="Renewed"?"selected":""}>Renewed</option>
+              <option ${moaStatus==="Expired"?"selected":""}>Expired</option>
+            </select>
+            <label><strong>MOA Established Since:</strong></label>
+            <input type="date" class="form-control" id="hte${hteCounter}MoaDate" value="${moaSince}">
+            <label><strong>Available Positions:</strong></label>
+            <input type="text" class="form-control" id="hteAve${hteCounter}" value="${positions}">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-main" onclick="saveDetails(${hteCounter})">Save</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(newModal);
+
+    // Close Add Modal
+    const addCardModalEl = document.getElementById("addCardModal");
+    const addCardModalInst = bootstrap.Modal.getInstance(addCardModalEl);
+    if (addCardModalInst) addCardModalInst.hide();
+
+    // Reset form
+    document.getElementById("addCardForm").reset();
+
+    // Success feedback
+    document.getElementById("feedbackMessage").textContent = `✅ "${name}" has been added successfully!`;
+    const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
+    fb.show();
+    setTimeout(() => fb.hide(), 1500);
   });
 });

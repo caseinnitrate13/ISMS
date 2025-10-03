@@ -228,13 +228,13 @@
   
   
   .custom-btn-primary{
-    background-color: #28a745;
+    background-color: #191970;
     color: #ffffff ;
   
   }
   
   .custom-btn-primary:hover{
-    background-color: #218838;
+    background-color: #1B0C41;
     color: #ffffff ;
   }
   
@@ -263,14 +263,19 @@
   }
   
   /* bg color Custom */
-  .bg-green-1{
+  /* .bg-green-1{
     background-color: #28a745;
   }
   
   .bg-light2{
     background-color: #dfffe8;
   }
-  
+   */
+
+  .bg-dark-purple{
+    background-color: #191970;
+  }
+
   /* toogle  */
   .toggle-sidebar-btn:hover {
     transform: scale(1.1);
@@ -507,3 +512,56 @@ section {
 .notification-actions {
   cursor: pointer;
 }
+
+/* sort table */
+
+/* Highlight sortable headers */
+    th.sortable {
+      cursor: pointer;
+      position: relative;
+    }
+
+    th.sortable:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* Arrow indicators for sorting */
+    th.asc::after {
+      content: " ▲";
+      font-size: 10px;
+      color: #0d6efd;
+    }
+
+    th.desc::after {
+      content: " ▼";
+      font-size: 10px;
+      color: #0d6efd;
+    }
+
+    /* Filter select wrapper - funnel icon on the right replacing arrow */
+    .filter-select-wrapper {
+      position: relative;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .filter-select-wrapper select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding-right: 34px; /* space for funnel icon on right */
+      cursor: pointer;
+    }
+    .filter-select-wrapper .filter-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: #6c757d;
+      pointer-events: none; /* clicks go to select */
+    }
+
+    /* small responsiveness */
+    @media (max-width: 480px) {
+      .filter-select-wrapper { width: 140px !important; }
+    }
