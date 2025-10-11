@@ -178,211 +178,389 @@
   });
  });
 
-// STUDENT CHECKLIST - MODAL PREVIEW
-document.addEventListener("DOMContentLoaded", () => {
-  $(document).ready(function () {
-    var table = $('#blockATable').DataTable({
-      "lengthMenu": [5, 10, 25, 50],
-      "columnDefs": [
-        { "orderable": false, "targets": 0 } // disable sort on checkbox column
-      ]
-    });
-
-    // Delete button function
-    $('#deleteSelected').click(function () {
-      $('#blockATable input[name="select-row"]:checked').each(function () {
-        table.row($(this).closest('tr')).remove().draw();
-      });
-    });
-  });
-});
-
-// DUEDATE 
-
-document.addEventListener("DOMContentLoaded", () => {
-  const deadlineForm = document.getElementById('deadlineForm');
-  const container = document.getElementById('deadlineContainer');
-  const modalEl = document.getElementById('addDeadlineModal');
-  const addDeadlineModal = modalEl ? new bootstrap.Modal(modalEl) : null;
-
-  if (!deadlineForm || !container) {
-    console.error("Form or container not found!");
-    return;
-  }
-
-  // ----- Handle Form Submit -----
-  deadlineForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    console.log("Form submitted");
-
-    const type = document.getElementById('requirementType').value;
-    const title = document.getElementById('deadlineTitle').value;
-    const dueDate = document.getElementById('dueDate').value;
-    const datePosted = document.getElementById('datePosted').value || new Date().toISOString().split('T')[0];
-    const notes = document.getElementById('notes').value;
-
-    const col = document.createElement('div');
-    col.classList.add('col-md-4', 'position-relative');
-    col.innerHTML = `
-      <input type="checkbox" class="form-check-input position-absolute top-0 start-0 m-2 z-3">
-      <div class="card h-100 border-success">
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">${type}</h5>
-          <h5>${title}</h5>
-          <p><strong>Due:</strong> ${new Date(dueDate).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>
-          <p><strong>Date Posted:</strong> ${new Date(datePosted).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>
-          <p class="text-muted small" style="flex-grow: 1;">${notes}</p>
-        </div>
-      </div>
-    `;
-
-    container.prepend(col);
-    deadlineForm.reset();
-    if (addDeadlineModal) addDeadlineModal.hide();
-  });
-
-  // ----- Handle Sorting -----
-  document.querySelectorAll('.sort-option').forEach(option => {
-    option.addEventListener('click', function () {
-      const sortType = this.dataset.sort;
-      const cards = Array.from(container.querySelectorAll('.col-md-4'));
-
-      cards.sort((a, b) => {
-        const dateTextA = Array.from(a.querySelectorAll('p'))
-          .find(p => p.textContent.includes('Date Posted'))
-          .textContent.split(':')[1].trim();
-
-        const dateTextB = Array.from(b.querySelectorAll('p'))
-          .find(p => p.textContent.includes('Date Posted'))
-          .textContent.split(':')[1].trim();
-
-        const dateA = new Date(dateTextA);
-        const dateB = new Date(dateTextB);
-
-        return sortType === 'newest' ? dateB - dateA : dateA - dateB;
-      });
-
-      cards.forEach(card => container.appendChild(card));
-    });
-  });
-});
-
 
 // SUBMISSION (SUBMITTED DOCUMENTS)
 
-document.addEventListener("DOMContentLoaded", () => {
-  // ---------- Approve / Decline ----------
-  document.querySelectorAll("tr").forEach(row => {
-    const approveBtn = row.querySelector(".approve-btn");
-    const declineBtn = row.querySelector(".decline-btn");
-    const statusCell = row.querySelector(".status-cell");
-    const remarksDiv = row.querySelector(".remarks-input");
+// document.addEventListener("DOMContentLoaded", () => {
+//   // ---------- Approve / Decline ----------
+//   document.querySelectorAll("tr").forEach(row => {
+//     const approveBtn = row.querySelector(".approve-btn");
+//     const declineBtn = row.querySelector(".decline-btn");
+//     const statusCell = row.querySelector(".status-cell");
+//     const remarksDiv = row.querySelector(".remarks-input");
 
-    if (approveBtn && declineBtn && statusCell && remarksDiv) {
-      // Approve
-      approveBtn.addEventListener("click", () => {
-        statusCell.textContent = "Approved";
-        statusCell.classList.remove("text-danger");
-        statusCell.classList.add("text-success");
-        remarksDiv.classList.add("d-none");
-      });
+//     if (approveBtn && declineBtn && statusCell && remarksDiv) {
+//       // Approve
+//       approveBtn.addEventListener("click", () => {
+//         statusCell.textContent = "Approved";
+//         statusCell.classList.remove("text-danger");
+//         statusCell.classList.add("text-success");
+//         remarksDiv.classList.add("d-none");
+//       });
 
-      // Decline
-      declineBtn.addEventListener("click", () => {
-        statusCell.textContent = "Declined";
-        statusCell.classList.remove("text-success");
-        statusCell.classList.add("text-danger");
-        remarksDiv.classList.remove("d-none");
-      });
+//       // Decline
+//       declineBtn.addEventListener("click", () => {
+//         statusCell.textContent = "Declined";
+//         statusCell.classList.remove("text-success");
+//         statusCell.classList.add("text-danger");
+//         remarksDiv.classList.remove("d-none");
+//       });
+//       const feedbackModal = new bootstrap.Modal(document.getElementById("feedbackModal"));
+     
+//       // Send Remarks
+//       const sendBtn = remarksDiv.querySelector(".send-btn");
+//       if (sendBtn) {
+//         sendBtn.addEventListener("click", () => {
+//           const input = remarksDiv.querySelector("input");
+//           const remarkText = input ? input.value : "";
+//           document.getElementById("feedbackMessage").textContent = `✅ "${name}" details updated successfully!`;
+//           feedbackModal.show();
+//           setTimeout(() => feedbackModal.hide(), 1500);
+//         });
+//       }
+//     }
+//   });
 
-      // Send Remarks
-      const sendBtn = remarksDiv.querySelector(".send-btn");
-      if (sendBtn) {
-        sendBtn.addEventListener("click", () => {
-          const input = remarksDiv.querySelector("input");
-          const remarkText = input ? input.value : "";
-          alert("Remarks sent to student: " + remarkText);
-        });
-      }
+//   // ---------- Filter ----------
+//   const filterBtn = document.getElementById("filterToggleBtn");
+//   const filterDropdown = document.getElementById("filterDropdown");
+//   const filterSelect = document.getElementById("submissionFilter");
+//   const allCards = document.querySelectorAll(".col-md-3[data-category]");
+
+//   if (filterBtn && filterDropdown) {
+//     // Toggle dropdown visibility
+//     filterBtn.addEventListener("click", () => {
+//       filterDropdown.style.display =
+//         filterDropdown.style.display === "none" ? "block" : "none";
+//     });
+//   }
+
+//   if (filterSelect) {
+//     // Filter cards
+//     filterSelect.addEventListener("change", function () {
+//       const selected = this.value;
+//       allCards.forEach(card => {
+//         const category = card.getAttribute("data-category");
+//         card.style.display =
+//           selected === "all" || category === selected ? "block" : "none";
+//       });
+//     });
+//   }
+
+//   // ---------- Sorting ----------
+//   function handleSort(table, sortType) {
+//     const tbody = table.querySelector("tbody");
+//     if (!tbody) return;
+
+//     const rows = Array.from(tbody.querySelectorAll("tr"));
+//     let colIndex;
+//     let compareFn;
+
+//     if (sortType.startsWith("name")) {
+//       colIndex = 2; // Student Name column
+//       compareFn = (a, b) => {
+//         let textA = a.cells[colIndex].textContent.trim().toLowerCase();
+//         let textB = b.cells[colIndex].textContent.trim().toLowerCase();
+//         return textA.localeCompare(textB);
+//       };
+//     } else if (sortType.startsWith("id")) {
+//       colIndex = 1; // Student ID column
+//       compareFn = (a, b) => {
+//         let numA = parseInt(a.cells[colIndex].textContent.trim(), 10);
+//         let numB = parseInt(b.cells[colIndex].textContent.trim(), 10);
+//         return numA - numB;
+//       };
+//     } else {
+//       return; // unknown sort
+//     }
+
+//     rows.sort(compareFn);
+//     if (sortType.endsWith("desc")) rows.reverse();
+
+//     // Re-append sorted rows
+//     rows.forEach((row, index) => {
+//       if (row.cells[0]) row.cells[0].textContent = index + 1; // update row numbers
+//       tbody.appendChild(row);
+//     });
+//   }
+
+//   // Attach sort options
+//   document.querySelectorAll(".dropdown-menu .dropdown-item[data-sort]").forEach(option => {
+//     option.addEventListener("click", (e) => {
+//       e.preventDefault();
+//       const sortType = option.dataset.sort;
+
+//       // Try to find the nearest table
+//       let table = option.closest(".modal")?.querySelector("table");
+//       if (!table) {
+//         table = document.querySelector("table"); // fallback to first table
+//       }
+
+//       if (table) handleSort(table, sortType);
+//     });
+//   });
+// });
+
+
+// SUBMISSION (SUBMITTED DOCUMENTS)
+document.addEventListener("DOMContentLoaded", function () {
+  // ==========================
+  // MODAL INITIALIZATION
+  // ==========================
+  const confirmationModalEl = document.getElementById("confirmationModal");
+  const sendConfirmationModalEl = document.getElementById("sendConfirmationModal");
+  const feedbackModalEl = document.getElementById("feedbackModal");
+
+  const confirmationModal = new bootstrap.Modal(confirmationModalEl);
+  const sendConfirmationModal = new bootstrap.Modal(sendConfirmationModalEl);
+  const feedbackModal = new bootstrap.Modal(feedbackModalEl);
+
+  const confirmationMessage = document.getElementById("confirmationMessage");
+  const confirmActionBtn = document.getElementById("confirmActionBtn");
+  const confirmSendBtn = document.getElementById("confirmSendBtn");
+
+  // Keep track of the last opened modal
+  let previousModal = null;
+  let currentAction = null;
+  let currentRow = null;
+  let currentRemarkInput = null;
+
+  // ==========================
+  // MODAL STACK HANDLING
+  // ==========================
+  function showConfirmationModal(targetModal, callback) {
+    // Save which modal was open before confirmation
+    const openModal = document.querySelector(".modal.show");
+    if (openModal && openModal !== targetModal) {
+      previousModal = bootstrap.Modal.getInstance(openModal);
+      previousModal.hide();
+    }
+
+    targetModal.show();
+
+    // When confirmation modal hides, show the previous one again
+    targetModal._element.addEventListener(
+      "hidden.bs.modal",
+      () => {
+        if (previousModal) {
+          previousModal.show();
+          previousModal = null;
+        }
+        if (callback) callback();
+      },
+      { once: true }
+    );
+  }
+
+  // ==========================
+  // APPROVE / DECLINE HANDLER
+  // ==========================
+  document.body.addEventListener("click", function (e) {
+    if (e.target.classList.contains("approve-btn") || e.target.classList.contains("decline-btn")) {
+      currentRow = e.target.closest("tr");
+      currentAction = e.target.classList.contains("approve-btn") ? "approve" : "decline";
+      const studentName = currentRow.querySelector("td:nth-child(3)").innerText;
+
+      confirmationMessage.textContent = `Are you sure you want to ${currentAction} ${studentName}'s request?`;
+
+      // Show confirmation modal with stack behavior
+      showConfirmationModal(confirmationModal);
     }
   });
 
-  // ---------- Filter ----------
-  const filterBtn = document.getElementById("filterToggleBtn");
-  const filterDropdown = document.getElementById("filterDropdown");
-  const filterSelect = document.getElementById("submissionFilter");
-  const allCards = document.querySelectorAll(".col-md-3[data-category]");
+  // ==========================
+  // CONFIRM ACTION
+  // ==========================
+  confirmActionBtn.addEventListener("click", function () {
+    if (!currentRow || !currentAction) return;
+
+    const statusCell = currentRow.querySelector(".status-cell");
+    const remarksDiv = currentRow.querySelector(".remarks-input");
+
+    if (currentAction === "approve") {
+      statusCell.textContent = "Approved";
+      statusCell.classList.add("text-success", "fw-bold");
+      statusCell.classList.remove("text-danger");
+      remarksDiv.classList.add("d-none");
+    } else if (currentAction === "decline") {
+      statusCell.textContent = "Declined";
+      statusCell.classList.add("text-danger", "fw-bold");
+      statusCell.classList.remove("text-success");
+      remarksDiv.classList.remove("d-none");
+      currentRemarkInput = remarksDiv.querySelector("input");
+    }
+
+    confirmationModal.hide();
+  });
+
+  // ==========================
+  // SEND REMARK HANDLER
+  // ==========================
+  document.body.addEventListener("click", function (e) {
+    if (e.target.closest(".send-btn")) {
+      currentRow = e.target.closest("tr");
+      currentRemarkInput = currentRow.querySelector(".remarks-input input");
+
+      // Show send confirmation modal with stack behavior
+      showConfirmationModal(sendConfirmationModal);
+    }
+  });
+
+  // ==========================
+  // CONFIRM SENDING REMARK
+  // ==========================
+  confirmSendBtn.addEventListener("click", function () {
+    if (currentRemarkInput) {
+      const remarkText = currentRemarkInput.value.trim();
+      const feedbackMessage = document.getElementById("feedbackMessage");
+
+      if (remarkText) {
+        feedbackMessage.textContent = `✅ Remark sent successfully! ${remarkText}`;
+      } else {
+        feedbackMessage.textContent = `⚠ Please enter a remark before sending.`;
+      }
+
+      sendConfirmationModal.hide();
+      feedbackModal.show();
+      setTimeout(() => feedbackModal.hide(), 2000);
+    }
+  });
+
+  // ==========================
+  // FILTER HANDLERS
+  // ==========================
+  const filterBtn = document.getElementById('filterToggleBtn');
+  const filterDropdown = document.getElementById('filterDropdown');
+  const filterSelect = document.getElementById('submissionFilter');
+  const allCards = document.querySelectorAll('.col-md-3[data-category]');
 
   if (filterBtn && filterDropdown) {
-    // Toggle dropdown visibility
-    filterBtn.addEventListener("click", () => {
-      filterDropdown.style.display =
-        filterDropdown.style.display === "none" ? "block" : "none";
+    filterBtn.addEventListener('click', () => {
+      filterDropdown.style.display = filterDropdown.style.display === 'none' ? 'block' : 'none';
     });
   }
 
   if (filterSelect) {
-    // Filter cards
-    filterSelect.addEventListener("change", function () {
+    filterSelect.addEventListener('change', function () {
       const selected = this.value;
       allCards.forEach(card => {
-        const category = card.getAttribute("data-category");
-        card.style.display =
-          selected === "all" || category === selected ? "block" : "none";
+        const category = card.getAttribute('data-category');
+        card.style.display = (selected === 'all' || category === selected) ? 'block' : 'none';
       });
     });
   }
 
-  // ---------- Sorting ----------
+  // ==========================
+  // SORT HANDLER
+  // ==========================
   function handleSort(table, sortType) {
     const tbody = table.querySelector("tbody");
-    if (!tbody) return;
-
     const rows = Array.from(tbody.querySelectorAll("tr"));
+
     let colIndex;
     let compareFn;
 
     if (sortType.startsWith("name")) {
-      colIndex = 2; // Student Name column
-      compareFn = (a, b) => {
-        let textA = a.cells[colIndex].textContent.trim().toLowerCase();
-        let textB = b.cells[colIndex].textContent.trim().toLowerCase();
-        return textA.localeCompare(textB);
-      };
+      colIndex = 2;
+      compareFn = (a, b) => a.cells[colIndex].textContent.trim().localeCompare(b.cells[colIndex].textContent.trim());
     } else if (sortType.startsWith("id")) {
-      colIndex = 1; // Student ID column
-      compareFn = (a, b) => {
-        let numA = parseInt(a.cells[colIndex].textContent.trim(), 10);
-        let numB = parseInt(b.cells[colIndex].textContent.trim(), 10);
-        return numA - numB;
-      };
-    } else {
-      return; // unknown sort
+      colIndex = 1;
+      compareFn = (a, b) => parseInt(a.cells[colIndex].textContent) - parseInt(b.cells[colIndex].textContent);
     }
 
     rows.sort(compareFn);
     if (sortType.endsWith("desc")) rows.reverse();
 
-    // Re-append sorted rows
     rows.forEach((row, index) => {
-      if (row.cells[0]) row.cells[0].textContent = index + 1; // update row numbers
+      row.cells[0].textContent = index + 1;
       tbody.appendChild(row);
     });
   }
 
-  // Attach sort options
   document.querySelectorAll(".dropdown-menu .dropdown-item[data-sort]").forEach(option => {
     option.addEventListener("click", (e) => {
       e.preventDefault();
       const sortType = option.dataset.sort;
-
-      // Try to find the nearest table
-      let table = option.closest(".modal")?.querySelector("table");
-      if (!table) {
-        table = document.querySelector("table"); // fallback to first table
-      }
-
+      const modal = option.closest(".modal");
+      const table = modal ? modal.querySelector("table") : null;
       if (table) handleSort(table, sortType);
+    });
+  });
+
+  // ==========================
+  // STATUS BADGE + FILTERING
+  // ==========================
+  function getStatusCell(tr) {
+    return tr.querySelector('.status-cell') || tr.cells[7] || null;
+  }
+
+  function renderStatusBadge(cell, status) {
+    if (!cell) return;
+    const s = (status || '').trim().toLowerCase();
+    const label = s ? (s[0].toUpperCase() + s.slice(1)) : 'Pending';
+    let cls = 'bg-secondary';
+    if (s === 'approved') cls = 'bg-success';
+    else if (s === 'declined') cls = 'bg-danger';
+    cell.innerHTML = `<span class="badge ${cls}">${label}</span>`;
+  }
+
+  document.querySelectorAll('table').forEach(table => {
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const sc = getStatusCell(tr);
+      if (sc) renderStatusBadge(sc, sc.textContent.trim() || 'Pending');
+    });
+  });
+
+  function applyFiltersToTable(table) {
+    if (!table) return;
+    const modal = table.closest('.modal');
+    const filter = modal ? modal.querySelector('select[id$="Filter"], select[id$="filter"]') : null;
+    const searchInput = modal ? modal.querySelector('input[id$="SearchInput"], input[id$="searchInput"]') : null;
+
+    const filterVal = (filter ? filter.value : 'all').toLowerCase();
+    const q = (searchInput ? searchInput.value : '').toLowerCase();
+
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const sc = getStatusCell(tr);
+      const statusText = sc ? (sc.textContent.trim().toLowerCase() || 'pending') : 'pending';
+      const matchFilter = (filterVal === 'all') || (statusText === filterVal);
+      const matchSearch = !q || Array.from(tr.cells).map(td => td.textContent).join(' ').toLowerCase().includes(q);
+      tr.style.display = (matchFilter && matchSearch) ? '' : 'none';
+    });
+  }
+
+  document.querySelectorAll('select[id$="Filter"], select[id$="filter"]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const modal = sel.closest('.modal');
+      const table = modal ? modal.querySelector('table') : null;
+      applyFiltersToTable(table);
+    });
+  });
+
+  document.querySelectorAll('input[id$="SearchInput"], input[id$="searchInput"]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const modal = inp.closest('.modal');
+      const table = modal ? modal.querySelector('table') : null;
+      applyFiltersToTable(table);
+    });
+  });
+
+  document.querySelectorAll('.modal').forEach(modalEl => {
+    modalEl.addEventListener('shown.bs.modal', function () {
+      const table = modalEl.querySelector('table');
+      if (table) applyFiltersToTable(table);
+    });
+  });
+
+  document.querySelectorAll('.search-bar').forEach(input => {
+    input.addEventListener('keyup', function () {
+      let value = this.value.toLowerCase();
+      let targetTable = document.querySelector(this.dataset.target);
+      if (targetTable) {
+        targetTable.querySelectorAll('tbody tr').forEach(row => {
+          row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+        });
+      }
     });
   });
 });
@@ -1037,4 +1215,356 @@ document.addEventListener("DOMContentLoaded", () => {
     fb.show();
     setTimeout(() => fb.hide(), 1500);
   });
+});
+
+
+// PUBLISH REQUIREMENTS (DUEDATE)
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Auto-set today's date when Add Modal opens
+  document.getElementById('addDeadlineModal').addEventListener('show.bs.modal', function () {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const formattedDate = `${yyyy}-${mm}-${dd}`;
+
+    document.getElementById('autoDatePosted').textContent = formattedDate;
+    document.getElementById('datePosted').value = formattedDate; // hidden input
+  });
+
+  const deadlineForm = document.getElementById('deadlineForm');
+  const container = document.getElementById('deadlineContainer');
+  const addDeadlineModal = new bootstrap.Modal(document.getElementById('addDeadlineModal'));
+
+  // Add new requirement card
+  deadlineForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const type = document.getElementById('requirementType').value;
+    const title = document.getElementById('deadlineTitle').value;
+    const dueDate = document.getElementById('dueDate').value;
+    const datePosted = document.getElementById('datePosted').value || new Date().toISOString().split('T')[0];
+    const notes = document.getElementById('notes').value;
+
+    const col = document.createElement('div');
+    col.classList.add('col-md-4', 'position-relative');
+    col.setAttribute("data-date-posted", datePosted); // 🔑 store raw date for sorting
+    col.innerHTML = `
+      <input type="checkbox" class="form-check-input position-absolute top-2 start-2 m-2 z-3">
+      <div class="card h-100 border-success">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">${type}</h5>
+          <h5>${title}</h5>
+          <p><strong>Due:</strong> ${new Date(dueDate).toLocaleDateString()}</p>
+          <p><strong>Date Posted:</strong> ${new Date(datePosted).toLocaleDateString()}</p>
+          <p class="text-muted small" style="flex-grow: 1;">${notes}</p>
+        </div>
+      </div>
+    `;
+
+    container.prepend(col);
+    deadlineForm.reset();
+    addDeadlineModal.hide();
+  });
+
+  // --- DELETE LOGIC ---
+  const deleteBtn = document.querySelector(".btn-outline-danger[title='Delete']");
+  const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+  const deleteModal = new bootstrap.Modal(document.getElementById("deleteConfirmModal"));
+
+  function toggleDeleteButton() {
+    const checkboxes = document.querySelectorAll("#deadlineContainer .form-check-input");
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    deleteBtn.disabled = !anyChecked;
+  }
+
+  container.addEventListener("change", toggleDeleteButton);
+  toggleDeleteButton();
+
+  deleteBtn.addEventListener("click", () => {
+    deleteModal.show();
+  });
+
+  confirmDeleteBtn.addEventListener("click", () => {
+    document.querySelectorAll("#deadlineContainer .form-check-input:checked").forEach(cb => {
+      cb.closest(".col-md-4").remove();
+    });
+    deleteModal.hide();
+    toggleDeleteButton();
+  });
+
+  // --- EDIT LOGIC ---
+  const editBtn = document.querySelector(".btn-outline-primary[title='Edit']");
+  const editForm = document.getElementById("editRequirementForm"); // ✅ correct form id
+  const editModal = new bootstrap.Modal(document.getElementById("editDeadlineModal"));
+  let selectedCard = null;
+
+  editBtn.addEventListener("click", () => {
+    const checkedBoxes = document.querySelectorAll("#deadlineContainer .form-check-input:checked");
+
+    if (checkedBoxes.length !== 1) {
+      document.getElementById("feedbackMessage").textContent = "⚠ Please select exactly one requirement to edit.";
+      const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
+      fb.show();
+      setTimeout(() => fb.hide(), 2000);
+      return;
+    }
+
+    selectedCard = checkedBoxes[0].closest(".col-md-4");
+
+    const category = selectedCard.querySelector(".card-title").textContent.trim();
+    const title = selectedCard.querySelectorAll("h5")[1].textContent.trim();
+    const dueText = selectedCard.querySelector("p:nth-of-type(1)").textContent.replace("Due:", "").trim();
+    const postedText = selectedCard.querySelector("p:nth-of-type(2)").textContent.replace("Date Posted:", "").trim();
+    const notes = selectedCard.querySelector("p.text-muted").textContent.trim();
+
+    // Prefill modal
+    document.getElementById("editRequirementType").value = category;
+    document.getElementById("editDeadlineTitle").value = title;
+    document.getElementById("editDueDate").value = new Date(dueText).toISOString().split("T")[0];
+    document.getElementById("editDatePosted").textContent = postedText; // display only
+    document.getElementById("editNotes").value = notes;
+
+    editModal.show();
+  });
+
+  editForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!selectedCard) return;
+
+    const newCategory = document.getElementById("editRequirementType").value;
+    const newTitle = document.getElementById("editDeadlineTitle").value;
+    const newDueDate = document.getElementById("editDueDate").value;
+    const newDatePosted = document.getElementById("editDatePosted").textContent; // not editable
+    const newNotes = document.getElementById("editNotes").value;
+
+    // Update card
+    selectedCard.querySelector(".card-title").textContent = newCategory;
+    selectedCard.querySelectorAll("h5")[1].textContent = newTitle;
+    selectedCard.querySelector("p:nth-of-type(1)").innerHTML = `<strong>Due:</strong> ${new Date(newDueDate).toLocaleDateString()}`;
+    selectedCard.querySelector("p:nth-of-type(2)").innerHTML = `<strong>Date Posted:</strong> ${newDatePosted}`;
+    selectedCard.querySelector("p.text-muted").textContent = newNotes;
+
+    // 🔑 update hidden data attribute for sorting
+    selectedCard.setAttribute("data-date-posted", new Date(newDatePosted).toISOString().split("T")[0]);
+
+    editModal.hide();
+  });
+
+  // --- SORTING ---
+  const sortMenuItems = document.querySelectorAll('.dropdown-menu[aria-labelledby="sortDropdown"] .sort-option');
+
+  sortMenuItems.forEach(item => {
+    item.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      const sortType = this.dataset.sort; // "newest" | "oldest"
+
+      const cards = Array.from(container.querySelectorAll('.col-md-4'));
+
+      cards.sort((a, b) => {
+        const da = new Date(a.getAttribute("data-date-posted"));
+        const db = new Date(b.getAttribute("data-date-posted"));
+
+        if (isNaN(da) && isNaN(db)) return 0;
+        if (isNaN(da)) return sortType === 'newest' ? 1 : -1;
+        if (isNaN(db)) return sortType === 'newest' ? -1 : 1;
+
+        return sortType === 'newest' ? db - da : da - db;
+      });
+
+      cards.forEach(c => container.appendChild(c));
+    });
+  });
+
+});
+
+// STUDENT PROGRESS(STUDENT CHECKLIST)
+
+// STUDENT PROGRESS (STUDENT CHECKLIST) — Scoped, robust per-block implementation
+document.addEventListener("DOMContentLoaded", () => {
+  // keep current filters/search per block so both apply at once
+  const currentFilter = { A: "all", B: "all" };
+  const currentSearch = { A: "", B: "" };
+
+  // Apply both status filter and search for a block
+  function applyFilters(block) {
+    const tableId = `block${block}Table`;
+    const table = document.getElementById(tableId);
+    if (!table || !table.tBodies[0]) return;
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+    const status = currentFilter[block];
+    const searchTerm = (currentSearch[block] || "").toLowerCase();
+
+    rows.forEach(row => {
+      const statusSelect = row.querySelector("select.status-select");
+      const passesStatus = (status === "all") || (statusSelect && statusSelect.value === status);
+      const passesSearch = row.textContent.toLowerCase().includes(searchTerm);
+      row.style.display = (passesStatus && passesSearch) ? "" : "none";
+    });
+
+    updateDeleteButton(block);
+  }
+
+  // enable/disable delete button for the block
+  function updateDeleteButton(block) {
+    const tableId = `block${block}Table`;
+    const deleteBtnId = `delete${block}`;
+    const table = document.getElementById(tableId);
+    const deleteBtn = document.getElementById(deleteBtnId);
+    if (!table || !deleteBtn) return;
+    const anyChecked = table.querySelectorAll('input[name="select-row"]:checked').length > 0;
+    deleteBtn.disabled = !anyChecked;
+  }
+
+  // Delete selected rows for a block (uses confirm())
+  function setupDelete(block) {
+    const tableId = `block${block}Table`;
+    const deleteBtnId = `delete${block}`;
+    const table = document.getElementById(tableId);
+    const deleteBtn = document.getElementById(deleteBtnId);
+    if (!table || !deleteBtn) return;
+
+    // Toggle delete button when checkboxes change (only in this table)
+    table.addEventListener("change", (e) => {
+      if (e.target && e.target.matches('input[name="select-row"]')) {
+        updateDeleteButton(block);
+      }
+    });
+
+    // Delete click: confirm then remove rows from THIS table's tbody
+    deleteBtn.addEventListener("click", (e) => {
+      // Prevent accidental propagation (won't break bootstrap if used)
+      e.preventDefault();
+
+      const confirmed = window.confirm("Delete selected row(s)?");
+      if (!confirmed) return;
+
+      const tbody = table.tBodies[0];
+      // iterate over static array to avoid mutation problems
+      Array.from(tbody.rows).forEach(row => {
+        const chk = row.querySelector('input[name="select-row"]');
+        if (chk && chk.checked) row.remove();
+      });
+
+      applyFilters(block);
+      updateDeleteButton(block);
+    });
+  }
+
+  // Search setup: updates currentSearch and reapplies filters
+  function setupSearch(block) {
+    const input = document.getElementById(`search${block}`);
+    if (!input) return;
+    input.addEventListener("input", () => {
+      currentSearch[block] = input.value || "";
+      applyFilters(block);
+    });
+  }
+
+  // Filter options (anchors with .filter-option[data-block="A"|"B"])
+  function setupFilterOptions(block) {
+    document.querySelectorAll(`.filter-option[data-block="${block}"]`).forEach(option => {
+      option.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        const status = option.getAttribute("data-status") || "all";
+        currentFilter[block] = status;
+        applyFilters(block);
+      });
+    });
+  }
+
+  // Sorting that ONLY touches the targeted table's first tbody
+  function sortTable(tableId, columnIndex, order = "asc") {
+  const table = document.getElementById(tableId);
+  if (!table || !table.tBodies[0]) return;
+  const tbody = table.tBodies[0];
+  const rows = Array.from(tbody.rows);
+
+  rows.sort((a, b) => {
+    const aCell = (a.cells[columnIndex] && a.cells[columnIndex].innerText) ? a.cells[columnIndex].innerText.trim().toLowerCase() : "";
+    const bCell = (b.cells[columnIndex] && b.cells[columnIndex].innerText) ? b.cells[columnIndex].innerText.trim().toLowerCase() : "";
+
+    // Student ID column (index 2) sort numerically
+    if (columnIndex === 2) {
+      const na = parseInt(aCell.replace(/\D/g, ""), 10) || 0;
+      const nb = parseInt(bCell.replace(/\D/g, ""), 10) || 0;
+      return order === "asc" ? na - nb : nb - na;
+    }
+
+    if (aCell < bCell) return order === "asc" ? -1 : 1;
+    if (aCell > bCell) return order === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const frag = document.createDocumentFragment();
+  rows.forEach(r => frag.appendChild(r));
+  tbody.appendChild(frag);
+
+  // 🔑 Fix: update row numbers for this specific table
+  updateRowNumbers(tableId);
+
+  // Maintain filter/search visibility
+  const block = tableId.includes("A") ? "A" : "B";
+  applyFilters(block);
+}
+
+function updateRowNumbers(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table || !table.tBodies[0]) return;
+  Array.from(table.tBodies[0].rows).forEach((row, index) => {
+    const numCell = row.querySelector(".row-num");
+    if (numCell) numCell.textContent = index + 1;
+  });
+}
+
+
+  // Setup sort menu listeners per block, scoped to .sort-option[data-block="..."]
+  function setupSortOptions(block) {
+    const tableId = `block${block}Table`;
+    document.querySelectorAll(`.sort-option[data-block="${block}"]`).forEach(option => {
+      option.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        const sortType = option.getAttribute("data-sort"); // asc | desc | name-asc | name-desc
+        if (sortType === "asc") {
+          sortTable(tableId, 2, "asc");     // Student ID ↑ (col index 2)
+        } else if (sortType === "desc") {
+          sortTable(tableId, 2, "desc");    // Student ID ↓
+        } else if (sortType === "name-asc") {
+          sortTable(tableId, 3, "asc");     // Name A–Z (col index 3)
+        } else if (sortType === "name-desc") {
+          sortTable(tableId, 3, "desc");    // Name Z–A
+        }
+      });
+    });
+  }
+
+  // Re-evaluate filters when a row's status-select changes
+  function setupStatusChange(block) {
+    const table = document.getElementById(`block${block}Table`);
+    if (!table) return;
+    table.addEventListener("change", (e) => {
+      if (e.target && e.target.matches("select.status-select")) {
+        applyFilters(block);
+      }
+    });
+  }
+
+  // Initialize both blocks
+  ["A", "B"].forEach(block => {
+    setupDelete(block);
+    setupSearch(block);
+    setupFilterOptions(block);
+    setupSortOptions(block);
+    setupStatusChange(block);
+
+    currentFilter[block] = "all";
+    currentSearch[block] = "";
+    applyFilters(block);
+    updateDeleteButton(block);
+  });
+
+  // ---- Important: if you have DataTables/jQuery code targeting blockATable/blockBTable, remove it.
+  // DataTables manipulates DOM and WILL conflict with this plain-JS implementation.
 });

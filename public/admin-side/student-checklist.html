@@ -1,6 +1,4 @@
-
-
-      <div class="mb-3">
+<div class="mb-3">
         <div class="pagetitle mb-2">
           <h1>Students Progress</h1>
         </div>
@@ -95,7 +93,7 @@
                                     <thead class="thead-check table-light">
                                         <tr>
                                             <th rowspan="3"></th>
-                                            <th rowspan="3"></th>
+                                            <th rowspan="3">#</th>
                                             <th rowspan="3">Student ID</th>
                                             <th rowspan="3">Name</th>
                                             <th rowspan="3">SIS</th>
@@ -145,8 +143,8 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td><input type="checkbox" name="select-row"></td>
-                                            <td>1</td>
+                                            <td><input type="checkbox" name="select-row" data-id="1001"></td>
+                                            <td class="row-num"></td>
                                             <td>21-0615</td>
                                             <td>Doe, John A.</td>
                                             <td class="status-completed"></td>
@@ -182,10 +180,10 @@
                                             <td class="status-overdue"></td>
                                             <td>
                                               <select class="status-select">
-                                                  <option>Pending</option>
-                                                  <option>Ready for Deployment</option>
-                                                  <option>Deployed</option>
-                                                  <option>Completed</option>
+                                                  <option value="Pending">Pending</option>
+                                                  <option value="Ready for Deployment">Ready for Deployment</option>
+                                                  <option value="Deployed">Deployed</option>
+                                                  <option value="Completed">Completed</option>
                                               </select>
                                             </td>
                                             <td>
@@ -194,11 +192,12 @@
                                               </div>
                                             </td>
                                         </tr>
+
                                         <tr>
-                                            <td><input type="checkbox" name="select-row"></td>
-                                            <td>2</td>
-                                            <td>22-0617</td>
-                                            <td>Corpuz, John B.</td>
+                                            <td><input type="checkbox" name="select-row" data-id="1002"></td>
+                                            <td class="row-num"></td>
+                                            <td>21-0616</td>
+                                            <td>John, Doe A.</td>
 
                                             <td class="status-completed"></td>
                                             <td class="status-needs-revision"></td>
@@ -231,24 +230,21 @@
                                             <td class="status-completed"></td>
                                             <td class="status-needs-revision"></td>
                                             <td class="status-overdue"></td>
-                                        
-
                                             <td>
                                               <select class="status-select">
-                                                  <option>Pending</option>
-                                                  <option>Ready for Deployment</option>
-                                                  <option>Deployed</option>
-                                                  <option>Completed</option>
+                                                  <option value="Pending">Pending</option>
+                                                  <option value="Ready for Deployment">Ready for Deployment</option>
+                                                  <option value="Deployed">Deployed</option>
+                                                  <option value="Completed">Completed</option>
                                               </select>
                                             </td>
                                             <td>
                                               <div class="progress">
-                                                <div class="progress-bar bg-info" role="progressbar" style="width: 40%;">40%</div>
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 60%;">60%</div>
                                               </div>
                                             </td>
-                                                                  
+
                                         </tr>
-                                        
                                     </tbody>
                                 </table>
                                 
@@ -338,7 +334,7 @@
                                     <thead class="thead-check table-light">
                                         <tr>
                                             <th rowspan="3"></th>
-                                            <th rowspan="3"></th>
+                                            <th rowspan="3">#</th>
                                             <th rowspan="3">Student ID</th>
                                             <th rowspan="3">Name</th>
                                             <th rowspan="3">SIS</th>
@@ -390,8 +386,60 @@
                                     
                                     <tbody class="tbody">
                                         <tr>
-                                            <td><input type="checkbox" name="select-row"></td>
-                                            <td>1</td>
+                                            <td><input type="checkbox" name="select-row" data-id="1001"></td>
+                                            <td class="row-num"></td>
+                                            <td>21-0616</td>
+                                            <td>John, Doe A.</td>
+
+                                            <td class="status-completed"></td>
+                                            <td class="status-needs-revision"></td>
+                                            <td class="status-overdue"></td>
+                                            <td class="status-pending"></td>
+                                            <td class="status-completed"></td>
+                                            <td class="status-needs-revision"></td>
+                                            <td class="status-overdue"></td>
+                                            <td class="status-pending"></td>
+                                            <td class="status-completed"></td>
+                                            <td class="status-needs-revision"></td>
+                                            <td class="status-overdue"></td>
+                                            <td class="status-pending"></td>
+                                            <td class="status-completed"></td>
+                                            <td class="status-needs-revision"></td>
+                                            <td class="status-overdue"></td>
+                                            <td class="status-pending"></td>
+                                            <td class="status-completed"></td>
+                                            <td class="status-needs-revision"></td>
+                                            <td class="status-overdue"></td>
+                                            <td class="status-pending"></td>
+                                            <td class="status-completed"></td>
+                                            <td class="status-needs-revision"></td>
+                                            <td class="status-overdue"></td>
+                                            <td class="status-pending"></td>
+                                            <td class="status-completed"></td>
+                                            <td class="status-needs-revision"></td>
+                                            <td class="status-overdue"></td>
+                                            <td class="status-pending"></td>
+                                            <td class="status-completed"></td>
+                                            <td class="status-needs-revision"></td>
+                                            <td class="status-overdue"></td>
+                                            <td>
+                                              <select class="status-select">
+                                                  <option value="Pending">Pending</option>
+                                                  <option value="Ready for Deployment">Ready for Deployment</option>
+                                                  <option value="Deployed">Deployed</option>
+                                                  <option value="Completed">Completed</option>
+                                              </select>
+                                            </td>
+                                            <td>
+                                              <div class="progress">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 60%;">60%</div>
+                                              </div>
+                                            </td>
+
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox" name="select-row" data-id="1002"></td>
+                                            <td class="row-num"></td>
                                             <td>21-0615</td>
                                             <td>Doe, John A.</td>
 
@@ -426,14 +474,12 @@
                                             <td class="status-completed"></td>
                                             <td class="status-needs-revision"></td>
                                             <td class="status-overdue"></td>
-   
-
                                             <td>
                                               <select class="status-select">
-                                                  <option>Pending</option>
-                                                  <option>Ready for Deployment</option>
-                                                  <option>Deployed</option>
-                                                  <option>Completed</option>
+                                                  <option value="Pending">Pending</option>
+                                                  <option value="Ready for Deployment">Ready for Deployment</option>
+                                                  <option value="Deployed">Deployed</option>
+                                                  <option value="Completed">Completed</option>
                                               </select>
                                             </td>
                                             <td>
@@ -443,59 +489,7 @@
                                             </td>
 
                                         </tr>
-                                        <tr>
-                                            <td><input type="checkbox" name="select-row"></td>
-                                            <td>2</td>
-                                            <td>22-0617</td>
-                                            <td>Corpuz, John B.</td>
-
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-   
-                                            <td>
-                                              <select class="status-select">
-                                                  <option>Pending</option>
-                                                  <option>Ready for Deployment</option>
-                                                  <option>Deployed</option>
-                                                  <option>Completed</option>
-                                              </select>
-                                            </td>
-                                            <td>
-                                              <div class="progress">
-                                                <div class="progress-bar bg-info" role="progressbar" style="width: 40%;">40%</div>
-                                              </div>
-                                            </td>                                     
-                                        </tr>
-                                        
+  
                                     </tbody>
                                 </table>
                             </div>
@@ -525,3 +519,21 @@
             </div>
         </section>
 
+        <!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-trash3 me-2"></i>Confirm Delete</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete the selected requirement(s)?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div> 
