@@ -1,5 +1,5 @@
 // DOWNLOADABLE REQUIREMENTS
- document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   let cardBeingEdited = null;
 
   // Show modal for adding new file
@@ -12,7 +12,7 @@
   });
 
   // Edit selected card
-  document.getElementById('editBtn').addEventListener('click', function() {
+  document.getElementById('editBtn').addEventListener('click', function () {
     const container = document.querySelector('.row.text-center');
     const selectedCards = container.querySelectorAll('.form-check-input:checked');
 
@@ -40,7 +40,7 @@
   });
 
   // Add / Edit submit handler
-  document.getElementById('addRequirementForm').addEventListener('submit', function(e) {
+  document.getElementById('addRequirementForm').addEventListener('submit', function (e) {
     e.preventDefault();
 
     const nameInput = document.getElementById('requirementName');
@@ -91,7 +91,7 @@
 
   // Sorting
   document.querySelectorAll('.sort-option').forEach(option => {
-    option.addEventListener('click', function() {
+    option.addEventListener('click', function () {
       const sortType = this.getAttribute('data-sort');
       const container = document.querySelector('.row.text-center');
       const cards = Array.from(container.children);
@@ -113,7 +113,7 @@
   }
 
   // Filter Old → New
-  document.getElementById('filterBtn').addEventListener('click', function() {
+  document.getElementById('filterBtn').addEventListener('click', function () {
     const container = document.querySelector('.row.text-center');
     const cards = Array.from(container.children);
 
@@ -176,7 +176,7 @@
     const checked = container.querySelectorAll(".form-check-input:checked");
     deleteBtn.disabled = checked.length === 0;
   });
- });
+});
 
 // STUDENT CHECKLIST - MODAL PREVIEW
 document.addEventListener("DOMContentLoaded", () => {
@@ -229,8 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="card-body d-flex flex-column">
           <h5 class="card-title">${type}</h5>
           <h5>${title}</h5>
-          <p><strong>Due:</strong> ${new Date(dueDate).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>
-          <p><strong>Date Posted:</strong> ${new Date(datePosted).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>
+          <p><strong>Due:</strong> ${new Date(dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <p><strong>Date Posted:</strong> ${new Date(datePosted).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
           <p class="text-muted small" style="flex-grow: 1;">${notes}</p>
         </div>
       </div>
@@ -389,7 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // NOTIFICATION
-   document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const sortOptions = document.querySelectorAll('.sort-option');
   const notificationList = document.getElementById('notificationList');
   const notifDeleteBtn = document.getElementById('notifDeleteNotifBtn');
@@ -454,14 +454,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
 // USER ACCOUNTS (REG-ACCOUNTS)
 document.addEventListener("DOMContentLoaded", () => {
 
   const addAccountForm = document.getElementById("addAccountForm");
   const addAccountModal = document.getElementById("addAccountModal");
+  const feedbackBox = document.getElementById("formFeedback"); // <-- Add this in HTML for user messages
 
-  let targetBlock = "A"; 
+  let targetBlock = "A";
+  let loadedStudents = []; // store fetched students for duplicate checking
 
   // --- Track which Add button was clicked ---
   document.querySelectorAll('[data-bs-target="#addAccountModal"]').forEach(btn => {
@@ -470,11 +471,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // --- Load students from Firestore ---
+  async function loadStudents() {
+    try {
+      const response = await fetch("/get-students");
+      const result = await response.json();
+
+      document.getElementById("noEntriesMessageBlockA").style.display = "";
+      document.getElementById("noEntriesMessageBlockB").style.display = "";
+
+      if (!result.success || !result.students.length) {
+        console.warn("⚠️ No students found or failed to fetch.");
+        return;
+      }
+
+      loadedStudents = result.students; // cache them for duplicate check
+
+      result.students.forEach(student => {
+        const tableId = student.targetBlock === "A" ? "blockATable" : "blockBTable";
+        addAccountToTable(tableId, student);
+      });
+
+      const hasA = result.students.some(s => s.targetBlock === "A");
+      const hasB = result.students.some(s => s.targetBlock === "B");
+
+      document.getElementById("noEntriesMessageBlockA").style.display = hasA ? "none" : "";
+      document.getElementById("noEntriesMessageBlockB").style.display = hasB ? "none" : "";
+
+      console.log("✅ Students loaded successfully");
+    } catch (error) {
+      console.error("🔥 Error loading students:", error);
+    }
+  }
+
   // --- Insert a new row into the correct table ---
   function addAccountToTable(tableId, accountData) {
     const tableBody = document.querySelector(`#${tableId} tbody`);
-    const newRow = document.createElement("tr");
 
+    const newRow = document.createElement("tr");
     newRow.innerHTML = `
       <td><input type="checkbox" /></td>
       <td>${accountData.student_id}</td>
@@ -499,203 +533,208 @@ document.addEventListener("DOMContentLoaded", () => {
       <td class="status-cell">Active</td>
       <td>--</td>
     `;
-
     tableBody.appendChild(newRow);
   }
 
+  // --- Check if student already exists ---
+  function studentExists(student_id) {
+    return loadedStudents.some(student => student.student_id === student_id);
+  }
+
+  // --- Show feedback ---
+  function showFeedback(message, type = "danger") {
+    if (!feedbackBox) return;
+    feedbackBox.innerHTML = `
+      <div class="alert alert-${type} py-2 mb-2">${message}</div>
+    `;
+    setTimeout(() => (feedbackBox.innerHTML = ""), 4000);
+  }
+
   // --- Handle form submission ---
-  addAccountForm.addEventListener("submit", function (e) {
+  addAccountForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const formData = new FormData(addAccountForm);
     const accountData = Object.fromEntries(formData.entries());
+    accountData.targetBlock = targetBlock;
 
-    // Auto-generate registration date
     const now = new Date();
     accountData.reg_date = now.toLocaleString("en-US", {
       dateStyle: "medium",
       timeStyle: "short"
     });
 
-    // Use targetBlock instead of student_id rules
-    let tableId = targetBlock === "A" ? "blockATable" : "blockBTable";
+    // --- Duplicate check ---
+    if (studentExists(accountData.student_id)) {
+      showFeedback(`⚠️ Student ID "${accountData.student_id}" already exists.`, "warning");
+      return;
+    }
 
-    addAccountToTable(tableId, accountData);
+    // --- Save to Firestore ---
+    try {
+      const response = await fetch("/save-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accountData)
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log("✅ Account saved:", accountData.student_id);
+        showFeedback("✅ Account successfully added!", "success");
+
+        const tableId = targetBlock === "A" ? "blockATable" : "blockBTable";
+        addAccountToTable(tableId, accountData);
+        loadedStudents.push(accountData);
+      } else {
+        console.error("⚠️ Failed:", result.message);
+        showFeedback("⚠️ Failed to save account.", "danger");
+      }
+    } catch (error) {
+      console.error("🔥 Error saving:", error);
+      showFeedback("🔥 Error saving account.", "danger");
+    }
 
     addAccountForm.reset();
     bootstrap.Modal.getInstance(addAccountModal).hide();
   });
 
+  loadStudents();
+  
+  // --- Sorting Function ---
+  function makeTableSortable(tableId) {
+    const table = document.getElementById(tableId);
+    const headers = table.querySelectorAll("th");
 
-    // Sorting Function (keeps previous behavior)
-    function makeTableSortable(tableId) {
-      const table = document.getElementById(tableId);
-      const headers = table.querySelectorAll("th");
+    headers.forEach((header, index) => {
+      if (header.textContent.trim() === "" || header.textContent === "Action") return;
 
-      headers.forEach((header, index) => {
-        if (header.textContent.trim() === "" || header.textContent === "Action") return;
+      header.classList.add("sortable");
+      header.title = "Click to sort";
 
-        header.classList.add("sortable");
-        header.title = "Click to sort"; // tooltip
+      header.addEventListener("click", () => {
+        const rows = Array.from(table.querySelector("tbody").querySelectorAll("tr:not([id])"));
+        const type = header.getAttribute("data-type") || "string";
+        const asc = header.classList.contains("asc") ? false : true;
 
-        header.addEventListener("click", () => {
-          const rows = Array.from(table.querySelector("tbody").querySelectorAll("tr:not([id])"));
-          const type = header.getAttribute("data-type") || "string";
-          const asc = header.classList.contains("asc") ? false : true;
+        headers.forEach(h => h.classList.remove("asc", "desc"));
+        header.classList.add(asc ? "asc" : "desc");
 
-          headers.forEach(h => h.classList.remove("asc", "desc"));
-          header.classList.add(asc ? "asc" : "desc");
+        rows.sort((a, b) => {
+          let valA = a.cells[index] ? a.cells[index].innerText.trim() : "";
+          let valB = b.cells[index] ? b.cells[index].innerText.trim() : "";
 
-          rows.sort((a, b) => {
-            // skip rows that are hidden (filtering), but keep them in sorted order by value
-            let valA = (a.cells[index] ? a.cells[index].innerText.trim() : "");
-            let valB = (b.cells[index] ? b.cells[index].innerText.trim() : "");
+          if (type === "date") {
+            valA = valA ? new Date(valA).getTime() : 0;
+            valB = valB ? new Date(valB).getTime() : 0;
+          } else if (!isNaN(valA) && !isNaN(valB)) {
+            valA = Number(valA);
+            valB = Number(valB);
+          }
 
-            if (type === "date") {
-              valA = valA ? new Date(valA).getTime() : 0;
-              valB = valB ? new Date(valB).getTime() : 0;
-            } else if (!isNaN(valA) && !isNaN(valB)) {
-              valA = Number(valA);
-              valB = Number(valB);
-            }
-
-            if (valA < valB) return asc ? -1 : 1;
-            if (valA > valB) return asc ? 1 : -1;
-            return 0;
-          });
-
-          rows.forEach(row => table.querySelector("tbody").appendChild(row));
+          if (valA < valB) return asc ? -1 : 1;
+          if (valA > valB) return asc ? 1 : -1;
+          return 0;
         });
+
+        rows.forEach(row => table.querySelector("tbody").appendChild(row));
       });
-    }
+    });
+  }
 
-    // Apply a single filter (Action/Status) to a table
-    function applyFilterSingle(tableId, filterId, noEntriesMessageId) {
-      const table = document.getElementById(tableId);
-      const filter = document.getElementById(filterId);
-      const noEntriesMessage = document.getElementById(noEntriesMessageId);
-      if (!table || !filter || !noEntriesMessage) return;
+  // --- Apply Filter ---
+  function applyFilterSingle(tableId, filterId, noEntriesMessageId) {
+    const table = document.getElementById(tableId);
+    const filter = document.getElementById(filterId);
+    const noEntriesMessage = document.getElementById(noEntriesMessageId);
+    if (!table || !filter || !noEntriesMessage) return;
 
-      const value = filter.value;
-      let visibleRows = 0;
+    const value = filter.value;
+    let visibleRows = 0;
 
-      Array.from(table.querySelectorAll("tbody tr")).forEach(row => {
-        // skip the "No entries" row and any rows that do not have a status cell
-        if (row.id && row.id === noEntriesMessageId) return;
-        const statusCell = row.querySelector(".status-cell");
-        if (!statusCell) return;
+    Array.from(table.querySelectorAll("tbody tr")).forEach(row => {
+      if (row.id && row.id === noEntriesMessageId) return;
+      const statusCell = row.querySelector(".status-cell");
+      if (!statusCell) return;
 
-        const status = statusCell.textContent.trim();
-        if (value === "All" || status === value) {
-          row.style.display = "";
-          visibleRows++;
-        } else {
-          row.style.display = "none";
-        }
-      });
+      const status = statusCell.textContent.trim();
+      if (value === "All" || status === value) {
+        row.style.display = "";
+        visibleRows++;
+      } else {
+        row.style.display = "none";
+      }
+    });
 
-      noEntriesMessage.style.display = visibleRows === 0 ? "" : "none";
-    }
+    // Show "No Entries" if nothing is visible
+    noEntriesMessage.style.display = visibleRows === 0 ? "" : "none";
+  }
 
-    // make filter dropdown reactive (attach change listener and apply initial filter)
-    function makeTableFilterable(tableId, filterId, noEntriesMessageId) {
-      const filter = document.getElementById(filterId);
-      if (!filter) return;
-      filter.addEventListener("change", () => {
-        applyFilterSingle(tableId, filterId, noEntriesMessageId);
-      });
-      // apply initial state
+  function makeTableFilterable(tableId, filterId, noEntriesMessageId) {
+    const filter = document.getElementById(filterId);
+    if (!filter) return;
+    filter.addEventListener("change", () => {
       applyFilterSingle(tableId, filterId, noEntriesMessageId);
+    });
+    applyFilterSingle(tableId, filterId, noEntriesMessageId);
+  }
+
+  // --- Initialize sorting and filtering ---
+  makeTableSortable("blockATable");
+  makeTableSortable("blockBTable");
+  makeTableFilterable("blockATable", "filterActionBlockA", "noEntriesMessageBlockA");
+  makeTableFilterable("blockBTable", "filterActionBlockB", "noEntriesMessageBlockB");
+
+  // --- Delete buttons logic ---
+  const blockADeleteBtn = document.getElementById("blockADeleteBtn");
+  const blockBDeleteBtn = document.getElementById("blockBDeleteBtn");
+  const blockATable = document.getElementById("blockATable");
+  const blockBTable = document.getElementById("blockBTable");
+  const confirmDeleteBtn = document.querySelector("#regAccConfirmDeleteModal .btn-danger");
+
+  let selectedTable = null;
+
+  function toggleDeleteButton(table, deleteBtn) {
+    const checkboxes = table.querySelectorAll("tbody input[type='checkbox']");
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    deleteBtn.disabled = !anyChecked;
+  }
+
+  // --- Event delegation for checkbox monitoring ---
+  blockATable.addEventListener("change", (e) => {
+    if (e.target.matches("input[type='checkbox']")) {
+      toggleDeleteButton(blockATable, blockADeleteBtn);
     }
+  });
 
-    // Initialize sorting and filtering
+  blockBTable.addEventListener("change", (e) => {
+    if (e.target.matches("input[type='checkbox']")) {
+      toggleDeleteButton(blockBTable, blockBDeleteBtn);
+    }
+  });
 
-      makeTableSortable("blockATable");
-      makeTableSortable("blockBTable");
-      makeTableFilterable("blockATable", "filterActionBlockA", "noEntriesMessageBlockA");
-      makeTableFilterable("blockBTable", "filterActionBlockB", "noEntriesMessageBlockB");
 
+  blockADeleteBtn.addEventListener("click", () => { selectedTable = blockATable; });
+  blockBDeleteBtn.addEventListener("click", () => { selectedTable = blockBTable; });
 
-  document.querySelectorAll('#filterActionBlockAButton + .dropdown-menu .filter-option')
-    .forEach(option => {
-      option.addEventListener('click', function () {
-        let value = this.getAttribute('data-value');
-        
-        // update hidden select
-        let hiddenSelect = document.getElementById('filterActionBlockA');
-        hiddenSelect.value = value;
+  confirmDeleteBtn.addEventListener("click", () => {
+    if (!selectedTable) return;
 
-        // update dropdown label
-        document.getElementById('filterLabelBlockA').textContent = this.textContent;
+    const checkboxes = selectedTable.querySelectorAll("tbody input[type='checkbox']:checked");
+    checkboxes.forEach(cb => cb.closest("tr").remove());
 
-        hiddenSelect.dispatchEvent(new Event('change'));
-      });
-    });
+    // Auto-show "No Entries" if table is empty
+    const noEntriesMessage = selectedTable.querySelector(`#noEntriesMessage${selectedTable.id === "blockATable" ? "BlockA" : "BlockB"}`);
+    const remainingRows = selectedTable.querySelectorAll("tbody tr:not([id])");
+    noEntriesMessage.style.display = remainingRows.length === 0 ? "" : "none";
 
-    // Sync dropdown click → update hidden select → trigger change
-    document.querySelectorAll('.blockB-filter-option').forEach(item => {
-      item.addEventListener('click', function () {
-        const value = this.getAttribute('data-value');
-        const hiddenSelect = document.getElementById('filterActionBlockB');
-        hiddenSelect.value = value;
-        hiddenSelect.dispatchEvent(new Event('change')); 
-      });
-    });
+    toggleDeleteButton(selectedTable, selectedTable.id === "blockATable" ? blockADeleteBtn : blockBDeleteBtn);
 
-    
-      // Delete buttons
-      const blockADeleteBtn = document.getElementById("blockADeleteBtn");
-      const blockBDeleteBtn = document.getElementById("blockBDeleteBtn");
+    const modal = bootstrap.Modal.getInstance(document.getElementById("regAccConfirmDeleteModal"));
+    modal.hide();
+  });
 
-      // Tables
-      const blockATable = document.getElementById("blockATable");
-      const blockBTable = document.getElementById("blockBTable");
-
-      const confirmDeleteBtn = document.querySelector("#regAccConfirmDeleteModal .btn-danger");
-
-      let selectedTable = null; 
-
-      // Enable delete button when checkbox is selected
-      function toggleDeleteButton(table, deleteBtn) {
-        const checkboxes = table.querySelectorAll("tbody input[type='checkbox']");
-        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-        deleteBtn.disabled = !anyChecked;
-      }
-
-      // Attach listeners to both tables
-      function attachCheckboxListeners(table, deleteBtn) {
-        table.querySelectorAll("tbody input[type='checkbox']").forEach(cb => {
-          cb.addEventListener("change", () => toggleDeleteButton(table, deleteBtn));
-        });
-      }
-
-      attachCheckboxListeners(blockATable, blockADeleteBtn);
-      attachCheckboxListeners(blockBTable, blockBDeleteBtn);
-
-      // Track which delete button was clicked (Block A or Block B)
-      blockADeleteBtn.addEventListener("click", () => { selectedTable = blockATable; });
-      blockBDeleteBtn.addEventListener("click", () => { selectedTable = blockBTable; });
-
-      // Confirm delete action
-      confirmDeleteBtn.addEventListener("click", () => {
-        if (!selectedTable) return;
-
-        const checkboxes = selectedTable.querySelectorAll("tbody input[type='checkbox']:checked");
-        checkboxes.forEach(cb => cb.closest("tr").remove());
-
-        // Disable delete button again
-        if (selectedTable.id === "blockATable") {
-          toggleDeleteButton(blockATable, blockADeleteBtn);
-        } else {
-          toggleDeleteButton(blockBTable, blockBDeleteBtn);
-        }
-
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById("regAccConfirmDeleteModal"));
-        modal.hide();
-      });
-    
-  // Auto-generate Password
+  // --- Auto-generate password ---
   function generatePassword(length = 10) {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
     let pass = "";
@@ -705,16 +744,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return pass;
   }
 
-  // Auto-generate password when modal opens
   addAccountModal.addEventListener('shown.bs.modal', function () {
     document.getElementById('tempPassword').value = generatePassword();
   });
 
-  // Regenerate password button
   document.getElementById('regenPassBtn').addEventListener('click', function () {
     document.getElementById('tempPassword').value = generatePassword();
   });
+
 });
+
 
 // Update status function 
 function updateStatus(button, newStatus) {
@@ -766,12 +805,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getRemovableElementFromCheckbox(cb) {
     return cb.closest('tr') ||
-           cb.closest('.notification-card') ||
-           cb.closest('.col-lg-4') ||
-           cb.closest('.hte-card') ||
-           cb.closest('.card') ||
-           cb.closest('li') ||
-           cb.parentElement;
+      cb.closest('.notification-card') ||
+      cb.closest('.col-lg-4') ||
+      cb.closest('.hte-card') ||
+      cb.closest('.card') ||
+      cb.closest('li') ||
+      cb.parentElement;
   }
 
   confirmDeleteBtn.addEventListener('click', function () {
@@ -843,10 +882,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const dateB = new Date(b.dataset.moaDate || 0);
 
         switch (selected) {
-          case "nameAsc":  return nameA.localeCompare(nameB);
+          case "nameAsc": return nameA.localeCompare(nameB);
           case "nameDesc": return nameB.localeCompare(nameA);
-          case "dateNew":  return dateB - dateA; 
-          case "dateOld":  return dateA - dateB;
+          case "dateNew": return dateB - dateA;
+          case "dateOld": return dateA - dateB;
           default: return 0;
         }
       });
@@ -932,7 +971,7 @@ document.addEventListener("DOMContentLoaded", () => {
     feedbackModal.show();
     setTimeout(() => feedbackModal.hide(), 1500);
   }
-  window.saveDetails = saveDetails; 
+  window.saveDetails = saveDetails;
 
   // SINGLE saveCardBtn handler (create new card)
   document.getElementById("saveCardBtn").addEventListener("click", function (ev) {
@@ -1005,9 +1044,9 @@ document.addEventListener("DOMContentLoaded", () => {
             <input type="text" class="form-control" id="hte${hteCounter}Address" value="${address}">
             <label><strong>MOA Status:</strong></label>
             <select class="form-control" id="hte${hteCounter}MoaStatus">
-              <option ${moaStatus==="New"?"selected":""}>New</option>
-              <option ${moaStatus==="Renewed"?"selected":""}>Renewed</option>
-              <option ${moaStatus==="Expired"?"selected":""}>Expired</option>
+              <option ${moaStatus === "New" ? "selected" : ""}>New</option>
+              <option ${moaStatus === "Renewed" ? "selected" : ""}>Renewed</option>
+              <option ${moaStatus === "Expired" ? "selected" : ""}>Expired</option>
             </select>
             <label><strong>MOA Established Since:</strong></label>
             <input type="date" class="form-control" id="hte${hteCounter}MoaDate" value="${moaSince}">

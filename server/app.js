@@ -2,14 +2,15 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const port = 3080;
+const bodyParser = require('body-parser');
 
 //Firebase Connection
-// const { db } = require('./config');
-// const { doc, setDoc, getDoc } = require('firebase/firestore');
-// const { storage } = require('./config');
-// const { ref, uploadBytes } = require('firebase/storage');
+const { db } = require('./config');
+const {  doc, setDoc, getDocs, collection } = require('firebase/firestore');
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the "public" folder
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -33,6 +34,49 @@ app.get('/admin/downloadable', (req, res) => {
 app.get('/admin/registered-accounts', (req, res) => {
     const registeredAccounts = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'reg-accounts.html'), 'utf-8');
     res.send(adminTemplate.replace('{{content}}', registeredAccounts));
+});
+
+app.post('/save-account', async (req, res) => {
+    try {
+        const accountData = req.body;
+        const { student_id, targetBlock } = accountData;
+
+        if (!student_id || !targetBlock) {
+            return res.status(400).send({ success: false, message: 'Missing student_id or targetBlock' });
+        }
+        const accountRef = doc(db, 'ACCOUNTS', 'STUDENTS', targetBlock, student_id);
+
+        await setDoc(accountRef, accountData);
+        res.send({ success: true, message: 'Account saved successfully' });
+
+    } catch (error) {
+        console.error('Error saving account:', error);
+        res.status(500).send({ success: false, message: 'Error saving account', error });
+    }
+});
+
+app.get('/get-students', async (req, res) => {
+    try {
+        const blocks = ['A', 'B'];
+        const allStudents = [];
+
+        for (const block of blocks) {
+            const studentsRef = collection(db, 'ACCOUNTS', 'STUDENTS', block);
+            const snapshot = await getDocs(studentsRef);
+
+            snapshot.forEach(doc => {
+                allStudents.push({ ...doc.data(), targetBlock: block });
+            });
+        }
+
+        // Sort by reg_date (oldest → newest)
+        allStudents.sort((a, b) => new Date(a.reg_date) - new Date(b.reg_date));
+
+        res.send({ success: true, students: allStudents });
+    } catch (error) {
+        console.error('Error fetching students:', error);
+        res.status(500).send({ success: false, message: 'Error fetching students', error });
+    }
 });
 
 app.get('/admin/partner-establishments', (req, res) => {
@@ -119,21 +163,6 @@ app.get('/test-firestore', async (req, res) => {
     } catch (error) {
         console.error('🔥 Firebase Firestore test failed:', error);
         res.status(500).send('Error connecting to Firebase.');
-    }
-});
-
-app.get('/test-storage', async (req, res) => {
-    try {
-        const storageRef = ref(storage, 'test-folder/test-file.txt');
-        const fileBuffer = Buffer.from('Hello from Firebase Storage!', 'utf-8');
-
-        await uploadBytes(storageRef, fileBuffer);
-
-        console.log('✅ File uploaded to Firebase Storage!');
-        res.send('📤 Firebase Storage is working and file was uploaded.');
-    } catch (error) {
-        console.error('🔥 Firebase Storage test failed:', error);
-        res.status(500).send('Error connecting to Firebase Storage.');
     }
 });
 
