@@ -516,52 +516,78 @@ section {
 /* sort table */
 
 /* Highlight sortable headers */
-    th.sortable {
+th.sortable {
+  cursor: pointer;
+  position: relative;
+}
+
+th.sortable:hover {
+  background-color: #f8f9fa;
+}
+
+/* Arrow indicators for sorting */
+th.asc::after {
+  content: " ▲";
+  font-size: 10px;
+  color: #0d6efd;
+}
+
+th.desc::after {
+  content: " ▼";
+  font-size: 10px;
+  color: #0d6efd;
+}
+
+/* Filter select wrapper - funnel icon on the right replacing arrow */
+.filter-select-wrapper {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+.filter-select-wrapper select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 34px; /* space for funnel icon on right */
+  cursor: pointer;
+}
+.filter-select-wrapper .filter-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #6c757d;
+  pointer-events: none; /* clicks go to select */
+}
+
+/* small responsiveness */
+@media (max-width: 480px) {
+  .filter-select-wrapper { width: 140px !important; }
+}
+
+
+.edit-btn {
+      background-color: transparent;
+      border: none;
+      /* Remove the border */
       cursor: pointer;
-      position: relative;
+      transition: 0.3s ease-in-out;
     }
 
-    th.sortable:hover {
-      background-color: #f8f9fa;
-    }
+.edit-btn:hover {
+  opacity: 0.8;
+}
 
-    /* Arrow indicators for sorting */
-    th.asc::after {
-      content: " ▲";
-      font-size: 10px;
-      color: #0d6efd;
-    }
+.card {
+  position: relative;
+}
 
-    th.desc::after {
-      content: " ▼";
-      font-size: 10px;
-      color: #0d6efd;
-    }
 
-    /* Filter select wrapper - funnel icon on the right replacing arrow */
-    .filter-select-wrapper {
-      position: relative;
-      display: inline-block;
-      vertical-align: middle;
-    }
-    .filter-select-wrapper select {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      padding-right: 34px; /* space for funnel icon on right */
-      cursor: pointer;
-    }
-    .filter-select-wrapper .filter-icon {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 14px;
-      color: #6c757d;
-      pointer-events: none; /* clicks go to select */
-    }
-
-    /* small responsiveness */
-    @media (max-width: 480px) {
-      .filter-select-wrapper { width: 140px !important; }
-    }
+.status-select {
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        background-color: #2C1776;
+        color: #fff;
+        font-size: 14px;
+}
