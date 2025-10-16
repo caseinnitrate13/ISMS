@@ -1,3 +1,39 @@
+// FACULTY DETAILS
+document.addEventListener('DOMContentLoaded', () => {
+  const facultyData = JSON.parse(localStorage.getItem('facultyData'));
+  console.log(facultyData);
+
+  if (!facultyData) {
+    console.warn("No faculty data found in localStorage.");
+    return;
+  }
+
+  // Identify which page you're on
+  const path = location.pathname;
+
+  const isRegisteredAcc = path === '/admin/registered-accounts';
+  const isDownloadable = path === '/admin/downloadable';
+  const isEstablishments = path === '/admin/partner-establishments';
+  const isSubmittedDocs = path === '/admin/submitted-documents';
+  const isStudentProgess = path === '/admin/student-progress';
+  const isPublishReq = path === '/admin/publish-requirements';
+  const isNotifications = path === '/admin/notifications';
+  const isFacultyProfile = path === '/admin/user-profile';
+
+  // Common header elements
+  const headerProfile = document.getElementById('headerProfile');
+  const headerName = document.querySelector('.nav-profile span');
+
+  // 🧩 Display faculty info in header (for specified pages)
+  if (isRegisteredAcc || isDownloadable || isEstablishments || isSubmittedDocs
+    || isStudentProgess || isPublishReq || isNotifications || isFacultyProfile
+  ) {
+    if (headerName) headerName.textContent = `${facultyData.firstname} ${facultyData.lastname}`;
+    if (headerProfile) headerProfile.src = facultyData.profilePic || '/assets/img/account-green.png';
+  }
+});
+
+
 // DOWNLOADABLE REQUIREMENTS
 document.addEventListener("DOMContentLoaded", () => {
   let cardBeingEdited = null;
@@ -206,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
 //         remarksDiv.classList.remove("d-none");
 //       });
 //       const feedbackModal = new bootstrap.Modal(document.getElementById("feedbackModal"));
-     
+
 //       // Send Remarks
 //       const sendBtn = remarksDiv.querySelector(".send-btn");
 //       if (sendBtn) {
@@ -304,6 +340,91 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // SUBMISSION (SUBMITTED DOCUMENTS)
 document.addEventListener("DOMContentLoaded", function () {
+
+  // Fetching of the submitted documents to the modal
+  const modals = document.querySelectorAll(".modal[data-requirement-title]");
+
+  modals.forEach(modalEl => {
+    modalEl.addEventListener("show.bs.modal", async function () {
+      const requirementTitle = modalEl.getAttribute("data-requirement-title");
+      const tableBody = modalEl.querySelector("tbody");
+
+      // Clear previous table content
+      tableBody.innerHTML = `
+        <tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>
+      `;
+
+      try {
+        const res = await fetch('/api/submitted-requirements');
+        const result = await res.json();
+
+        if (!result.success) {
+          tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Failed to fetch documents</td></tr>`;
+          return;
+        }
+
+        // Filter only matching requirements
+        const filteredDocs = result.documents.filter(doc => doc.requirementTitle === requirementTitle);
+
+        console.log(`📄 ${filteredDocs.length} documents found for "${requirementTitle}"`);
+        populateTable(tableBody, filteredDocs);
+
+      } catch (error) {
+        console.error("🔥 Error loading submitted documents:", error);
+        tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error loading documents</td></tr>`;
+      }
+    });
+  });
+
+  function populateTable(tableBody, documents) {
+    tableBody.innerHTML = '';
+
+    if (documents.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No submitted documents found</td></tr>`;
+      return;
+    }
+
+    documents.forEach((doc, index) => {
+      let dateSubmitted = '';
+      let timeSubmitted = '';
+
+      if (doc.createdAt?.seconds) {
+        const d = new Date(doc.createdAt.seconds * 1000);
+        dateSubmitted = d.toLocaleDateString();
+        timeSubmitted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (doc.createdAt) {
+        const d = new Date(doc.createdAt);
+        dateSubmitted = d.toLocaleDateString();
+        timeSubmitted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      const row = `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${doc.studentID}</td>
+          <td>${doc.studentName || "N/A"}</td>
+          <td class="text-center"><a href="${doc.path}" class="btn btn-sm btn-primary" target="_blank">View File</a></td>
+          <td>${dateSubmitted || '—'}</td>
+          <td>${timeSubmitted || '—'}</td>
+          <td class="text-center">
+            <button class="btn btn-success btn-sm approve-btn">Approve</button>
+            <button class="btn btn-danger btn-sm decline-btn">Decline</button>
+          </td>
+          <td class="status-cell text-center">${doc.docustatus}</td>
+          <td class="remarks-cell text-center align-top position-relative">
+            <div class="remarks-input d-none w-100 h-100">
+              <input type="text" class="form-control form-control-sm" placeholder="Enter remarks">
+              <button class="btn btn-secondary btn-sm send-btn position-absolute">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+      tableBody.insertAdjacentHTML('beforeend', row);
+    });
+  };
+
   // ==========================
   // MODAL INITIALIZATION
   // ==========================
@@ -351,6 +472,7 @@ document.addEventListener("DOMContentLoaded", function () {
       { once: true }
     );
   }
+
 
   // ==========================
   // APPROVE / DECLINE HANDLER
@@ -708,7 +830,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'Inactive')">Inactive</button>
         </div>
       </td>
-      <td class="status-cell">Active</td>
+      <td class="status-cell">${accountData.status || "Active"}</td>
       <td>--</td>
     `;
     tableBody.appendChild(newRow);
@@ -742,6 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
       timeStyle: "short"
     });
 
+    accountData.status = "Active";
     // --- Duplicate check ---
     if (studentExists(accountData.student_id)) {
       showFeedback(`⚠️ Student ID "${accountData.student_id}" already exists.`, "warning");
@@ -778,7 +901,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   loadStudents();
-  
+
   // --- Sorting Function ---
   function makeTableSortable(tableId) {
     const table = document.getElementById(tableId);
@@ -895,11 +1018,37 @@ document.addEventListener("DOMContentLoaded", () => {
   blockADeleteBtn.addEventListener("click", () => { selectedTable = blockATable; });
   blockBDeleteBtn.addEventListener("click", () => { selectedTable = blockBTable; });
 
-  confirmDeleteBtn.addEventListener("click", () => {
+  confirmDeleteBtn.addEventListener("click", async () => {
     if (!selectedTable) return;
 
     const checkboxes = selectedTable.querySelectorAll("tbody input[type='checkbox']:checked");
-    checkboxes.forEach(cb => cb.closest("tr").remove());
+    const rowsToDelete = [];
+
+    for (const cb of checkboxes) {
+      const row = cb.closest("tr");
+      const student_id = row.children[1]?.textContent?.trim(); // assuming 2nd column is student_id
+
+      if (!student_id) continue;
+      rowsToDelete.push({ row, student_id });
+    }
+
+    for (const { row, student_id } of rowsToDelete) {
+      try {
+        const block = selectedTable.id === "blockATable" ? "A" : "B";
+        const response = await fetch(`/delete-student/${block}/${student_id}`, { method: "DELETE" });
+        const result = await response.json();
+
+        if (result.success) {
+          console.log(`🗑️ Deleted ${student_id} from Firestore`);
+          row.remove(); // remove from table
+          loadedStudents = loadedStudents.filter(s => s.student_id !== student_id); // remove from cache
+        } else {
+          console.warn(`⚠️ Failed to delete ${student_id}: ${result.message}`);
+        }
+      } catch (error) {
+        console.error(`🔥 Error deleting ${student_id}:`, error);
+      }
+    }
 
     // Auto-show "No Entries" if table is empty
     const noEntriesMessage = selectedTable.querySelector(`#noEntriesMessage${selectedTable.id === "blockATable" ? "BlockA" : "BlockB"}`);
@@ -911,6 +1060,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = bootstrap.Modal.getInstance(document.getElementById("regAccConfirmDeleteModal"));
     modal.hide();
   });
+
 
   // --- Auto-generate password ---
   function generatePassword(length = 10) {
@@ -934,11 +1084,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // Update status function 
-function updateStatus(button, newStatus) {
+async function updateStatus(button, newStatus) {
   const row = button.closest("tr");
   const statusCell = row.querySelector(".status-cell");
+  const student_id = row.children[1]?.textContent?.trim();
+
+  // Determine which block (A or B)
+  const table = row.closest("table");
+  const block = table.id === "blockATable" ? "A" : "B";
+
+  // Update visually first
   statusCell.textContent = newStatus;
+
+  try {
+    // Save to Firestore via backend
+    const response = await fetch(`/update-status/${block}/${student_id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      console.log(`✅ Status updated for ${student_id}: ${newStatus}`);
+    } else {
+      console.warn(`⚠️ Failed to update status: ${result.message}`);
+    }
+  } catch (error) {
+    console.error(`🔥 Error updating status for ${student_id}:`, error);
+  }
 }
+
 
 // PARTNER ESTABLISHMENTS 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1260,6 +1436,60 @@ document.addEventListener("DOMContentLoaded", () => {
 // PUBLISH REQUIREMENTS (DUEDATE)
 document.addEventListener("DOMContentLoaded", () => {
 
+  async function loadRequirements() {
+    try {
+      const res = await fetch("/get-requirements");
+      const data = await res.json();
+
+      if (data.success) {
+        // 🕒 Sort by createdAt (oldest first)
+        const sorted = data.requirements.sort((a, b) => {
+          const dateA = a.createdAt?.seconds
+            ? new Date(a.createdAt.seconds * 1000)
+            : new Date(a.createdAt || 0);
+          const dateB = b.createdAt?.seconds
+            ? new Date(b.createdAt.seconds * 1000)
+            : new Date(b.createdAt || 0);
+          return dateA - dateB; // oldest first
+        });
+
+        // Clear existing container before appending
+        container.innerHTML = "";
+
+        // Render sorted requirements
+        sorted.forEach(req => {
+          const createdAt = req.createdAt?.seconds
+            ? new Date(req.createdAt.seconds * 1000)
+            : new Date(req.createdAt || 0);
+
+          const col = document.createElement("div");
+          col.classList.add("col-md-4", "position-relative");
+          col.setAttribute("data-created-at", createdAt.toISOString());
+          col.dataset.id = req.id; // 🔑 store Firestore document ID here
+          col.innerHTML = `
+    <input type="checkbox" class="form-check-input position-absolute top-2 start-2 m-2 z-3">
+    <div class="card h-100 border-success">
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title">${req.type}</h5>
+        <h5>${req.title}</h5>
+        <p><strong>Due:</strong> ${new Date(req.dueDate).toLocaleDateString()}</p>
+        <p><strong>Date Posted:</strong> ${createdAt.toLocaleDateString()}</p>
+        <p class="text-muted small" style="flex-grow: 1;">${req.notes || ""}</p>
+      </div>
+    </div>
+  `;
+          container.appendChild(col);
+        });
+
+      }
+    } catch (error) {
+      console.error("🔥 Error loading requirements:", error);
+    }
+  }
+
+  loadRequirements();
+
+
   // Auto-set today's date when Add Modal opens
   document.getElementById('addDeadlineModal').addEventListener('show.bs.modal', function () {
     const today = new Date();
@@ -1277,7 +1507,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const addDeadlineModal = new bootstrap.Modal(document.getElementById('addDeadlineModal'));
 
   // Add new requirement card
-  deadlineForm.addEventListener('submit', function (e) {
+  deadlineForm.addEventListener('submit', async function (e) {
     e.preventDefault();
 
     const type = document.getElementById('requirementType').value;
@@ -1302,10 +1532,79 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    container.prepend(col);
+    try {
+      const response = await fetch("/save-requirement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, title, dueDate, datePosted, notes })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log("✅ Requirement saved to Firestore");
+      } else {
+        console.warn("⚠️ Failed to save:", result.message);
+      }
+    } catch (error) {
+      console.error("🔥 Error saving requirement:", error);
+    }
+
+    // Then update UI
+    container.appendChild(col);
     deadlineForm.reset();
     addDeadlineModal.hide();
   });
+
+
+  const requirementTitles = {
+    "Initial Requirements": [
+      "Student Information Sheet (SIS)",
+      "Medical Certificate (PE & Nuero)",
+      "Insurance",
+      "Certificate of Registration",
+      "Certificate of Academic Records",
+      "Good Moral"
+    ],
+    "Pre-Deployment Requirements": [
+      "Letter of Application",
+      "Resume",
+      "OJT Orientation Certificate",
+      "Parent Waiver",
+      "Letter of Endorsement",
+      "Notice of Acceptance",
+      "Internship Contract",
+      "Work Plan"
+    ],
+    "In-Progress Requirements": [
+      "DTR",
+      "Monthly Progress Report",
+      "Midterm/Final Assessment"
+    ],
+    "Final Requirements": [
+      "Certificate of Completion",
+      "Written Report",
+      "Final Presentation"
+    ]
+  };
+
+  const categorySelect = document.getElementById("requirementType");
+  const titleSelect = document.getElementById("deadlineTitle");
+
+  // When category changes, update title options
+  categorySelect.addEventListener("change", () => {
+    const selectedCategory = categorySelect.value;
+    titleSelect.innerHTML = '<option value="">Select Title</option>';
+
+    if (requirementTitles[selectedCategory]) {
+      requirementTitles[selectedCategory].forEach(title => {
+        const option = document.createElement("option");
+        option.value = title;
+        option.textContent = title;
+        titleSelect.appendChild(option);
+      });
+    }
+  });
+
 
   // --- DELETE LOGIC ---
   const deleteBtn = document.querySelector(".btn-outline-danger[title='Delete']");
@@ -1325,10 +1624,36 @@ document.addEventListener("DOMContentLoaded", () => {
     deleteModal.show();
   });
 
-  confirmDeleteBtn.addEventListener("click", () => {
-    document.querySelectorAll("#deadlineContainer .form-check-input:checked").forEach(cb => {
-      cb.closest(".col-md-4").remove();
-    });
+  confirmDeleteBtn.addEventListener("click", async () => {
+    const checkedCards = document.querySelectorAll("#deadlineContainer .form-check-input:checked");
+
+    for (const cb of checkedCards) {
+      const card = cb.closest(".col-md-4");
+      const docID = card.dataset.id;
+
+      if (!docID) {
+        console.warn("⚠️ Missing document ID for card, skipping.");
+        continue;
+      }
+
+      try {
+        const response = await fetch(`/delete-requirement/${docID}`, {
+          method: "DELETE",
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          console.log(`✅ Deleted requirement: ${docID}`);
+          card.remove(); // remove from UI
+        } else {
+          console.warn(`⚠️ Failed to delete ${docID}:`, result.message);
+        }
+      } catch (error) {
+        console.error(`🔥 Error deleting requirement ${docID}:`, error);
+      }
+    }
+
     deleteModal.hide();
     toggleDeleteButton();
   });
@@ -1338,6 +1663,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const editForm = document.getElementById("editRequirementForm"); // ✅ correct form id
   const editModal = new bootstrap.Modal(document.getElementById("editDeadlineModal"));
   let selectedCard = null;
+  let selectedTitle = "";
 
   editBtn.addEventListener("click", () => {
     const checkedBoxes = document.querySelectorAll("#deadlineContainer .form-check-input:checked");
@@ -1358,17 +1684,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const postedText = selectedCard.querySelector("p:nth-of-type(2)").textContent.replace("Date Posted:", "").trim();
     const notes = selectedCard.querySelector("p.text-muted").textContent.trim();
 
-    // Prefill modal
-    document.getElementById("editRequirementType").value = category;
-    document.getElementById("editDeadlineTitle").value = title;
+    const editCategorySelect = document.getElementById("editRequirementType");
+    const editTitleSelect = document.getElementById("editDeadlineTitle");
+
+    selectedTitle = title; // store current title
+
+    // Set category
+    editCategorySelect.value = category;
+
+    // Populate titles based on category
+    populateEditTitles(category, selectedTitle);
+
+    // Other fields
     document.getElementById("editDueDate").value = new Date(dueText).toISOString().split("T")[0];
-    document.getElementById("editDatePosted").textContent = postedText; // display only
+    document.getElementById("editDatePosted").textContent = postedText;
     document.getElementById("editNotes").value = notes;
 
     editModal.show();
   });
 
-  editForm.addEventListener("submit", (e) => {
+  function populateEditTitles(category, selectedTitle = "") {
+    const editTitleSelect = document.getElementById("editDeadlineTitle");
+    editTitleSelect.innerHTML = '<option value="">Select Title</option>';
+
+    if (requirementTitles[category]) {
+      requirementTitles[category].forEach(t => {
+        const option = document.createElement("option");
+        option.value = t;
+        option.textContent = t;
+        editTitleSelect.appendChild(option);
+      });
+    }
+
+    if (selectedTitle) {
+      editTitleSelect.value = selectedTitle;
+    }
+  }
+
+  document.getElementById("editRequirementType").addEventListener("change", (e) => {
+    const selectedCategory = e.target.value;
+    populateEditTitles(selectedCategory);
+  });
+
+
+  editForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!selectedCard) return;
 
@@ -1378,18 +1737,44 @@ document.addEventListener("DOMContentLoaded", () => {
     const newDatePosted = document.getElementById("editDatePosted").textContent; // not editable
     const newNotes = document.getElementById("editNotes").value;
 
-    // Update card
-    selectedCard.querySelector(".card-title").textContent = newCategory;
-    selectedCard.querySelectorAll("h5")[1].textContent = newTitle;
-    selectedCard.querySelector("p:nth-of-type(1)").innerHTML = `<strong>Due:</strong> ${new Date(newDueDate).toLocaleDateString()}`;
-    selectedCard.querySelector("p:nth-of-type(2)").innerHTML = `<strong>Date Posted:</strong> ${newDatePosted}`;
-    selectedCard.querySelector("p.text-muted").textContent = newNotes;
+    // 🔑 Get the document ID stored as a data attribute
+    const docID = selectedCard.dataset.id;
 
-    // 🔑 update hidden data attribute for sorting
-    selectedCard.setAttribute("data-date-posted", new Date(newDatePosted).toISOString().split("T")[0]);
+    try {
+      const response = await fetch(`/update-requirement/${docID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: newCategory,
+          title: newTitle,
+          dueDate: newDueDate,
+          notes: newNotes,
+        }),
+      });
 
-    editModal.hide();
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("✅ Requirement updated successfully in Firestore");
+
+        // Update UI
+        selectedCard.querySelector(".card-title").textContent = newCategory;
+        selectedCard.querySelectorAll("h5")[1].textContent = newTitle;
+        selectedCard.querySelector("p:nth-of-type(1)").innerHTML = `<strong>Due:</strong> ${new Date(newDueDate).toLocaleDateString()}`;
+        selectedCard.querySelector("p:nth-of-type(2)").innerHTML = `<strong>Date Posted:</strong> ${newDatePosted}`;
+        selectedCard.querySelector("p.text-muted").textContent = newNotes;
+
+        selectedCard.setAttribute("data-date-posted", new Date(newDatePosted).toISOString().split("T")[0]);
+        editModal.hide();
+      } else {
+        alert("⚠ Failed to update requirement: " + result.message);
+      }
+    } catch (error) {
+      console.error("🔥 Error updating requirement:", error);
+      alert("An error occurred while updating the requirement.");
+    }
   });
+
 
   // --- SORTING ---
   const sortMenuItems = document.querySelectorAll('.dropdown-menu[aria-labelledby="sortDropdown"] .sort-option');
@@ -1516,47 +1901,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Sorting that ONLY touches the targeted table's first tbody
   function sortTable(tableId, columnIndex, order = "asc") {
-  const table = document.getElementById(tableId);
-  if (!table || !table.tBodies[0]) return;
-  const tbody = table.tBodies[0];
-  const rows = Array.from(tbody.rows);
+    const table = document.getElementById(tableId);
+    if (!table || !table.tBodies[0]) return;
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
 
-  rows.sort((a, b) => {
-    const aCell = (a.cells[columnIndex] && a.cells[columnIndex].innerText) ? a.cells[columnIndex].innerText.trim().toLowerCase() : "";
-    const bCell = (b.cells[columnIndex] && b.cells[columnIndex].innerText) ? b.cells[columnIndex].innerText.trim().toLowerCase() : "";
+    rows.sort((a, b) => {
+      const aCell = (a.cells[columnIndex] && a.cells[columnIndex].innerText) ? a.cells[columnIndex].innerText.trim().toLowerCase() : "";
+      const bCell = (b.cells[columnIndex] && b.cells[columnIndex].innerText) ? b.cells[columnIndex].innerText.trim().toLowerCase() : "";
 
-    // Student ID column (index 2) sort numerically
-    if (columnIndex === 2) {
-      const na = parseInt(aCell.replace(/\D/g, ""), 10) || 0;
-      const nb = parseInt(bCell.replace(/\D/g, ""), 10) || 0;
-      return order === "asc" ? na - nb : nb - na;
-    }
+      // Student ID column (index 2) sort numerically
+      if (columnIndex === 2) {
+        const na = parseInt(aCell.replace(/\D/g, ""), 10) || 0;
+        const nb = parseInt(bCell.replace(/\D/g, ""), 10) || 0;
+        return order === "asc" ? na - nb : nb - na;
+      }
 
-    if (aCell < bCell) return order === "asc" ? -1 : 1;
-    if (aCell > bCell) return order === "asc" ? 1 : -1;
-    return 0;
-  });
+      if (aCell < bCell) return order === "asc" ? -1 : 1;
+      if (aCell > bCell) return order === "asc" ? 1 : -1;
+      return 0;
+    });
 
-  const frag = document.createDocumentFragment();
-  rows.forEach(r => frag.appendChild(r));
-  tbody.appendChild(frag);
+    const frag = document.createDocumentFragment();
+    rows.forEach(r => frag.appendChild(r));
+    tbody.appendChild(frag);
 
-  // 🔑 Fix: update row numbers for this specific table
-  updateRowNumbers(tableId);
+    // 🔑 Fix: update row numbers for this specific table
+    updateRowNumbers(tableId);
 
-  // Maintain filter/search visibility
-  const block = tableId.includes("A") ? "A" : "B";
-  applyFilters(block);
-}
+    // Maintain filter/search visibility
+    const block = tableId.includes("A") ? "A" : "B";
+    applyFilters(block);
+  }
 
-function updateRowNumbers(tableId) {
-  const table = document.getElementById(tableId);
-  if (!table || !table.tBodies[0]) return;
-  Array.from(table.tBodies[0].rows).forEach((row, index) => {
-    const numCell = row.querySelector(".row-num");
-    if (numCell) numCell.textContent = index + 1;
-  });
-}
+  function updateRowNumbers(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table || !table.tBodies[0]) return;
+    Array.from(table.tBodies[0].rows).forEach((row, index) => {
+      const numCell = row.querySelector(".row-num");
+      if (numCell) numCell.textContent = index + 1;
+    });
+  }
 
 
   // Setup sort menu listeners per block, scoped to .sort-option[data-block="..."]
