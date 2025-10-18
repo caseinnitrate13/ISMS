@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'To Submit': 'text-secondary',
         'Pending': 'text-primary',
         'Overdue': 'text-danger',
-        'ToRevise': 'text-warning',
+        'To Revise': 'text-warning',
         'Completed': 'text-success'
     };
 
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const now = new Date();
             const dueDate = new Date(requirement.dueDate);
 
-            if (now > dueDate && !["Completed", "ToRevise"].includes(requirement.status)) {
+            if (now > dueDate && !["Pending", "Completed", "To Revise"].includes(requirement.status)) {
                 requirement.status = "Overdue";
                 requirement.pastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24)) + " days past due";
             }
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
         submitFile.classList.remove("d-none");
 
         // Allow re-upload only for these statuses
-        const allowedStatuses = ['To Submit', 'Pending', 'ToRevise', 'Overdue'];
+        const allowedStatuses = ['To Submit', 'Pending', 'To Revise', 'Overdue'];
         const canUpload = allowedStatuses.includes(requirement.status);
 
         // Reset upload area
@@ -431,7 +431,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const file = fileUpload.files[0];
         const studentData = JSON.parse(localStorage.getItem('studentData'));
         const studentID = studentData?.id;
-        const submitteddocuID = crypto.randomUUID().split('-')[0];
         const requirementID = selectedRequirement.id || selectedRequirement.requirementID;
         const type = selectedRequirement.type;
         const title = selectedRequirement.title;
@@ -439,7 +438,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('studentID', studentID);
-        formData.append('submitteddocuID', submitteddocuID);
         formData.append('requirementID', requirementID);
         formData.append('type', type);
         formData.append('title', title);
@@ -461,12 +459,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert("Failed to upload document.");
             }
         } catch (err) {
-        console.error("Error uploading file:", err);
+            console.error("Error uploading file:", err);
             alert("Error uploading file");
         }
     });
-
-
 
     // ✅ Reset modal when closed
     document.getElementById('submissionModal').addEventListener("hidden.bs.modal", () => {
@@ -990,9 +986,9 @@ document.addEventListener('DOMContentLoaded', function () {
         { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
         { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' }
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' }
     ];
 
     const preDepRequirements = [
@@ -1001,9 +997,9 @@ document.addEventListener('DOMContentLoaded', function () {
         { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
         { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' }
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' }
     ];
 
 
@@ -1013,9 +1009,9 @@ document.addEventListener('DOMContentLoaded', function () {
         { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
         { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' }
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' }
     ];
 
 
@@ -1025,16 +1021,16 @@ document.addEventListener('DOMContentLoaded', function () {
         { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
         { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' },
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' },
         { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'ToRevise', dateSubmitted: '10/20/2025, 11:58 PM' }
+        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' }
     ];
 
     const statusOrder = {
         'To Submit': 'bg-secondary',
         'Pending': 'bg-primary',
         'Overdue': 'bg-danger',
-        'ToRevise': 'bg-warning text-dark',
+        'To Revise': 'bg-warning text-dark',
         'Completed': 'bg-success'
     };
 

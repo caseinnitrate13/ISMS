@@ -348,27 +348,18 @@ document.addEventListener("DOMContentLoaded", function () {
     modalEl.addEventListener("show.bs.modal", async function () {
       const requirementTitle = modalEl.getAttribute("data-requirement-title");
       const tableBody = modalEl.querySelector("tbody");
-
-      // Clear previous table content
-      tableBody.innerHTML = `
-        <tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>
-      `;
+      tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>`;
 
       try {
-        const res = await fetch('/api/submitted-requirements');
+        const res = await fetch(`/api/submitted-requirements?title=${encodeURIComponent(requirementTitle)}`);
         const result = await res.json();
 
         if (!result.success) {
-          tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Failed to fetch documents</td></tr>`;
+          tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No submitted documents found</td></tr>`;;
           return;
         }
 
-        // Filter only matching requirements
-        const filteredDocs = result.documents.filter(doc => doc.requirementTitle === requirementTitle);
-
-        console.log(`📄 ${filteredDocs.length} documents found for "${requirementTitle}"`);
-        populateTable(tableBody, filteredDocs);
-
+        populateTable(tableBody, result.documents);
       } catch (error) {
         console.error("🔥 Error loading submitted documents:", error);
         tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error loading documents</td></tr>`;
@@ -398,8 +389,15 @@ document.addEventListener("DOMContentLoaded", function () {
         timeSubmitted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }
 
+      // 🔹 Convert status values
+      let displayStatus = '';
+      if (doc.docustatus === 'Completed') displayStatus = 'Approved';
+      else if (doc.docustatus === 'To Revise') displayStatus = 'Declined';
+      else displayStatus = doc.docustatus || 'Pending';
+
+
       const row = `
-        <tr>
+        <tr data-requirementid="${doc.requirementID}" data-submitteddocuid="${doc.submitteddocuID}">
           <td>${index + 1}</td>
           <td>${doc.studentID}</td>
           <td>${doc.studentName || "N/A"}</td>
@@ -410,15 +408,8 @@ document.addEventListener("DOMContentLoaded", function () {
             <button class="btn btn-success btn-sm approve-btn">Approve</button>
             <button class="btn btn-danger btn-sm decline-btn">Decline</button>
           </td>
-          <td class="status-cell text-center">${doc.docustatus}</td>
-          <td class="remarks-cell text-center align-top position-relative">
-            <div class="remarks-input d-none w-100 h-100">
-              <input type="text" class="form-control form-control-sm" placeholder="Enter remarks">
-              <button class="btn btn-secondary btn-sm send-btn position-absolute">
-                <i class="bi bi-send"></i>
-              </button>
-            </div>
-          </td>
+          <td class="status-cell text-center">${displayStatus}</td>
+          <td class="remarks-cell text-center align-top position-relative">${doc.remarks || ""}</td>
         </tr>
       `;
       tableBody.insertAdjacentHTML('beforeend', row);
@@ -454,7 +445,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const openModal = document.querySelector(".modal.show");
     if (openModal && openModal !== targetModal) {
       previousModal = bootstrap.Modal.getInstance(openModal);
-      previousModal.hide();
     }
 
     targetModal.show();
@@ -483,53 +473,142 @@ document.addEventListener("DOMContentLoaded", function () {
       currentAction = e.target.classList.contains("approve-btn") ? "approve" : "decline";
       const studentName = currentRow.querySelector("td:nth-child(3)").innerText;
 
-      confirmationMessage.textContent = `Are you sure you want to ${currentAction} ${studentName}'s request?`;
+      // Reset modal state
+      const modalBody = confirmationModalEl.querySelector(".modal-body");
+      const modalFooterBtn = document.getElementById("confirmActionBtn");
+      modalBody.innerHTML = `<p id="confirmationMessage">Are you sure you want to ${currentAction} ${studentName}'s request?</p>`;
+      modalFooterBtn.textContent = "Yes, Proceed";
 
-      // Show confirmation modal with stack behavior
       showConfirmationModal(confirmationModal);
     }
   });
 
+
   // ==========================
-  // CONFIRM ACTION
+  // CONFIRM ACTION HANDLER
   // ==========================
-  confirmActionBtn.addEventListener("click", function () {
+  confirmActionBtn.addEventListener("click", async function () {
     if (!currentRow || !currentAction) return;
 
     const statusCell = currentRow.querySelector(".status-cell");
-    const remarksDiv = currentRow.querySelector(".remarks-input");
+    const studentID = currentRow.querySelector("td:nth-child(2)").innerText;
+    const requirementTitle = currentRow.closest(".modal")?.getAttribute("data-requirement-title");
+    const docData = currentRow.dataset;
+    const requirementID = docData.requirementid;
+    const submitteddocuID = docData.submitteddocuid;
 
+    const feedbackMessage = document.getElementById("feedbackMessage");
+
+    // ✅ APPROVE — save immediately
     if (currentAction === "approve") {
+      const newStatus = "Completed";
       statusCell.textContent = "Approved";
       statusCell.classList.add("text-success", "fw-bold");
       statusCell.classList.remove("text-danger");
-      remarksDiv.classList.add("d-none");
-    } else if (currentAction === "decline") {
+
+      confirmationModal.hide();
+
+      try {
+        const res = await fetch("/api/update-docustatus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requirementID, studentID, submitteddocuID, newStatus }),
+        });
+        const result = await res.json();
+        if (!result.success) {
+          console.error("❌ Failed to update Firestore:", result.message);
+          feedbackMessage.textContent = `❌ Failed to approve document.`;
+        } else {
+          console.log(`✅ Firestore updated: ${newStatus}`);
+          feedbackMessage.textContent = `Document approved successfully!`;
+        }
+
+        feedbackModal.show();
+        setTimeout(() => feedbackModal.hide(), 2000);
+      } catch (error) {
+        console.error("🔥 Error sending update:", error);
+      }
+    }
+
+    // ❌ DECLINE — ask for remarks before saving
+    else if (currentAction === "decline") {
+      const modalBody = confirmationModalEl.querySelector(".modal-body");
+      const modalFooterBtn = document.getElementById("confirmActionBtn");
+
+      // Replace modal content with remarks input
+      modalBody.innerHTML = `
+      <label for="declineRemark" class="form-label fw-semibold">Please enter remarks for declining:</label>
+      <textarea id="declineRemark" class="form-control" rows="3" placeholder="Enter remarks here..."></textarea>
+    `;
+
+      // Change button text and behavior
+      modalFooterBtn.textContent = "Send";
+      currentAction = "submit-decline"; // track new phase
+    }
+
+    // 📤 SUBMIT DECLINE WITH REMARKS
+    else if (currentAction === "submit-decline") {
+      const remarkInput = document.getElementById("declineRemark");
+      const remarkText = remarkInput?.value.trim();
+
+      if (!remarkText) {
+        alert("⚠ Please enter remarks before sending.");
+        return;
+      }
+
+      const newStatus = "To Revise";
       statusCell.textContent = "Declined";
       statusCell.classList.add("text-danger", "fw-bold");
       statusCell.classList.remove("text-success");
-      remarksDiv.classList.remove("d-none");
-      currentRemarkInput = remarksDiv.querySelector("input");
-    }
 
-    confirmationModal.hide();
+      const remarksCell = currentRow.querySelector(".remarks-cell");
+
+      // ✅ Update status cell appearance
+      statusCell.textContent = "Declined";
+      statusCell.classList.add("text-danger", "fw-bold");
+      statusCell.classList.remove("text-success");
+
+      // ✅ Show the entered remarks in the table cell
+      remarksCell.textContent = remarkText;
+
+      confirmationModal.hide();
+
+      try {
+        const res = await fetch("/api/update-docustatus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requirementID,
+            studentID,
+            submitteddocuID,
+            newStatus,
+            remarks: remarkText,
+          }),
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+          console.error("❌ Failed to update Firestore:", result.message);
+          feedbackMessage.textContent = `❌ Failed to send remark.`;
+        } else {
+          console.log(`✅ Firestore updated: ${newStatus} with remark "${remarkText}"`);
+          feedbackMessage.textContent = `Document declined with remarks: ${remarkText}`;
+        }
+
+        feedbackModal.show();
+        setTimeout(() => feedbackModal.hide(), 2000);
+      } catch (error) {
+        console.error("🔥 Error sending update:", error);
+        feedbackMessage.textContent = `🔥 Error sending remark.`;
+        feedbackModal.show();
+        setTimeout(() => feedbackModal.hide(), 2000);
+      }
+    }
   });
 
-  // ==========================
-  // SEND REMARK HANDLER
-  // ==========================
-  document.body.addEventListener("click", function (e) {
-    if (e.target.closest(".send-btn")) {
-      currentRow = e.target.closest("tr");
-      currentRemarkInput = currentRow.querySelector(".remarks-input input");
-
-      // Show send confirmation modal with stack behavior
-      showConfirmationModal(sendConfirmationModal);
-    }
-  });
 
   // ==========================
-  // CONFIRM SENDING REMARK
+  // FEEDBACK MODAL (already existing)
   // ==========================
   confirmSendBtn.addEventListener("click", function () {
     if (currentRemarkInput) {
@@ -547,6 +626,7 @@ document.addEventListener("DOMContentLoaded", function () {
       setTimeout(() => feedbackModal.hide(), 2000);
     }
   });
+
 
   // ==========================
   // FILTER HANDLERS

@@ -259,33 +259,39 @@ app.get('/admin/submitted-documents', (req, res) => {
 
 app.get('/api/submitted-requirements', async (req, res) => {
     try {
+        const { title } = req.query;
+
+        if (!title) {
+            return res.status(400).json({ success: false, message: "Missing requirement title" });
+        }
+
+        // 🔍 Find ALL requirements that match the given title
         const requirementsRef = collection(db, "REQUIREMENTS");
         const requirementsSnap = await getDocs(requirementsRef);
+        const matchingRequirements = requirementsSnap.docs.filter(
+            (doc) => doc.data().title === title
+        );
 
-        let results = [];
+        if (matchingRequirements.length === 0) {
+            return res.status(404).json({ success: false, message: "Requirement not found" });
+        }
 
-        // loop through all REQUIREMENTS
-        for (const reqDoc of requirementsSnap.docs) {
+        const results = [];
+        const studentBlocks = ['A', 'B'];
+
+        for (const reqDoc of matchingRequirements) {
             const requirementID = reqDoc.id;
-            const requirementData = reqDoc.data();
-
-            // 🧩 manually reference the DOCUMENTS/{requirementID} path
-            const requirementDocRef = doc(db, "DOCUMENTS", requirementID);
-
-            // 🚀 since client SDK can't list subcollections dynamically,
-            // we’ll assume you know student IDs from ACCOUNTS/STUDENTS
-            const studentBlocks = ['A', 'B']; // adjust based on your setup
 
             for (const block of studentBlocks) {
                 const studentsRef = collection(db, "ACCOUNTS", "STUDENTS", block);
                 const studentsSnap = await getDocs(studentsRef);
 
-                for (const studentDoc of studentsSnap.docs) {
+                // Process all students in parallel
+                const promises = studentsSnap.docs.map(async (studentDoc) => {
                     const studentID = studentDoc.id;
                     const sData = studentDoc.data();
-                    const studentName = `${sData.firstname || ""} ${sData.lastname || ""}`.trim();
+                    const studentName = `${sData.firstname || ""} ${sData.surname || ""}`.trim();
 
-                    // 🔍 now check if this student has submissions under DOCUMENTS/{requirementID}/{studentID}
                     const submittedDocsRef = collection(db, "DOCUMENTS", requirementID, studentID);
                     const submittedSnap = await getDocs(submittedDocsRef);
 
@@ -293,7 +299,7 @@ app.get('/api/submitted-requirements', async (req, res) => {
                         const data = docu.data();
                         results.push({
                             requirementID,
-                            requirementTitle: requirementData.title || "",
+                            requirementTitle: title,
                             studentID,
                             studentName,
                             submitteddocuID: docu.id,
@@ -304,18 +310,46 @@ app.get('/api/submitted-requirements', async (req, res) => {
                             path: data.path || "",
                         });
                     });
-                }
+                });
+
+                await Promise.all(promises);
             }
         }
 
-        console.log("📄 Total submitted documents fetched:", results.length);
+        console.log(`📄 ${results.length} documents found for "${title}"`);
         res.status(200).json({ success: true, documents: results });
+
     } catch (error) {
         console.error("🔥 Error fetching submitted requirements:", error);
         res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 });
 
+
+app.post('/api/update-docustatus', async (req, res) => {
+    try {
+        const { requirementID, studentID, submitteddocuID, newStatus, remarks } = req.body;
+
+        if (!requirementID || !studentID || !submitteddocuID || !newStatus) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+
+        const docRef = doc(db, "DOCUMENTS", requirementID, studentID, submitteddocuID);
+        const updateData = { docustatus: newStatus };
+
+        if (remarks) updateData.remarks = remarks;
+
+        await updateDoc(docRef, updateData);
+
+        console.log(`✅ Updated docustatus to "${newStatus}" for ${requirementID}/${studentID}/${submitteddocuID}`);
+        if (remarks) console.log(`🗒 Remarks: ${remarks}`);
+
+        res.status(200).json({ success: true, message: "Status updated successfully" });
+    } catch (error) {
+        console.error("🔥 Error updating docustatus:", error);
+        res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+});
 
 
 app.get('/admin/student-progress', (req, res) => {
@@ -524,10 +558,9 @@ app.get('/api/document/:requirementID/:studentID', async (req, res) => {
     }
 });
 
-
 app.post("/api/upload-document", upload.single("file"), async (req, res) => {
     try {
-        const { studentID, submitteddocuID, requirementID, type, title } = req.body;
+        const { studentID, requirementID, type, title } = req.body;
 
         if (!studentID || !requirementID) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
@@ -537,20 +570,28 @@ app.post("/api/upload-document", upload.single("file"), async (req, res) => {
             return res.status(400).json({ success: false, message: "No file uploaded" });
         }
 
-        // ✅ Define folder structure
+        // 🔎 Check if a submission already exists for this student + requirement
+        const studentDocsRef = collection(db, "DOCUMENTS", requirementID, studentID);
+        const existingSnap = await getDocs(studentDocsRef);
+
+        let submitteddocuID;
+        if (!existingSnap.empty) {
+            submitteddocuID = existingSnap.docs[0].id;
+            console.log(`♻️ Updating existing document for ${studentID} under ${requirementID}`);
+        } else {
+            submitteddocuID = crypto.randomUUID().split('-')[0];
+            console.log(`🆕 Creating new document for ${studentID} under ${requirementID}`);
+        }
+
         const basePath = path.join(__dirname, "uploads", "documents", requirementID, studentID, submitteddocuID);
         fs.mkdirSync(basePath, { recursive: true });
 
-        const filename = `${Date.now()}-${req.file.originalname}`;
+        const filename = `${req.file.originalname}`;
         const filePath = path.join(basePath, filename);
-
-        // ✅ Save file to disk
-        fs.writeFileSync(filePath, req.file.buffer);
-
-        // ✅ Firestore path reference
         const firestorePath = `uploads/documents/${requirementID}/${studentID}/${submitteddocuID}/${filename}`;
 
-        // ✅ Save or update document under DOCUMENTS/{requirementID}/{studentID}/{submitteddocuID}
+        fs.writeFileSync(filePath, req.file.buffer);
+
         const docRef = doc(db, "DOCUMENTS", requirementID, studentID, submitteddocuID);
         await setDoc(docRef, {
             requirementID,
@@ -560,10 +601,20 @@ app.post("/api/upload-document", upload.single("file"), async (req, res) => {
             title,
             path: firestorePath,
             createdAt: new Date().toISOString(),
-            docustatus: "Pending"
+            docustatus: "Pending",
+            remarks: ""
         }, { merge: true });
 
-        console.log(`✅ File saved: ${filePath}`);
+        console.log(`✅ Firestore updated for ${studentID}`);
+        
+        const oldFiles = fs.readdirSync(basePath);
+        for (const oldFile of oldFiles) {
+            if (oldFile !== filename) {
+                fs.unlinkSync(path.join(basePath, oldFile));
+                console.log(`🧹 Deleted old file: ${oldFile}`);
+            }
+        }
+
         res.json({ success: true, path: firestorePath });
 
     } catch (error) {
@@ -571,7 +622,6 @@ app.post("/api/upload-document", upload.single("file"), async (req, res) => {
         res.status(500).json({ success: false, message: "Error saving document", error });
     }
 });
-
 
 
 app.get('/downloadable-forms', (req, res) => {
