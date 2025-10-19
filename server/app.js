@@ -115,44 +115,143 @@ app.get('/admin/downloadable', (req, res) => {
 
 app.post("/api/upload-downloadable", upload.single("file"), async (req, res) => {
     try {
-        const { title, action } = req.body; // action: "save" or "upload"
+        const { title, type, action } = req.body; // action: "save" (Draft) or "upload" (Published)
 
-        if (!title) return res.status(400).json({ success: false, message: "Missing title" });
-        if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
+        if (!title) {
+            return res.status(400).json({ success: false, message: "Missing title" });
+        }
 
-        // Generate unique ID for downloadable
-        const downloadableID = Date.now().toString();
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No file uploaded" });
+        }
 
-        // ✅ Create folder structure
+        // 🔎 Check if a downloadable with the same title already exists
+        const downloadableRef = collection(db, "DOWNLOADABLES");
+        const existingSnap = await getDocs(downloadableRef);
+        const existingDoc = existingSnap.docs.find(doc => doc.data().requirementname === title);
+
+        let downloadableID;
+
+        if (existingDoc) {
+            // ✅ Update existing document
+            downloadableID = existingDoc.id;
+            console.log(`♻️ Updating existing downloadable: ${title}`);
+        } else {
+            // 🆕 Create new document
+            downloadableID = crypto.randomUUID().split('-')[0];
+            console.log(`🆕 Creating new downloadable: ${title}`);
+        }
+
+        // ✅ Define folder structure
         const basePath = path.join(__dirname, "uploads", "downloadable", downloadableID);
         fs.mkdirSync(basePath, { recursive: true });
 
+        // ✅ Clean up old files first before saving the new one
+        const oldFiles = fs.existsSync(basePath) ? fs.readdirSync(basePath) : [];
+        for (const oldFile of oldFiles) {
+            fs.unlinkSync(path.join(basePath, oldFile));
+            console.log(`🧹 Deleted old file: ${oldFile}`);
+        }
+
+        // ✅ Prepare file details
         const filename = req.file.originalname;
         const filePath = path.join(basePath, filename);
-
-        // Save file
-        fs.writeFileSync(filePath, req.file.buffer);
-
-        // Relative path to store in Firestore
         const firestorePath = `uploads/downloadable/${downloadableID}/${filename}`;
 
-        // Status based on action
+        // ✅ Save new file to disk
+        fs.writeFileSync(filePath, req.file.buffer);
+
+        // ✅ Determine status
         const status = action === "save" ? "Draft" : "Uploaded";
 
-        // Save metadata in Firestore
+        // ✅ Update Firestore document
         const docRef = doc(db, "DOWNLOADABLES", downloadableID);
         await setDoc(docRef, {
             requirementname: title,
+            requirementtype: type || "Uncategorized",
             path: firestorePath,
             createdat: new Date().toISOString(),
             status
-        });
+        }, { merge: true });
+
+
+        console.log(`✅ Firestore updated for downloadable: ${title}`);
+        console.log(`📁 Saved latest file: ${filename}`);
 
         res.json({ success: true, downloadableID, path: firestorePath, status });
 
     } catch (error) {
-        console.error("Error uploading downloadable:", error);
-        res.status(500).json({ success: false, message: "Server error", error });
+        console.error("🔥 Error uploading downloadable:", error);
+        res.status(500).json({ success: false, message: "Error uploading downloadable", error });
+    }
+});
+
+app.get("/api/get-downloadables", async (req, res) => {
+    try {
+        const downloadableRef = collection(db, "DOWNLOADABLES");
+        const snapshot = await getDocs(downloadableRef);
+
+        if (snapshot.empty) {
+            return res.json({ success: true, data: [] });
+        }
+
+        const data = snapshot.docs.map((doc) => {
+            const d = doc.data();
+            return {
+                id: doc.id,
+                title: d.requirementname,
+                type: d.requirementtype,
+                fileurl: `/${d.path}`,
+                createdat: d.createdat,
+                status: d.status
+            };
+        });
+
+        // 🕒 Sort oldest first (so the latest appears last)
+        data.sort((a, b) => new Date(a.createdat) - new Date(b.createdat));
+
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error("🔥 Error fetching downloadables:", err);
+        res.status(500).json({
+            success: false,
+            message: "Error loading downloadables.",
+        });
+    }
+});
+
+// 🗑️ DELETE downloadable (Firestore + local folder)
+app.delete("/api/delete-downloadable/:id", async (req, res) => {
+    try {
+        const downloadableID = req.params.id;
+
+        if (!downloadableID) {
+            return res.status(400).json({ success: false, message: "Missing downloadable ID" });
+        }
+
+        const docRef = doc(db, "DOWNLOADABLES", downloadableID);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+            return res.status(404).json({ success: false, message: "Downloadable not found" });
+        }
+
+        // ✅ Delete Firestore document
+        await deleteDoc(docRef);
+        console.log(`🗑️ Firestore document deleted: ${downloadableID}`);
+
+        // ✅ Delete corresponding local folder
+        const folderPath = path.join(__dirname, "uploads", "downloadable", downloadableID);
+        if (fs.existsSync(folderPath)) {
+            fs.rmSync(folderPath, { recursive: true, force: true });
+            console.log(`📂 Folder deleted: ${folderPath}`);
+        }
+
+        res.json({ success: true, message: "Downloadable deleted successfully." });
+
+    } catch (error) {
+        console.error("🔥 Error deleting downloadable:", error);
+        res.status(500).json({ success: false, message: "Error deleting downloadable", error });
     }
 });
 
@@ -307,7 +406,7 @@ app.get('/api/submitted-requirements', async (req, res) => {
                             type: data.type || "",
                             createdAt: data.createdAt || "",
                             docustatus: data.docustatus || "Pending",
-                            path: data.path || "",
+                            path: `/${data.path}` || "",
                         });
                     });
                 });
@@ -606,7 +705,7 @@ app.post("/api/upload-document", upload.single("file"), async (req, res) => {
         }, { merge: true });
 
         console.log(`✅ Firestore updated for ${studentID}`);
-        
+
         const oldFiles = fs.readdirSync(basePath);
         for (const oldFile of oldFiles) {
             if (oldFile !== filename) {

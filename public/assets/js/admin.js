@@ -37,6 +37,54 @@ document.addEventListener('DOMContentLoaded', () => {
 // DOWNLOADABLE REQUIREMENTS
 document.addEventListener("DOMContentLoaded", () => {
   let cardBeingEdited = null;
+  // Fetch and display all downloadable forms
+  async function fetchDownloadables() {
+    try {
+      const response = await fetch("/api/get-downloadables");
+      const result = await response.json();
+
+      if (result.success && Array.isArray(result.data)) {
+        const container = document.getElementById("downloadablesContainer");
+        container.innerHTML = "";
+
+        result.data.forEach((item) => {
+          const name = item.title || "Untitled";
+          const fileURL = item.fileurl || "";
+          const status = item.status || "";
+          const type = item.type || "Uncategorized"; // ✅ include the type
+
+          const card = document.createElement("div");
+          card.className = "col-md-3 mb-3";
+          card.dataset.requirementType = type;
+          card.dataset.downloadableId = item.id || ""; // ✅ optional: keep ID reference
+
+          card.innerHTML = `
+          <div class="card h-100 position-relative shadow">
+            <input type="checkbox" class="form-check-input position-absolute"
+                   style="top:5px;left:5px;z-index:3;">
+            <div class="card-body d-flex flex-column" style="height: 400px;">
+              <h6 class="card-title">${name}</h6>
+              <div class="flex-grow-1 mb-2">
+                <iframe src="${fileURL}#toolbar=0" width="100%" height="100%" style="border:none;"></iframe>
+              </div>
+            </div>
+          </div>
+        `;
+          addTimestamp(card);
+          container.appendChild(card);
+        });
+
+        console.log("✅ Downloadable requirements loaded:", result.data);
+      } else {
+        console.warn("⚠️ No downloadable forms found.");
+      }
+    } catch (err) {
+      console.error("🔥 Error fetching downloadables:", err);
+    }
+  }
+
+  // Load downloadables when the page is ready
+  fetchDownloadables();
 
   // Show modal for adding new file
   document.getElementById('addFileBtn').addEventListener('click', function () {
@@ -46,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const addModal = new bootstrap.Modal(document.getElementById('addRequirementModal'));
     addModal.show();
   });
+
+  document.getElementById("editBtn").disabled = true;
 
   // Edit selected card
   document.getElementById('editBtn').addEventListener('click', function () {
@@ -66,9 +116,11 @@ document.addEventListener("DOMContentLoaded", () => {
     cardBeingEdited = cardWrapper;
 
     const cardTitle = cardWrapper.querySelector('.card-title').textContent;
+    const cardType = cardWrapper.dataset.requirementType || "Uncategorized";
 
     document.getElementById('requirementName').value = cardTitle;
     document.getElementById('requirementFile').value = '';
+    document.getElementById('editRequirementType').value = cardType;
 
     document.getElementById('addRequirementLabel').textContent = 'Edit Downloadable Form';
     const addModal = new bootstrap.Modal(document.getElementById('addRequirementModal'));
@@ -76,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Add / Edit submit handler
-  document.getElementById('addRequirementForm').addEventListener('submit', function (e) {
+  document.getElementById('addRequirementForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
     const nameInput = document.getElementById('requirementName');
@@ -89,41 +141,83 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (cardBeingEdited) {
-      cardBeingEdited.querySelector('.card-title').textContent = name;
-      if (file) {
-        const fileURL = URL.createObjectURL(file);
-        cardBeingEdited.querySelector('iframe').src = `${fileURL}#toolbar=0`;
-      }
-      cardBeingEdited = null;
-    } else {
-      if (!file) {
-        alert('Please provide a PDF file.');
-        return;
-      }
-      const fileURL = URL.createObjectURL(file);
-      const newCard = document.createElement('div');
-      newCard.className = 'col-md-3 mb-3';
-      newCard.innerHTML = `
-        <div class="card h-100 position-relative shadow">
-          <input type="checkbox" class="form-check-input position-absolute" style="top:5px;left:5px;z-index:3;">
-          <div class="card-body d-flex flex-column" style="height: 400px;">
-            <h6 class="card-title">${name}</h6>
-            <div class="flex-grow-1 mb-2">
-              <iframe src="${fileURL}#toolbar=0" width="100%" height="100%" style="border:none;"></iframe>
-            </div>
-          </div>
-        </div>
-      `;
-      addTimestamp(newCard);
-      document.querySelector('.row.text-center').appendChild(newCard);
+    if (!file && !cardBeingEdited) {
+      alert('Please provide a PDF file.');
+      return;
     }
 
-    document.getElementById('addRequirementForm').reset();
-    const modalInstance = bootstrap.Modal.getInstance(document.getElementById('addRequirementModal'));
-    modalInstance.hide();
-    document.getElementById('addRequirementLabel').textContent = 'New Downloadable Form';
+    // Create FormData to send to backend
+    const formData = new FormData();
+    const requirementType = document.getElementById('editRequirementType').value;
+
+    formData.append('title', name);
+    formData.append('type', requirementType);
+    formData.append('action', 'upload');
+    if (file) formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/upload-downloadable', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Upload success:', result);
+
+        if (cardBeingEdited) {
+          cardBeingEdited.querySelector('.card-title').textContent = name;
+          if (file) {
+            const fileURL = URL.createObjectURL(file);
+            cardBeingEdited.querySelector('iframe').src = `${fileURL}#toolbar=0`;
+          }
+          cardBeingEdited = null;
+        } else {
+          const fileURL = file ? URL.createObjectURL(file) : '';
+          const newCard = document.createElement('div');
+          newCard.className = 'col-md-3 mb-3';
+          newCard.innerHTML = `
+            <div class="card h-100 position-relative shadow">
+              <input type="checkbox" class="form-check-input position-absolute"
+              style="top:5px;left:5px;z-index:3;">
+              <div class="card-body d-flex flex-column" style="height: 400px;">
+                <h6 class="card-title">${name}</h6>
+                <div class="flex-grow-1 mb-2">
+                  <iframe src="${fileURL}#toolbar=0" width="100%" height="100%" style="border:none;"></iframe>
+                </div>
+              </div>
+            </div>
+          `;
+          addTimestamp(newCard);
+          document.querySelector('#downloadablesContainer').appendChild(newCard);
+        }
+
+        document.getElementById('addRequirementForm').reset();
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('addRequirementModal'));
+        modalInstance.hide();
+        document.getElementById('addRequirementLabel').textContent = 'New Downloadable Form';
+
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        feedbackMessage.textContent = `✅ "${name}" successfully uploaded!`;
+        const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+        feedbackModal.show();
+
+        setTimeout(() => {
+          feedbackModal.hide();
+        }, 2000);
+
+      } else {
+        console.error('❌ Upload failed:', result.message);
+        alert('Error: ' + result.message);
+      }
+
+    } catch (err) {
+      console.error('🔥 Error uploading file:', err);
+      alert('Upload failed. Check console for details.');
+    }
   });
+
 
   // Sorting
   document.querySelectorAll('.sort-option').forEach(option => {
@@ -166,7 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('.row.text-center > .col-md-3').forEach(addTimestamp);
 
   // Delete
-  const container = document.querySelector(".row.text-center");
+  const container = document.getElementById("downloadablesContainer");
   const deleteBtn = document.getElementById("deleteBtn");
   const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
   const deleteModalEl = document.getElementById("deleteConfirmModal");
@@ -191,26 +285,80 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Handle confirm delete
-  confirmDeleteBtn.addEventListener("click", () => {
-    const selectedCards = container.querySelectorAll(".form-check-input:checked");
-    selectedCards.forEach((checkbox) => {
-      const cardWrapper = checkbox.closest(".col-md-3");
-      if (cardWrapper) cardWrapper.remove();
-    });
+  confirmDeleteBtn.addEventListener("click", async () => {
+    const feedbackMsg = document.getElementById("feedbackMessage");
+    const feedbackModalEl = document.getElementById("feedbackModal");
+    const feedbackModal = new bootstrap.Modal(feedbackModalEl);
+
+    const selectedCards = document.querySelectorAll(".form-check-input:checked");
+
+    if (selectedCards.length === 0) return;
+
+    const response = await fetch("/api/get-downloadables");
+    const result = await response.json();
+
+    if (result.success && Array.isArray(result.data)) {
+      let deletedCount = 0;
+
+      for (const checkbox of selectedCards) {
+        const cardWrapper = checkbox.closest(".col-md-3, .card, .downloadable-card");
+        if (!cardWrapper) continue;
+
+        const cardTitleEl = cardWrapper.querySelector(".card-title");
+        if (!cardTitleEl) continue;
+
+        const cardTitle = cardTitleEl.textContent.trim();
+        const downloadable = result.data.find(d => d.title === cardTitle);
+
+        if (downloadable && downloadable.id) {
+          try {
+            const delRes = await fetch(`/api/delete-downloadable/${downloadable.id}`, {
+              method: "DELETE"
+            });
+            const delResult = await delRes.json();
+
+            if (delResult.success) {
+              deletedCount++;
+              cardWrapper.remove();
+            }
+          } catch (err) {
+            console.error("🔥 Error deleting:", err);
+          }
+        }
+      }
+
+      // 🟢 Show feedback modal with message
+      if (deletedCount > 0) {
+        feedbackMsg.textContent = `✅ Successfully deleted ${deletedCount} document${deletedCount > 1 ? "s" : ""}.`;
+      } else {
+        feedbackMsg.textContent = "⚠️ No documents were deleted.";
+      }
+
+      feedbackModal.show();
+
+      // Auto-close modal after 2 seconds
+      setTimeout(() => {
+        feedbackModal.hide();
+      }, 2000);
+
+      // Refresh list
+      fetchDownloadables();
+    }
 
     if (bootstrapDeleteModal) {
       bootstrapDeleteModal.hide();
     }
 
-    // Optionally disable deleteBtn after deletion
     deleteBtn.disabled = true;
   });
+
 
   // Enable delete button if at least one checkbox is checked
   container.addEventListener("change", () => {
     const checked = container.querySelectorAll(".form-check-input:checked");
     deleteBtn.disabled = checked.length === 0;
+    // Enable/disable Edit button
+    document.getElementById("editBtn").disabled = checked.length !== 1;
   });
 });
 
@@ -388,31 +536,41 @@ document.addEventListener("DOMContentLoaded", function () {
         dateSubmitted = d.toLocaleDateString();
         timeSubmitted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }
-
-      // 🔹 Convert status values
+      
       let displayStatus = '';
-      if (doc.docustatus === 'Completed') displayStatus = 'Approved';
-      else if (doc.docustatus === 'To Revise') displayStatus = 'Declined';
-      else displayStatus = doc.docustatus || 'Pending';
+      let statusClass = '';
 
+      if (doc.docustatus === 'Completed') {
+        displayStatus = 'Approved';
+        statusClass = 'text-success fw-bold';
+      } else if (doc.docustatus === 'To Revise') {
+        displayStatus = 'Declined';
+        statusClass = 'text-danger fw-bold';
+      } else {
+        displayStatus = doc.docustatus || 'Pending';
+        statusClass = 'text-secondary fw-bold';
+      }
 
       const row = `
         <tr data-requirementid="${doc.requirementID}" data-submitteddocuid="${doc.submitteddocuID}">
           <td>${index + 1}</td>
           <td>${doc.studentID}</td>
           <td>${doc.studentName || "N/A"}</td>
-          <td class="text-center"><a href="${doc.path}" class="btn btn-sm btn-primary" target="_blank">View File</a></td>
+          <td class="text-center">
+            <a href="${doc.path}" class="btn btn-sm btn-primary" target="_blank">View File</a>
+          </td>
           <td>${dateSubmitted || '—'}</td>
           <td>${timeSubmitted || '—'}</td>
           <td class="text-center">
             <button class="btn btn-success btn-sm approve-btn">Approve</button>
             <button class="btn btn-danger btn-sm decline-btn">Decline</button>
           </td>
-          <td class="status-cell text-center">${displayStatus}</td>
+          <td class="status-cell text-center ${statusClass}">${displayStatus}</td>
           <td class="remarks-cell text-center align-top position-relative">${doc.remarks || ""}</td>
         </tr>
       `;
       tableBody.insertAdjacentHTML('beforeend', row);
+
     });
   };
 
