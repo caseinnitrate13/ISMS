@@ -138,7 +138,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const preDepDocsToPass = document.getElementById("preDepDocsToPass");
     const inProgDocsToPass = document.getElementById("inProgDocsToPass");
     const finalDocsToPass = document.getElementById("finalDocsToPass");
-
     let requirementsByType = {
         "Initial Requirements": [],
         "Pre-Deployment Requirements": [],
@@ -237,6 +236,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const [datePart, timePart] = requirement.dueDate.split(',');
+            const formattedTime = new Date(`1970-01-01T${requirement.dueTime}`).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
 
             const el = document.createElement("div");
             el.classList.add('p-3', 'd-flex', 'align-items-center', 'border-bottom', 'pointer');
@@ -247,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class='text-muted small'>${requirement.description}</div>
                 </div>
                 <div class='flex-grow-2 text-end'>
-                    <div class='small'>Due: ${datePart} <i class="text-secondary">${timePart}</i></div>
+                    <div class='small'>Due: ${datePart} <i class="text-secondary">${formattedTime}</i></div>
                     <div class='badge ${statusOrder[requirement.status]} p-2'>${requirement.status}</div>
                 </div>
             `;
@@ -311,11 +315,31 @@ document.addEventListener('DOMContentLoaded', function () {
         submitFile.classList.remove("d-none");
 
         // Allow re-upload only for these statuses
-        const allowedStatuses = ['To Submit', 'Pending', 'To Revise', 'Overdue'];
-        const canUpload = allowedStatuses.includes(requirement.status);
+        const allowedStatuses = ['To Submit', 'Pending', 'To Revise'];
+        let canUpload = allowedStatuses.includes(requirement.status);
+
+        // Disable upload if overdue
+        if (requirement.status === 'Overdue') {
+            canUpload = false; // prevent upload
+            overdue.classList.remove('d-none');
+            overdue.textContent = `Overdue: ${requirement.pastDue || 'Past due'}`;
+            modalFooter.classList.add('d-flex', 'justify-content-between');
+        }
 
         // Reset upload area
         resetUpload();
+
+        // Disable upload and submit buttons if not allowed
+        if (!canUpload) {
+            submitFile.setAttribute('disabled', true);
+            // If you have a drag-drop area or input field for file, disable it too:
+            const fileInput = document.getElementById('fileInput'); // replace with your actual input ID
+            if (fileInput) fileInput.setAttribute('disabled', true);
+        } else {
+            submitFile.removeAttribute('disabled');
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) fileInput.removeAttribute('disabled');
+        }
 
         // Check if there's already an uploaded document
         const studentData = JSON.parse(localStorage.getItem('studentData'));
@@ -334,15 +358,9 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error("Error loading existing document:", error);
         }
 
-        // Overdue visual
-        if (requirement.status === 'Overdue') {
-            overdue.classList.remove('d-none');
-            overdue.textContent = `Overdue: ${requirement.pastDue}`;
-            modalFooter.classList.add('d-flex', 'justify-content-between');
-        }
-
         submissionModal.show();
     }
+
 
     function showUploadedFile(filePath, canUpload) {
         const ext = filePath.split('.').pop().toLowerCase();
@@ -431,6 +449,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const file = fileUpload.files[0];
         const studentData = JSON.parse(localStorage.getItem('studentData'));
         const studentID = studentData?.id;
+        const studentName = `${studentData?.firstname || ""} ${studentData?.lastname || ""}`.trim();
         const requirementID = selectedRequirement.id || selectedRequirement.requirementID;
         const type = selectedRequirement.type;
         const title = selectedRequirement.title;
@@ -438,9 +457,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('studentID', studentID);
+        
         formData.append('requirementID', requirementID);
         formData.append('type', type);
         formData.append('title', title);
+        formData.append('studentName', studentName);
 
         try {
             const res = await fetch('/api/upload-document', {
@@ -474,87 +495,72 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // DOWNLOADABLE FORMS
-document.addEventListener('DOMContentLoaded', function () {
-    const allDocuments = {
-        initDocuments: [
-            { name: "Project PDF1", file: "assets/img/sample-file.pdf" },
-            { name: "Lecture Notes", file: "assets/img/a.png" },
-            { name: "Annual Report", file: "assets/img/sample-file.docx" },
-            { name: "Meeting Minutes", file: "assets/img/sample-file.docx" },
-            { name: "Research Paper", file: "assets/img/sample-file.docx" },
-            { name: "Summary Report", file: "assets/img/sample-file.docx" },
-            { name: "User Guide", file: "assets/img/sample-file.docx" },
-            { name: "Invoice", file: "assets/img/sample-file.docx" },
-            { name: "Presentation", file: "assets/img/sample-file.docx" },
-            { name: "Proposal", file: "assets/img/sample-file.docx" }
-        ],
-        preDepDocuments: [
-            { name: "Project PDF2", file: "assets/img/sample-file.pdf" },
-            { name: "Lecture Notes", file: "assets/img/a.png" },
-            { name: "Annual Report", file: "assets/img/sample-file.docx" },
-            { name: "Meeting Minutes", file: "assets/img/sample-file.docx" },
-            { name: "Research Paper", file: "assets/img/sample-file.docx" },
-            { name: "Summary Report", file: "assets/img/sample-file.docx" },
-            { name: "User Guide", file: "assets/img/sample-file.docx" },
-            { name: "Invoice", file: "assets/img/sample-file.docx" },
-            { name: "Presentation", file: "assets/img/sample-file.docx" },
-            { name: "Proposal", file: "assets/img/sample-file.docx" }
-        ],
-        inProgDocuments: [
-            { name: "Project PDF3", file: "assets/img/sample-file.pdf" },
-            { name: "Lecture Notes", file: "assets/img/a.png" },
-            { name: "Annual Report", file: "assets/img/sample-file.docx" },
-            { name: "Meeting Minutes", file: "assets/img/sample-file.docx" },
-            { name: "Research Paper", file: "assets/img/sample-file.docx" },
-            { name: "Summary Report", file: "assets/img/sample-file.docx" },
-            { name: "User Guide", file: "assets/img/sample-file.docx" },
-            { name: "Invoice", file: "assets/img/sample-file.docx" },
-            { name: "Presentation", file: "assets/img/sample-file.docx" },
-            { name: "Proposal", file: "assets/img/sample-file.docx" }
-        ],
-        finalDocuments: [
-            { name: "Project PDF4", file: "assets/img/sample-file.pdf" },
-            { name: "Lecture Notes", file: "assets/img/a.png" },
-            { name: "Annual Report", file: "assets/img/sample-file.docx" },
-            { name: "Meeting Minutes", file: "assets/img/sample-file.docx" },
-            { name: "Research Paper", file: "assets/img/sample-file.docx" },
-            { name: "Summary Report", file: "assets/img/sample-file.docx" },
-            { name: "User Guide", file: "assets/img/sample-file.docx" },
-            { name: "Invoice", file: "assets/img/sample-file.docx" },
-            { name: "Presentation", file: "assets/img/sample-file.docx" },
-            { name: "Proposal", file: "assets/img/sample-file.docx" }
-        ]
+// DOWNLOADABLE FORMS
+document.addEventListener("DOMContentLoaded", async () => {
+    const sectionMap = {
+        "Initial Requirements": "initDocuments",
+        "Pre-Deployment Requirements": "preDepDocuments",
+        "In-Progress Requirements": "inProgDocuments",
+        "Final Requirements": "finalDocuments"
     };
+
+    // ✅ FIXED: Adjusted to use "data" instead of "downloadables"
+    async function fetchDownloadables() {
+        try {
+            const response = await fetch("/api/get-downloadables");
+            const result = await response.json();
+            console.log("🛰️ Raw API response:", result);
+
+            // Your backend returns { success: true, data: [...] }
+            if (result.success && Array.isArray(result.data)) {
+                return result.data;
+            }
+
+            console.error("⚠️ No valid 'data' array found in API response.");
+            return [];
+        } catch (err) {
+            console.error("⚠️ Error fetching downloadables:", err);
+            return [];
+        }
+    }
 
     function createDocumentCards(containerId, documents) {
         const cardContainer = document.getElementById(containerId);
         if (!cardContainer) return;
 
+        cardContainer.innerHTML = ""; // Clear old content
+
+        if (documents.length === 0) {
+            cardContainer.innerHTML = `<p class="text-center text-muted">No downloadable forms available.</p>`;
+            return;
+        }
+
         documents.forEach(doc => {
-            const fileExtension = doc.file.split('.').pop().toLowerCase();
+            // ✅ Update field names to match your Firestore data
+            const fileExtension = doc.fileurl.split('.').pop().toLowerCase();
             let previewHTML = "";
 
             if (fileExtension === "pdf") {
                 previewHTML = `
-                    <div class="preview-container" onclick="window.open('${doc.file}', '${doc.name}')">
-                        <iframe src="${doc.file}#toolbar=0&navpanes=0&scrollbar=0"></iframe>
+                    <div class="preview-container" onclick="window.open('${doc.fileurl}', '${doc.title}')">
+                        <iframe src="${doc.fileurl}#toolbar=0&navpanes=0&scrollbar=0"></iframe>
                     </div>
                 `;
             } else if (["png", "jpg", "jpeg"].includes(fileExtension)) {
                 previewHTML = `
-                    <div class="preview-container" onclick="window.open('${doc.file}', '${doc.name}')">
-                        <img src="${doc.file}" alt="${doc.name}" style="width: 100%; height: 130px; object-fit: cover;" />
+                    <div class="preview-container" onclick="window.open('${doc.fileurl}', '${doc.title}')">
+                        <img src="${doc.fileurl}" alt="${doc.title}" style="width: 100%; height: 130px; object-fit: cover;" />
                     </div>
                 `;
             } else if (fileExtension === "docx") {
                 previewHTML = `
-                    <div class="placeholder-docx" onclick="window.open('${doc.file}', '${doc.name}')">
+                    <div class="placeholder-docx" onclick="window.open('${doc.fileurl}', '${doc.title}')">
                         <i class="bi bi-file-earmark-word" style="font-size: 50px; color: #2B579A;"></i>
                     </div>
                 `;
             } else {
                 previewHTML = `
-                    <div class="placeholder-docx" onclick="window.open('${doc.file}', '${doc.name}')">
+                    <div class="placeholder-docx" onclick="window.open('${doc.fileurl}', '${doc.title}')">
                         No Preview Available
                     </div>
                 `;
@@ -566,8 +572,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="card shadow-sm h-100 mt-0">
                     ${previewHTML}
                     <div class="card-body text-center">
-                        <h5 class="card-title">${doc.name}</h5>
-                        <a href="${doc.file}" download class="btn btn-primary">Download</a>
+                        <h5 class="card-title">${doc.title}</h5>
+                        <a href="${doc.fileurl}" download class="btn btn-primary">Download</a>
                     </div>
                 </div>
             `;
@@ -576,313 +582,331 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Loop through all document sets
-    for (const [containerId, documents] of Object.entries(allDocuments)) {
-        createDocumentCards(containerId, documents);
+    // Fetch data and populate per section
+    let allDownloadables = await fetchDownloadables();
+    if (!Array.isArray(allDownloadables)) {
+        console.warn("⚠️ allDownloadables is not an array. Using empty array instead:", allDownloadables);
+        allDownloadables = [];
     }
+
+    console.log("📦 allDownloadables fetched:", allDownloadables);
+
+    Object.entries(sectionMap).forEach(([type, containerId]) => {
+        // ✅ Update filter to use 'type'
+        const filteredDocs = allDownloadables.filter(
+            doc => (doc.type || "").toLowerCase() === type.toLowerCase()
+        );
+        createDocumentCards(containerId, filteredDocs);
+    });
 });
 
 
-
 // PARTNER AGENCIES
-document.addEventListener('DOMContentLoaded', function () {
-    const agencies = [
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 Support1 IT Support1 slots lef slots lef slots lef slots lef slots lef slots lef slots lef slots lef slots lef IT Support1 IT Support", description: "Description", rating: "5/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", description: "Description", rating: "4/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "DescripDescriptionDescripti  Description Description DescriptiononDescriptionDescription Description DescriptiontionDescripDescriptionDescripti  Description Description DescriptiononDescriptionDescription Description DescriptiontionDescripDescriptionDescripti  Description Description DescriptiononDescriptionDescription Description DescriptiontionDescripDescriptionDescripti  Description Description DescriptiononDescriptionDescription Description Descriptiontion ", rating: "5/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "3/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "3/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: AccomodatingAccomodatingAccomodatingAccomodating AccomodatingAccomodatingAccomodatingAccomodatingAccomodatingAccomodating AccomodatingAccomodatingAccomodatingAccomodating AccomodatingAccomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "1/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "2/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "4/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "1/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" },
-        { name: "Our Lady of Lourdes College Foundation", address: "Daet, Camarines Norte", position: "1 IT Support, 3 Data Analyst, 1 Full Stack Web Developer", description: "Description", rating: "2/5", reviews: "Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5, Name: Annika | Review: Accomodating | Rating: 3/5" }
-    ];
 
-    // PARTNER AGENCY
-    const agencyContainer = document.getElementById('agenciesCards');
-    agencies.forEach(agency => {
-        const agencyCard = document.createElement("div");
-        agencyCard.className = "col-md-3";
-        agencyCard.innerHTML = `
-            <div class="agencyCard mt-0 card shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-building fs-3 dark-purple"></i>
-                    <div id="agencyNameCard">${agency.name}</div>
-                    <div id="agencyAddressCard" class="text-muted">${agency.address}</div>
-                </div>
-            </div>
-        `;
+// PARTNER AGENCY
+document.addEventListener("DOMContentLoaded", async () => {
+    // Fetch partners from the backend
+    async function fetchPartners() {
+        try {
+            const res = await fetch("/api/get-partners");
+            const data = await res.json();
 
-        if (agencyContainer) {
-            agencyContainer.appendChild(agencyCard);
-            console.log('Agency displayed');
+            console.log("📦 Partner data fetched:", data);
+
+            if (data.success && Array.isArray(data.partners)) {
+                return data.partners;
+            } else {
+                console.warn("⚠️ No partners found in API response.");
+                return [];
+            }
+        } catch (err) {
+            console.error("🔥 Error fetching partners:", err);
+            return [];
         }
+    }
 
+    const partners = await fetchPartners();
+    const container = document.getElementById("agenciesCards");
 
-        agencyCard.addEventListener('click', function () {
-            const agencyModal = new bootstrap.Modal(document.getElementById('agencyModal'));
-            const modalTitle = document.querySelector('#agencyModal .modal-title');
-            const agencyName = document.getElementById('agencyName');
-            const agencyAddress = document.getElementById('agencyAddress');
-            const positionNeeded = document.getElementById('positionNeeded');
-            const agencyDescription = document.getElementById('agencyDescription');
+    if (!container) return;
 
-            modalTitle.textContent = agency.name;
-            agencyName.textContent = agency.name;
-            agencyAddress.textContent = agency.address;
+    container.innerHTML = "";
 
-            const position = agency.position.split(',').map(pos => `<li>${pos.trim()}</li>`).join('');
-            positionNeeded.innerHTML = `<ul">${position}</ul>`;
-            agencyDescription.textContent = agency.description;
-            agencyModal.show();
+    if (partners.length === 0) {
+        container.innerHTML = `<p class="text-center text-muted">No partner agencies available.</p>`;
+        return;
+    }
 
+    // Create partner cards
+    partners.forEach(partner => {
+        const card = document.createElement("div");
+        card.className = "col-md-3";
+        card.innerHTML = `
+      <div class="card shadow-sm h-100 agencyCard mt-0">
+        <div class="card-body text-center">
+          <i class="bi bi-building fs-3 dark-purple"></i>
+          <div id="agencyNameCard">${partner.establishmentName}</div>
+          <div id="agencyAddressCard" class="text-muted">${partner.address}</div>
+        </div>
+      </div>
+    `;
+
+        // Show modal when clicked
+        card.addEventListener("click", () => {
+            const modal = new bootstrap.Modal(document.getElementById("agencyModal"));
+            const modalTitle = document.querySelector("#agencyModal .modal-title");
+            const agencyName = document.getElementById("agencyName");
+            const agencyAddress = document.getElementById("agencyAddress");
+            const positionNeeded = document.getElementById("positionNeeded");
+
+            modalTitle.textContent = partner.establishmentName;
+            agencyName.textContent = partner.establishmentName;
+            agencyAddress.textContent = partner.address;
+
+            const positions = (partner.positions || "")
+                .split(",")
+                .map(pos => `<li>${pos.trim()}</li>`)
+                .join("");
+            positionNeeded.innerHTML = `<ul>${positions}</ul>`;
+
+            modal.show();
         });
+
+        container.appendChild(card);
     });
+});
 
+// REVIEW AGENCY
+document.addEventListener("DOMContentLoaded", async function () {
 
-    // REVIEW AGENCY
-    const reviewContainer = document.getElementById('reviewAgenciesCards');
+    // ✅ Fetch partner agencies from backend
+    async function fetchAgencies() {
+        try {
+            const res = await fetch("/api/get-partnersreview");
+            const data = await res.json();
+            if (data.success && Array.isArray(data.partners)) {
+                console.log("✅ Agencies fetched for review:", data.partners);
+                return data.partners;
+            } else {
+                console.warn("⚠️ No agencies found in API response.");
+                return [];
+            }
+        } catch (error) {
+            console.error("🔥 Error fetching agencies:", error);
+            return [];
+        }
+    }
+
+    const agencies = await fetchAgencies();
+    const reviewContainer = document.getElementById("reviewAgenciesCards");
+    if (!reviewContainer) return;
+
+    reviewContainer.innerHTML = "";
+
+    if (agencies.length === 0) {
+        reviewContainer.innerHTML = `<p class="text-center text-muted">No partner agencies available for review.</p>`;
+        return;
+    }
+
+    // ✅ Build each agency card
     agencies.forEach(agency => {
         const reviewCard = document.createElement("div");
         reviewCard.className = "col-md-3";
 
-        // Build stars dynamically
-        let starsHTML = '';
-        const rating = parseFloat(agency.rating);
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 >= 0.5;
-
+        const ratingValue = parseFloat(agency.rating || 0);
+        let starsHTML = "";
         for (let i = 1; i <= 5; i++) {
-            if (i <= fullStars) {
-                starsHTML += `<i class="bi bi-star-fill text-warning"></i>`;
-            } else {
-                starsHTML += `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
-            }
+            starsHTML += i <= ratingValue
+                ? `<i class="bi bi-star-fill text-warning"></i>`
+                : `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
         }
 
         reviewCard.innerHTML = `
             <div class="agencyCard mt-0 g-0 card shadow-sm">
                 <div class="card-body text-center">
-                <i class="bi bi-building fs-3 dark-purple"></i>
-                    <div id="reviewNameCard">${agency.name}</div>
-                    <div id="reviewAddressCard" class="text-muted">${agency.address}</div>
+                    <i class="bi bi-building fs-3 dark-purple"></i>
+                    <div id="reviewNameCard">${agency.establishmentName || "Unnamed Agency"}</div>
+                    <div id="reviewAddressCard" class="text-muted">${agency.address || "No address"}</div>
                 </div>
                 <div class="text-center mt-0" id="rating">
                     <div class="stars">${starsHTML}</div>
-                    <div>${agency.rating}</div>
+                    <div>${ratingValue.toFixed(1)}/5</div>
                 </div>
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-end p-2">
                     <button type="button" class="btn btn-outline-primary btn-sm">Review</button>
                 </div>
             </div>
         `;
 
-        if (reviewContainer) {
-            reviewContainer.appendChild(reviewCard);
-        }
+        reviewContainer.appendChild(reviewCard);
 
+        // ✅ Handle "Review" button click
         const button = reviewCard.querySelector("button");
-        button.addEventListener("click", () => {
+        button.addEventListener("click", async () => {
             document.getElementById("reviewAgenciesCards").style.display = "none";
             document.getElementById("reviewSelectedCard").style.display = "flex";
 
-            // reft side
-            document.getElementById("reviewAgencyName").innerText = agency.name;
+            // ✅ Immediately refresh agency data before displaying
+            await refreshAgencyReviews(agency.id);
 
-            const rating = parseFloat(agency.rating);
-            const fullStars = Math.floor(rating);
-            const hasHalf = rating % 1 >= 0.5;
+            // Left side (Agency details)
+            document.getElementById("reviewAgencyName").innerText = agency.establishmentName || "Unnamed Agency";
+            document.getElementById("reviewAgencyAddress").innerText = agency.address || "No address provided";
 
-            let starsHTML = "";
-            for (let i = 1; i <= 5; i++) {
-                if (i <= fullStars) {
-                    starsHTML += `<i class="bi bi-star-fill text-warning"></i>`;
-                } else {
-                    starsHTML += `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
-                }
-            }
 
-            document.getElementById("reviewStars").innerHTML = starsHTML;
-            document.getElementById("reviewRatingValue").innerText = `${agency.rating}`;
-
-            // right side
+            // Right side (Reviews) — This will already be filled by refreshAgencyReviews
             const reviewsContainer = document.getElementById("reviewsContainer");
-            reviewsContainer.innerHTML = "";
 
-            const reviewList = agency.reviews.split(",").map(r => r.trim());
-            reviewList.forEach(review => {
-                const [namePart, descPart, ratingPart] = review.split("|").map(item => item.trim());
-                const reviewer = namePart.replace("Name: ", "");
-                const desc = descPart.replace("Review: ", "");
-                const reviewRating = parseFloat(ratingPart.replace("Rating: ", "").split("/")[0]);
+            // ⭐ Interactive Write Review Section (safe rebind)
+            const stars = document.querySelectorAll(".star");
+            const ratingDisplay = document.getElementById("totalRating");
+            let activeStars = 0;
 
-                let reviewStars = "";
-                const reviewFullStars = Math.floor(reviewRating);
-                const reviewHalf = reviewRating % 1 >= 0.5;
-                for (let i = 1; i <= 5; i++) {
-                    if (i <= reviewFullStars) {
-                        reviewStars += `<i class="bi bi-star-fill text-warning"></i>`;
-                    } else {
-                        reviewStars += `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
-                    }
-                }
-
-                const reviewCard = document.createElement("div");
-                reviewCard.className = "card mb-2 p-2";
-                reviewCard.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center mt-0">
-                    <strong>${reviewer}</strong>
-                    <div>${reviewStars}</div>
-                    </div>
-                    <p class="mb-0 small text-muted clamped-text">${desc}</p>
-                `;
-                reviewsContainer.appendChild(reviewCard);
-            });
-        });
-
-        reviewAgenciesCards.appendChild(reviewCard);
-    });
-
-    const agencyBack = document.getElementById('agencyBack');
-    agencyBack.addEventListener('click', function () {
-        document.getElementById("reviewSelectedCard").style.display = "none";
-        document.getElementById("reviewAgenciesCards").style.display = "flex";
-    })
-
-
-    // wrire review
-    const stars = document.querySelectorAll(".star");
-    const rating = document.getElementById("totalRating");
-    let activeStars = 0;
-
-    stars.forEach((star, index) => {
-        star.addEventListener("click", () => {
-            const icon = star.querySelector("i");
-            const isSelected = icon.classList.contains("bi-star-fill");
-
-            if (isSelected) {
-                for (let i = index; i < stars.length; i++) {
-                    const iTag = stars[i].querySelector("i");
-                    iTag.classList.remove("bi-star-fill", "text-warning");
-                    iTag.classList.add("bi-star");
-
-                }
-            } else {
-                for (let i = 0; i <= index; i++) {
-                    const iTag = stars[i].querySelector("i");
-                    iTag.classList.remove("bi-star");
-                    iTag.classList.add("bi-star-fill", "text-warning");
-                }
-            }
-
-            // Count active stars
-            activeStars = 0;
+            // Remove previous listeners
             stars.forEach(star => {
-                const iTag = star.querySelector("i");
-                if (iTag.classList.contains("bi-star-fill")) {
-                    activeStars++;
-                }
+                const newStar = star.cloneNode(true);
+                star.parentNode.replaceChild(newStar, star);
+            });
+            const freshStars = document.querySelectorAll(".star");
+
+            // Add fresh listeners
+            freshStars.forEach((star, index) => {
+                star.addEventListener("click", () => {
+                    for (let i = 0; i < freshStars.length; i++) {
+                        const iTag = freshStars[i].querySelector("i");
+                        if (i <= index) {
+                            iTag.classList.add("bi-star-fill", "text-warning");
+                            iTag.classList.remove("bi-star");
+                        } else {
+                            iTag.classList.remove("bi-star-fill", "text-warning");
+                            iTag.classList.add("bi-star");
+                        }
+                    }
+                    activeStars = index + 1;
+                    ratingDisplay.textContent = activeStars;
+                });
             });
 
-            rating.textContent = activeStars;
-        });
-    });
+            // Replace old submit listener
+            const submit = document.getElementById("submitReview");
+            const newSubmit = submit.cloneNode(true);
+            submit.parentNode.replaceChild(newSubmit, submit);
 
-    const submit = document.getElementById('submitReview');
-    submit.addEventListener('click', function () {
-        const review = document.getElementById('review');
-        const reviewValue = review.value;
-        const reviewsContainer = document.getElementById("reviewsContainer");
+            newSubmit.addEventListener("click", async function () {
+                const review = document.getElementById("review");
+                const reviewValue = review.value.trim();
 
-        if (reviewValue === '' && activeStars === 0) {
-            alert("Please leave a review or select stars!");
-            return;
-        }
+                if (reviewValue === "" && activeStars === 0) {
+                    alert("Please leave a review or select stars!");
+                    return;
+                }
 
-        // Create review card
-        const reviewCard = document.createElement("div");
-        reviewCard.className = "card mb-2 p-2";
+                // ✅ Get student data from localStorage
+                const studentData = JSON.parse(localStorage.getItem("studentData")) || {};
+                const studentID = studentData.id;
+                const firstname = studentData.firstname || "John";
+                const lastname = studentData.lastname || "Doe";
 
+                // ✅ Prepare review payload
+                const reviewData = {
+                    establishmentID: agency.id,
+                    studentID,
+                    firstname,
+                    lastname,
+                    review: reviewValue,
+                    star: activeStars
+                };
 
-        // Create stars HTML dynamically
-        let starsHTML = '';
-        for (let i = 1; i <= 5; i++) {
-            if (i <= activeStars) {
-                starsHTML += `<i class="bi bi-star-fill text-warning"></i>`;
-            } else {
-                starsHTML += `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
-            }
-        }
+                try {
+                    const res = await fetch("/api/save-review", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(reviewData)
+                    });
 
-        reviewCard.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center">
-                <strong>AccountName</strong>
-                <div class="text-muted">${starsHTML}</div>
-            </div>
-            <p class="mb-0 small text-muted text-wrap clamped-text">${reviewValue}</p>
-        `;
+                    const result = await res.json();
 
-        reviewsContainer.appendChild(reviewCard);
+                    if (result.success) {
+                        console.log("✅ Review saved:", result.message);
+                        await refreshAgencyReviews(agency.id); // 🔁 Refresh reviews immediately
 
-        // Reset form
-        review.value = "";
-        stars.forEach(star => {
-            const iTag = star.querySelector("i");
-            iTag.classList.remove("bi-star-fill", "text-warning");
-            iTag.classList.add("bi-star");
-        });
-        rating.textContent = "0";
-        activeStars = 0;
-
-        // Toggle expand/collapse on review text
-        document.addEventListener("click", function (e) {
-            if (e.target.classList.contains("clamped-text")) {
-                e.target.classList.toggle("expanded");
-            }
-        });
-
-
-        // Add see more/less toggle
-        reviewsContainer.querySelectorAll(".clamped-text").forEach(p => {
-            // Check if content overflows
-            if (p.scrollHeight > p.clientHeight) {
-                const toggle = document.createElement("span");
-                toggle.className = "see-toggle";
-                toggle.textContent = " See more";
-
-                toggle.addEventListener("click", () => {
-                    if (p.classList.contains("expanded")) {
-                        p.classList.remove("expanded");
-                        toggle.textContent = " See more";
-                    } else {
-                        p.classList.add("expanded");
-                        toggle.textContent = " See less";
+                        // Reset form
+                        review.value = "";
+                        ratingDisplay.textContent = "0";
+                        freshStars.forEach(s => {
+                            const iTag = s.querySelector("i");
+                            iTag.classList.remove("bi-star-fill", "text-warning");
+                            iTag.classList.add("bi-star");
+                        });
+                        activeStars = 0;
                     }
-                });
-
-                p.after(toggle);
-            }
+                } catch (err) {
+                    console.error("🔥 Error submitting review:", err);
+                    alert("Error submitting review. Check console for details.");
+                }
+            });
         });
 
-
     });
 
-    // Toggle expand/collapse on review text
-    document.addEventListener("click", function (e) {
-        if (e.target.classList.contains("clamped-text")) {
-            if (e.target.style.webkitLineClamp === "unset") {
-                e.target.style.display = "-webkit-box";
-                e.target.style.webkitLineClamp = "7";
-            } else {
-                e.target.style.display = "block";
-                e.target.style.webkitLineClamp = "unset";
+    // 🔙 Back button logic
+    const agencyBack = document.getElementById("agencyBack");
+    if (agencyBack) {
+        agencyBack.addEventListener("click", function () {
+            document.getElementById("reviewSelectedCard").style.display = "none";
+            document.getElementById("reviewAgenciesCards").style.display = "flex";
+        });
+    }
+
+    // ♻️ Helper function to refresh agency reviews dynamically
+    async function refreshAgencyReviews(agencyId) {
+        const updatedRes = await fetch(`/api/get-partnersreview`);
+        const updatedData = await updatedRes.json();
+
+        if (updatedData.success) {
+            const updatedAgency = updatedData.partners.find(p => p.id === agencyId);
+            if (updatedAgency) {
+                document.getElementById("reviewRatingValue").innerText = updatedAgency.rating;
+
+                let updatedStarsHTML = "";
+                for (let i = 1; i <= 5; i++) {
+                    updatedStarsHTML += i <= Math.round(updatedAgency.rating)
+                        ? `<i class="bi bi-star-fill text-warning"></i>`
+                        : `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+                }
+                document.getElementById("reviewStars").innerHTML = updatedStarsHTML;
+
+                const reviewsContainer = document.getElementById("reviewsContainer");
+                reviewsContainer.innerHTML = "";
+
+                if (updatedAgency.reviews.length > 0) {
+                    updatedAgency.reviews.forEach(r => {
+                        let starIcons = "";
+                        for (let i = 1; i <= 5; i++) {
+                            starIcons += i <= r.star
+                                ? `<i class="bi bi-star-fill text-warning"></i>`
+                                : `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+                        }
+
+                        const reviewCard = document.createElement("div");
+                        reviewCard.className = "card mb-2 p-2";
+                        reviewCard.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>${r.firstname} ${r.lastname}</strong>
+                                <div>${starIcons}</div>
+                            </div>
+                            <p class="mb-0 small text-muted">${r.review}</p>
+                        `;
+                        reviewsContainer.appendChild(reviewCard);
+                    });
+                } else {
+                    reviewsContainer.innerHTML = `<p class="text-muted small">No reviews yet.</p>`;
+                }
             }
         }
-    });
-
-
+    }
 });
+
 
 // NOTIFICATIONS
 
@@ -975,56 +999,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 // PROGRESS TRACKER
-
-document.addEventListener('DOMContentLoaded', function () {
-
-    //   progress table
-
-    const initRequirements = [
-        { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
-        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
-        { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' }
-    ];
-
-    const preDepRequirements = [
-        { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
-        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
-        { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' }
-    ];
-
-
-    const inProgressRequirements = [
-        { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
-        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
-        { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' }
-    ];
-
-
-    const finalRequirements = [
-        { title: 'Requirement 1', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 2', dueDate: '10/20/2025, 11:59 PM', status: 'Pending', dateSubmitted: '' },
-        { title: 'Requirement 3', dueDate: '10/20/2025, 11:59 PM', status: 'To Submit', dateSubmitted: '' },
-        { title: 'Requirement 4', dueDate: '10/20/2025, 11:59 PM', status: 'Completed', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' },
-        { title: 'Requirement 5', dueDate: '10/20/2025, 11:59 PM', status: 'Overdue', dateSubmitted: '' },
-        { title: 'Requirement 6', dueDate: '10/20/2025, 11:59 PM', status: 'To Revise', dateSubmitted: '10/20/2025, 11:58 PM' }
-    ];
+document.addEventListener('DOMContentLoaded', async function () {
 
     const statusOrder = {
         'To Submit': 'bg-secondary',
@@ -1034,39 +1009,92 @@ document.addEventListener('DOMContentLoaded', function () {
         'Completed': 'bg-success'
     };
 
-    let initialStatus = "All";
-    let preDepStatus = "All";
-    let inProgressStatus = "All";
-    let finalStatus = "All";
+    // Filters
+    let filters = {
+        "Initial Requirements": "All",
+        "Pre-Deployment Requirements": "All",
+        "In-Progress Requirements": "All",
+        "Final Requirements": "All"
+    };
 
+    // 🧠 Fetch requirements from backend
+    async function fetchProgressRequirements(studentID) {
+        try {
+            const res = await fetch(`/api/requirements/${studentID}`);
+            const data = await res.json();
+            if (!data.success) throw new Error("API returned error");
+            return data.data;
+        } catch (err) {
+            console.error("❌ Error fetching requirements:", err);
+            return null;
+        }
+    }
+
+    // 📊 Build table rows
     function showTableData(tableID, requirements, statusFilter) {
         const tbody = document.getElementById(tableID);
         tbody.innerHTML = "";
 
+        if (!requirements || requirements.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='4' class='p-3 text-center'>No data to show</td></tr>";
+            return;
+        }
+
         const filtered = statusFilter === "All" ? requirements : requirements.filter(req => req.status === statusFilter);
 
         if (filtered.length === 0) {
-            container.innerHTML = "<td class='p-3 text-center col-md-12'>No data to show</td>";
+            tbody.innerHTML = "<tr><td colspan='4' class='p-3 text-center'>No data to show</td></tr>";
             return;
         }
 
         filtered.forEach(req => {
             const row = document.createElement("tr");
+            let badgeClass = statusOrder[req.status] || 'bg-secondary';
 
-            const badgeClass = statusOrder[req.status] || 'bg-secondary';
-            const statusCell = `<td><span class="badge ${badgeClass}">${req.status}</span></td>`;
-            const nameCell = `<td>${req.title}</td>`;
-            let dueDateCell = `<td></td>`;
+            // ✅ Check for overdue
+            if (req.status !== "Completed" && req.status !== "To Revise" && req.dueDate) {
+                // Combine dueDate and dueTime into a JS Date
+                let dueDateTime = new Date(req.dueDate); // parse dueDate
+                if (req.dueTime) {
+                    const [hours, minutes] = req.dueTime.split(":").map(Number);
+                    dueDateTime.setHours(hours, minutes);
+                }
 
-            if (req.dueDate) {
-                const [date, time] = req.dueDate.split(', ');
-                dueDateCell = `<td>${date} <span class="text-muted fst-italic">${time}</span></td>`;
+                if (new Date() > dueDateTime) {
+                    req.status = "Overdue";
+                    badgeClass = statusOrder["Overdue"];
+                }
             }
 
-            let submittedCell = '<td></td>';
-            if (req.dateSubmitted) {
-                const [date, time] = req.dateSubmitted.split(', ');
-                submittedCell = `<td>${date} <span class="text-muted fst-italic">${time}</span></td>`;
+            const statusCell = `<td><span class="badge ${badgeClass}">${req.status}</span></td>`;
+            const nameCell = `<td>${req.title}</td>`;
+
+            const formattedTime = new Date(`1970-01-01T${req.dueTime}`).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            let dueDateCell = `<td></td>`;
+            if (req.dueDate) {
+                dueDateCell = `<td>${req.dueDate} <span class="text-muted fst-italic">${formattedTime || ""}</span></td>`;
+            }
+
+            let submittedCell = `<td></td>`;
+            if (req.createdAt) {
+                const createdAtDate = new Date(req.createdAt);
+                if (!isNaN(createdAtDate)) {
+                    const formattedSubDate = createdAtDate.toLocaleDateString('en-CA');
+                    const formattedSubTime = createdAtDate.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+
+                    submittedCell = `<td>${formattedSubDate} <span class="text-muted fst-italic">${formattedSubTime || ""}</span></td>`;
+                } else {
+                    submittedCell = `<td>Invalid Date</td>`;
+                }
             }
 
             row.innerHTML = statusCell + nameCell + dueDateCell + submittedCell;
@@ -1074,103 +1102,83 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // status dropdown
+    // 🔘 Calculate progress
+    function calculateProgress(requirements) {
+        const total = requirements.length;
+        const completed = requirements.filter(r => r.status === "Completed").length;
+        const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+        return { completed, total, percent, progressText: `${completed}/${total}` };
+    }
+
+    function buildProgressCards(groupedData) {
+        const progressStages = [
+            { key: "Initial Requirements", index: 0 },
+            { key: "Pre-Deployment Requirements", index: 1 },
+            { key: "In-Progress Requirements", index: 2 },
+            { key: "Final Requirements", index: 3 }
+        ];
+
+        progressStages.forEach(stage => {
+            const reqs = groupedData[stage.key] || [];
+            const stats = calculateProgress(reqs);
+
+            // Update text
+            document.getElementById(`progress-value-${stage.index}`).textContent = `${stats.percent}%`;
+            document.getElementById(`progress-text-${stage.index}`).textContent = stats.progressText;
+
+            // Animate circle
+            const card = document.getElementById(`progress-${stage.index}`).closest('.col-md-3');
+            const rightBar = card.querySelector('.progress-right .progress-bar');
+            const leftBar = card.querySelector('.progress-left .progress-bar');
+
+            if (stats.percent <= 50) {
+                rightBar.style.transform = `rotate(${(stats.percent / 100) * 360}deg)`;
+                leftBar.style.transform = 'rotate(0deg)';
+            } else {
+                rightBar.style.transform = 'rotate(180deg)';
+                leftBar.style.transform = `rotate(${((stats.percent - 50) / 100) * 360}deg)`;
+            }
+        });
+    }
+
+    // 🎚️ Handle dropdown filter changes
     document.querySelectorAll('.dropdown-menu .view-option').forEach(option => {
         option.addEventListener('click', function (e) {
             e.preventDefault();
             const status = this.dataset.status;
             const parentDropdown = this.closest('.dropdown');
 
-            if (parentDropdown.id === "initialDropdown") {
-                initialStatus = status;
-                document.getElementById("initialStatus").textContent = status;
-                showTableData('initBody', initRequirements, initialStatus);
+            const dropdownMap = {
+                "initialDropdown": "Initial Requirements",
+                "preDepDropdown": "Pre-Deployment Requirements",
+                "inProgressDropdown": "In-Progress Requirements",
+                "finalDropdown": "Final Requirements"
+            };
 
-            } else if (parentDropdown.id === "preDepDropdown") {
-                preDepStatus = status;
-                document.getElementById("preDepStatus").textContent = status;
-                showTableData('preDepBody', preDepRequirements, preDepStatus);
+            const key = dropdownMap[parentDropdown.id];
+            filters[key] = status;
 
-            } else if (parentDropdown.id === "inProgressDropdown") {
-                inProgressStatus = status;
-                document.getElementById("inProgressStatus").textContent = status;
-                showTableData('inProgressBody', inProgressRequirements, inProgressStatus);
-            } else if (parentDropdown.id === "finalDropdown") {
-                finalStatus = status;
-                document.getElementById("finalStatus").textContent = status;
-                showTableData('finalBody', finalRequirements, finalStatus);
-            }
+            document.getElementById(`${parentDropdown.id.replace('Dropdown', 'Status')}`).textContent = status;
 
+            showTableData(`${parentDropdown.id.replace('Dropdown', 'Body')}`, groupedData[key], status);
         });
     });
 
-    showTableData('initBody', initRequirements, initialStatus);
-    showTableData('preDepBody', preDepRequirements, preDepStatus);
-    showTableData('inProgressBody', inProgressRequirements, inProgressStatus);
-    showTableData('finalBody', finalRequirements, finalStatus);
 
+    const studentData = JSON.parse(localStorage.getItem("studentData")) || {};
+    const studentID = studentData.id; // Replace with actual logged-in student's ID
+    const groupedData = await fetchProgressRequirements(studentID);
 
-    // progess circle
+    // Show table data
+    showTableData('initBody', groupedData["Initial Requirements"], filters["Initial Requirements"]);
+    showTableData('preDepBody', groupedData["Pre-Deployment Requirements"], filters["Pre-Deployment Requirements"]);
+    showTableData('inProgressBody', groupedData["In-Progress Requirements"], filters["In-Progress Requirements"]);
+    showTableData('finalBody', groupedData["Final Requirements"], filters["Final Requirements"]);
 
-    function calculateProgress(requirements) {
-        const total = requirements.length;
-        const completed = requirements.filter(r => r.status === "Completed").length;
-        const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
-
-        return {
-            completed,
-            total,
-            percent,
-            progressText: `${completed}/${total}`
-        };
-    }
-
-    const progressData = [
-        { label: "Initial", color: "blue", ...calculateProgress(initRequirements) },
-        { label: "Pre-Deployment", color: "yellow", ...calculateProgress(preDepRequirements) },
-        { label: "In-Progress", color: "red", ...calculateProgress(inProgressRequirements) },
-        { label: "Final", color: "purple", ...calculateProgress(finalRequirements) }
-    ];
-
-    const progressCardsContainer = document.getElementById('progressCards');
-
-    progressData.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'col-md-3 mb-4';
-        card.innerHTML = `
-            <div class="card text-center progress-card">
-            <div class="card-body">
-                <div class="progress ${item.color}" id="progress-${index}">
-                <span class="progress-left">
-                    <span class="progress-bar"></span>
-                </span>
-                <span class="progress-right">
-                    <span class="progress-bar"></span>
-                </span>
-                <div class="progress-value">${item.percent}%</div>
-                </div>
-                <p class="mt-3 mb-0 fw-bold">${item.label} <br> Requirements</p>
-                <p class="text-muted fs-6 mb-0"><small>${item.progressText}<small></p>
-            </div>
-            </div>
-        `;
-        progressCardsContainer.appendChild(card);
-
-        // Animate circle
-        const rightBar = card.querySelector('.progress-right .progress-bar');
-        const leftBar = card.querySelector('.progress-left .progress-bar');
-
-        if (item.percent <= 50) {
-            const rightDeg = (item.percent / 100) * 360;
-            rightBar.style.transform = `rotate(${rightDeg}deg)`;
-            leftBar.style.transform = 'rotate(0deg)';
-        } else {
-            rightBar.style.transform = 'rotate(180deg)';
-            const leftDeg = ((item.percent - 50) / 100) * 360;
-            leftBar.style.transform = `rotate(${leftDeg}deg)`;
-        }
-    });
+    // Show progress circles
+    buildProgressCards(groupedData);
 });
+
 
 // PROFILE
 document.addEventListener('DOMContentLoaded', function () {

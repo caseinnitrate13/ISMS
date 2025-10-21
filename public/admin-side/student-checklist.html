@@ -6,21 +6,21 @@
           <div class="legend">
             <div class="d-flex align-items-center mb-1">
               <div class="legend-box status-pending me-2"></div>
-              <span>pending</span>
+              <span>Pending</span>
             </div>
             <div class="d-flex align-items-center mb-1">
               <div class="legend-box status-completed me-2"></div>
-              <span>completed</span>
+              <span>Completed</span>
             </div>
           </div>
           <div class="legend">
             <div class="d-flex align-items-center mb-1">
-              <div class="legend-box status-needs-revision me-2"></div>
-              <span>needs revision</span>
+              <div class="legend-box status-to-revise me-2"></div>
+              <span>Needs revision</span>
             </div>
             <div class="d-flex align-items-center">
               <div class="legend-box status-overdue me-2"></div>
-              <span>overdue</span>
+              <span>Overdue</span>
             </div>
           </div>
         </div>
@@ -79,20 +79,19 @@
                                 <button type="button" class="btn btn-sm btn-warning" title="Reload" onclick="location.reload();">
                                   <i class="bi bi-arrow-clockwise"></i>
                                 </button>
-                                <!-- Delete -->
+                                <!-- Delete
                                 <button type="button" class="btn btn-sm btn-danger ms-2" id="deleteA" title="Delete" disabled
                                   data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
                                   <i class="bi bi-trash"></i>
-                                </button>
+                                </button> -->
                               </div>
                             </div>
 
                             
                             <div class="table-responsive">
-                                <table id="blockATable" class="table table-bordered table-hover">
+                                <table id="progressblockATable" class="table table-bordered table-hover">
                                     <thead class="thead-check table-light">
                                         <tr>
-                                            <th rowspan="3"></th>
                                             <th rowspan="3">#</th>
                                             <th rowspan="3">Student ID</th>
                                             <th rowspan="3">Name</th>
@@ -143,107 +142,6 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td><input type="checkbox" name="select-row" data-id="1001"></td>
-                                            <td class="row-num"></td>
-                                            <td>21-0615</td>
-                                            <td>Doe, John A.</td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td>
-                                              <select class="status-select">
-                                                  <option value="Pending">Pending</option>
-                                                  <option value="Ready for Deployment">Ready for Deployment</option>
-                                                  <option value="Deployed">Deployed</option>
-                                                  <option value="Completed">Completed</option>
-                                              </select>
-                                            </td>
-                                            <td>
-                                              <div class="progress">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: 60%;">60%</div>
-                                              </div>
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td><input type="checkbox" name="select-row" data-id="1002"></td>
-                                            <td class="row-num"></td>
-                                            <td>21-0616</td>
-                                            <td>John, Doe A.</td>
-
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td>
-                                              <select class="status-select">
-                                                  <option value="Pending">Pending</option>
-                                                  <option value="Ready for Deployment">Ready for Deployment</option>
-                                                  <option value="Deployed">Deployed</option>
-                                                  <option value="Completed">Completed</option>
-                                              </select>
-                                            </td>
-                                            <td>
-                                              <div class="progress">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: 60%;">60%</div>
-                                              </div>
-                                            </td>
-
                                         </tr>
                                     </tbody>
                                 </table>
@@ -321,19 +219,18 @@
                                   <i class="bi bi-arrow-clockwise"></i>
                                 </button>
                                 <!-- Delete -->
-                                <button type="button" class="btn btn-sm btn-danger ms-2" id="deleteB" title="Delete" disabled
+                                <!-- <button type="button" class="btn btn-sm btn-danger ms-2" id="deleteB" title="Delete" disabled
                                   data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
                                   <i class="bi bi-trash"></i>
-                                </button>
+                                </button> -->
                               </div>
                             </div>
                             
                             
                             <div class="table-responsive">
-                                <table id="blockBTable" class="table table-bordered table-hover">
+                                <table id="progressblockBTable" class="table table-bordered table-hover">
                                     <thead class="thead-check table-light">
                                         <tr>
-                                            <th rowspan="3"></th>
                                             <th rowspan="3">#</th>
                                             <th rowspan="3">Student ID</th>
                                             <th rowspan="3">Name</th>
@@ -386,110 +283,7 @@
                                     
                                     <tbody class="tbody">
                                         <tr>
-                                            <td><input type="checkbox" name="select-row" data-id="1001"></td>
-                                            <td class="row-num"></td>
-                                            <td>21-0616</td>
-                                            <td>John, Doe A.</td>
-
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td>
-                                              <select class="status-select">
-                                                  <option value="Pending">Pending</option>
-                                                  <option value="Ready for Deployment">Ready for Deployment</option>
-                                                  <option value="Deployed">Deployed</option>
-                                                  <option value="Completed">Completed</option>
-                                              </select>
-                                            </td>
-                                            <td>
-                                              <div class="progress">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: 60%;">60%</div>
-                                              </div>
-                                            </td>
-
-                                        </tr>
-                                        <tr>
-                                            <td><input type="checkbox" name="select-row" data-id="1002"></td>
-                                            <td class="row-num"></td>
-                                            <td>21-0615</td>
-                                            <td>Doe, John A.</td>
-
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td class="status-pending"></td>
-                                            <td class="status-completed"></td>
-                                            <td class="status-needs-revision"></td>
-                                            <td class="status-overdue"></td>
-                                            <td>
-                                              <select class="status-select">
-                                                  <option value="Pending">Pending</option>
-                                                  <option value="Ready for Deployment">Ready for Deployment</option>
-                                                  <option value="Deployed">Deployed</option>
-                                                  <option value="Completed">Completed</option>
-                                              </select>
-                                            </td>
-                                            <td>
-                                              <div class="progress">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: 60%;">60%</div>
-                                              </div>
-                                            </td>
-
-                                        </tr>
-  
+                                        </tr>  
                                     </tbody>
                                 </table>
                             </div>

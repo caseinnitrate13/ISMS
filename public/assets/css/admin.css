@@ -475,7 +475,7 @@ section {
   background-color: #198754 !important; /* Bootstrap 'success' green */
   color: white;
 }
-.status-needs-revision {
+.status-to-revise {
   background-color: #ffc107 !important; /* Bootstrap 'warning' yellow */
   color: black;
 }
@@ -483,6 +483,11 @@ section {
   background-color: #dc3545 !important; /* Bootstrap 'danger' red */
   color: white;
 }
+
+.status-default {
+  background-color: #ffffff; /* white */
+}
+
 
 
 /* NOTIFICATION */

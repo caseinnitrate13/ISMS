@@ -37,7 +37,7 @@
 
 <!-- Add Modal -->
 <div class="modal fade" id="addDeadlineModal" tabindex="-1" aria-labelledby="addDeadlineLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <form class="modal-content" id="deadlineForm">
       <div class="modal-header bg-dark-purple text-white">
         <h5 class="modal-title" id="addDeadlineLabel">Add New Requirement</h5>
@@ -65,10 +65,16 @@
           </select>
         </div>
 
-        <!-- Due Date -->
-        <div class="mb-3">
-          <label for="dueDate" class="form-label">Due Date</label>
-          <input type="date" class="form-control" id="dueDate" required>
+        <!-- Due Date & Time -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="dueDate" class="form-label">Due Date</label>
+            <input type="date" class="form-control" id="dueDate" required>
+          </div>
+          <div class="col-md-6">
+            <label for="dueTime" class="form-label">Due Time</label>
+            <input type="time" class="form-control" id="dueTime" required>
+          </div>
         </div>
 
         <!-- ✅ Date Posted (Auto) -->
@@ -127,12 +133,18 @@
             </select>
           </div>
 
-
-          <!-- Due Date -->
-          <div class="mb-3">
-            <label for="editDueDate" class="form-label">Due Date</label>
-            <input type="date" class="form-control" id="editDueDate" required>
+          <!-- Due Date & Time -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="editDueDate" class="form-label">Due Date</label>
+              <input type="date" class="form-control" id="editDueDate" required>
+            </div>
+            <div class="col-md-6">
+              <label for="editDueTime" class="form-label">Due Time</label>
+              <input type="time" class="form-control" id="editDueTime" required>
+            </div>
           </div>
+
 
           <!-- ✅ Date Posted (not editable) -->
           <div class="mb-3">

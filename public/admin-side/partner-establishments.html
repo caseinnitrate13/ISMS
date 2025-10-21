@@ -59,67 +59,6 @@
     <section class="section dashboard me-5 ms-5">
       <div class="row align-items-top justify-content-center">
 
-        <!-- HTE 1 -->
-        <div class="col-lg-4 mb-4" data-moa-status="New" data-name="Amazon Web Service" data-moa-date="2022-01-10">
-          <div class="card hte-card shadow-lg border-0 h-100 custom-card-hover position-relative" style="transition: all 0.3s;">
-            <div class="card-body custom-card-shadow">
-              <div class="d-flex justify-content-left">
-                <div class="flex align-items-center justify-content-left">
-                  <input type="checkbox" style="width: 16px; height: 16px; margin-top: 16px;" />
-                </div>
-              </div>
-
-              <div class="text-center mt-4 mb-3">
-                <h5 class="card-title fw-semibold text-uppercase" style="font-size: 1.1rem;">
-                  Amazon Web Service
-                </h5>
-              </div>
-
-            </div>
-            <!-- Icon Button to trigger modal -->
-            <button class="btn btn-light position-absolute bottom-0 end-0 m-3 rounded-circle shadow border" data-bs-toggle="modal" data-bs-target="#detailsModal1">
-              <i class="bi bi-card-list color-violet"></i>
-            </button>
-          </div>
-        </div>
-        
-
-        <!-- Modal for HTE 1 -->
-        <div class="modal fade" id="detailsModal1" tabindex="-1" aria-labelledby="detailsModalLabel1" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel1">Establisment Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <label><strong>Name:</strong></label>
-                <input type="text" class="form-control" id="hte1Name" value="Amazon Web Service">
-                <label><strong>Address:</strong></label>
-                <input type="text" class="form-control" id="hte1Address" value="123 Business Street, City, Province">
-                <label><strong>Company Profile (PDF/DOC):</strong></label>
-                <input type="file" class="form-control" id="hte1ProfileFile" accept=".pdf,.doc,.docx">
-                <label> <strong> MOA Status: </strong></label>
-                <select class="form-control" id="hte1MoaStatus">
-                  <option value="New">New</option>
-                  <option value="Renewed">Renewed</option>
-                  <option value="Expired">Expired</option>
-                </select>
-                <label><strong>MOA Established Since:</strong></label>
-                <input type="date" class="form-control" id="hte1MoaDate" value="2022-01-10">
-                <label><strong>Signed MOA Image (JPG/PNG):</strong></label>
-                <input type="file" class="form-control" id="hte1MoaImage" accept=".jpg,.jpeg,.png">
-                <label><strong>Available Positions:</strong></label>
-                <input type="text" class="form-control" id="hteAve1" value="Data Analyst">
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-main" onclick="saveDetails(1)">Save</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </section>
 

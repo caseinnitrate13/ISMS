@@ -1,12 +1,12 @@
 <div class="pagetitle">
-    <h1>Review Partner Agencies</h1>
-    <nav>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/progress-tracker.html">Home</a></li>
-            <li class="breadcrumb-item">Partner Agencies</li>
-            <li class="breadcrumb-item active">Review</li>
-        </ol>
-    </nav>
+  <h1>Review Partner Agencies</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/progress-tracker">Home</a></li>
+      <li class="breadcrumb-item">Partner Agencies</li>
+      <li class="breadcrumb-item active">Review</li>
+    </ol>
+  </nav>
 </div><!-- End Page Title -->
 
 
@@ -16,51 +16,54 @@
 <!-- review cards -->
 <div id="reviewSelectedCard" class="row" style="display: none;">
 
-<!-- left side -->
-<div id="leftSide" class="col-md-5 mt-3">
-  <div class="card p-3">
-    <div id="reviewAgencyRating" class="mb-3">
-        
+  <!-- left side -->
+  <div id="leftSide" class="col-md-5 mt-3">
+    <div class="card p-3">
+      <div id="reviewAgencyRating" class="mb-3">
+
         <div id="reviewRatingValue" class="text-muted text-center small"></div>
         <div id="reviewStars" class="text-center stars"></div>
+      </div>
+      <h5 id="reviewAgencyName" class="text-center fw-bold mb-"></h5>
+      <p id="reviewAgencyAddress" class="text-center text-muted mb-2"></p>
+      <button type="button" class="btn btn-outline-primary rounded-pill" data-bs-toggle="modal"
+        data-bs-target="#reviewModal">Add Review</button>
+      <button id="agencyBack" class="btn btn-link mt-2 p-0">← Back to agencies</button>
     </div>
-    <h5 id="reviewAgencyName" class="text-center fw-bold mb-"></h5>
-    <button type="button" class="btn btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#reviewModal">Add Review</button>
-    <button id="agencyBack" class="btn btn-link mt-2 p-0">← Back to agencies</button>
   </div>
-</div>
 
-<!-- right side -->
-<div id="rightSide" class="col-md-7 card pt-3 mt-3">
+  <!-- right side -->
+  <div id="rightSide" class="col-md-7 card pt-3 mt-3">
     <h5 class="mb-2">Reviews</h5>
-  <div id="reviewsContainer" class="overflow-auto"></div>
-</div>
+    <div id="reviewsContainer" class="overflow-auto"></div>
+  </div>
 
-<!-- review modal -->
-<div id="reviewModal" class="modal fade" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-md">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Write Your Experience</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center">
-        <div class="rating">
-          <span id="totalRating">0</span>/5
+  <!-- review modal -->
+  <div id="reviewModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Write Your Experience</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="stars" id="stars">
-          <span class="star" data-value="1"><i class="bi bi-star"></i></span>
-          <span class="star" data-value="2"><i class="bi bi-star"></i></span>
-          <span class="star" data-value="3"><i class="bi bi-star"></i></span>
-          <span class="star" data-value="4"><i class="bi bi-star"></i></span>
-          <span class="star" data-value="5"><i class="bi bi-star"></i></span>
+        <div class="modal-body text-center">
+          <div class="rating">
+            <span id="totalRating">0</span>/5
+          </div>
+          <div class="stars" id="stars">
+            <span class="star" data-value="1"><i class="bi bi-star"></i></span>
+            <span class="star" data-value="2"><i class="bi bi-star"></i></span>
+            <span class="star" data-value="3"><i class="bi bi-star"></i></span>
+            <span class="star" data-value="4"><i class="bi bi-star"></i></span>
+            <span class="star" data-value="5"><i class="bi bi-star"></i></span>
+          </div>
+          <!-- <p>Share your review:</p> -->
+          <textarea id="review" placeholder="Write your review here"></textarea>
         </div>
-        <!-- <p>Share your review:</p> -->
-        <textarea id="review" placeholder="Write your review here"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button id="submitReview" type="button" class="btn btn-primary rounded-pill" data-bs-dismiss="modal">Submit</button>
+        <div class="modal-footer">
+          <button id="submitReview" type="button" class="btn btn-primary rounded-pill"
+            data-bs-dismiss="modal">Submit</button>
+        </div>
       </div>
     </div>
   </div>
-</div>

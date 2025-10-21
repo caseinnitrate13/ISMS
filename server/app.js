@@ -351,6 +351,181 @@ app.get('/admin/partner-establishments', (req, res) => {
     res.send(adminTemplate.replace('{{content}}', partnerEstablishments));
 });
 
+app.post("/api/save-partner", upload.fields([
+    { name: "companyProfile", maxCount: 1 },
+    { name: "signedMoa", maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const { establishmentName, address, moaStatus, moaSince, positions } = req.body;
+        const profileFile = req.files["companyProfile"]?.[0];
+        const moaFile = req.files["signedMoa"]?.[0];
+
+        if (!establishmentName || !address || !positions || !profileFile || !moaFile) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+
+        // 1️⃣ Create the partner in Firestore first
+        const docRef = await addDoc(collection(db, "PARTNERS"), {
+            establishmentName,
+            address,
+            moaStatus,
+            moaSince,
+            positions,
+            createdAt: new Date().toISOString()
+        });
+        const establishmentID = docRef.id;
+
+        // 2️⃣ Create file directory
+        const basePath = path.join(__dirname, "uploads", "partners", establishmentID, "documents");
+        fs.mkdirSync(basePath, { recursive: true });
+
+        // 3️⃣ Save files
+        const profileFileName = `Profile-${profileFile.originalname}`;
+        const moaFileName = `MOA-${moaFile.originalname}`;
+
+        fs.writeFileSync(path.join(basePath, profileFileName), profileFile.buffer);
+        fs.writeFileSync(path.join(basePath, moaFileName), moaFile.buffer);
+
+        const firestoreProfilePath = `uploads/partners/${establishmentID}/documents/${profileFileName}`;
+        const firestoreMoaPath = `uploads/partners/${establishmentID}/documents/${moaFileName}`;
+
+        // 4️⃣ Update Firestore with file paths
+        await setDoc(docRef, {
+            documents: {
+                profileFilePath: firestoreProfilePath,
+                moaFilePath: firestoreMoaPath
+            }
+        }, { merge: true });
+
+        res.json({ success: true, establishmentID });
+    } catch (error) {
+        console.error("🔥 Error saving partner:", error);
+        res.status(500).json({ success: false, message: "Error saving partner", error });
+    }
+});
+
+app.post("/api/update-partner",
+    upload.fields([
+        { name: "profileFile", maxCount: 1 },
+        { name: "moaFile", maxCount: 1 },
+    ]),
+    async (req, res) => {
+        try {
+            const { partnerId, establishmentName, address, moaStatus, moaSince, positions } = req.body;
+
+            // 1️⃣ Fetch existing partner document
+            const partnerRef = doc(db, "PARTNERS", partnerId);
+            const partnerSnap = await getDoc(partnerRef);
+
+            if (!partnerSnap.exists()) {
+                return res.status(404).json({ success: false, message: "Partner not found" });
+            }
+
+            const partnerData = partnerSnap.data();
+            const documents = partnerData.documents || {};
+
+            // 2️⃣ Prepare directory path for this partner
+            const basePath = path.join(__dirname, "uploads", "partners", partnerId, "documents");
+            fs.mkdirSync(basePath, { recursive: true });
+
+            // 3️⃣ Handle new uploads or keep old ones
+            let profileFilePath = documents.profileFilePath || null;
+            let moaFilePath = documents.moaFilePath || null;
+
+            const newProfileFile = req.files["profileFile"]?.[0];
+            const newMoaFile = req.files["moaFile"]?.[0];
+
+            if (newProfileFile) {
+                const profileFileName = `Profile-${newProfileFile.originalname}`;
+                const profileSavePath = path.join(basePath, profileFileName);
+
+                fs.writeFileSync(profileSavePath, newProfileFile.buffer);
+                profileFilePath = `uploads/partners/${partnerId}/documents/${profileFileName}`;
+            }
+
+            if (newMoaFile) {
+                const moaFileName = `MOA-${newMoaFile.originalname}`;
+                const moaSavePath = path.join(basePath, moaFileName);
+
+                fs.writeFileSync(moaSavePath, newMoaFile.buffer);
+                moaFilePath = `uploads/partners/${partnerId}/documents/${moaFileName}`;
+            }
+
+            // 4️⃣ Build update payload (safe and complete)
+            const safeData = {
+                establishmentName: establishmentName || "",
+                address: address || "",
+                moaStatus: moaStatus || "",
+                moaSince: moaSince || "",
+                positions: positions || "",
+                documents: {
+                    profileFilePath,
+                    moaFilePath,
+                },
+                lastUpdated: new Date().toISOString(),
+            };
+
+            // 5️⃣ Update Firestore
+            await updateDoc(partnerRef, safeData);
+
+            console.log(`✅ Partner "${establishmentName}" updated successfully!`);
+            res.json({ success: true });
+        } catch (error) {
+            console.error("🔥 Error updating partner:", error);
+            res.status(500).json({ success: false, message: "Error updating partner", error });
+        }
+    }
+);
+
+app.get("/api/get-partners", async (req, res) => {
+    try {
+        const partnersRef = collection(db, "PARTNERS");
+        const snapshot = await getDocs(partnersRef);
+
+        // Convert Firestore docs into an array
+        const partners = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        // Sort by createdAt ascending → oldest first, latest last
+        partners.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+        res.json({ success: true, partners });
+    } catch (error) {
+        console.error("🔥 Error fetching partners:", error);
+        res.status(500).json({ success: false, message: "Error fetching partners", error });
+    }
+});
+
+app.post("/api/delete-partners", async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ success: false, message: "No IDs provided." });
+        }
+
+        for (const id of ids) {
+            const partnerDir = path.join(__dirname, "uploads", "partners", id);
+
+            // 1️⃣ Delete Firestore document
+            await deleteDoc(doc(db, "PARTNERS", id));
+
+            // 2️⃣ Delete local upload folder
+            if (fs.existsSync(partnerDir)) {
+                fs.rmSync(partnerDir, { recursive: true, force: true });
+                console.log(`Deleted folder: ${partnerDir}`);
+            }
+        }
+
+        res.json({ success: true, message: `${ids.length} partner(s) deleted successfully.` });
+    } catch (error) {
+        console.error("🔥 Error deleting partners:", error);
+        res.status(500).json({ success: false, message: "Error deleting partners", error });
+    }
+});
+
+
 app.get('/admin/submitted-documents', (req, res) => {
     const submittedDocuments = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'submission.html'), 'utf-8');
     res.send(adminTemplate.replace('{{content}}', submittedDocuments));
@@ -456,6 +631,131 @@ app.get('/admin/student-progress', (req, res) => {
     res.send(adminTemplate.replace('{{content}}', studentProgress));
 });
 
+
+app.get("/api/student-progress", async (req, res) => {
+    try {
+        const studentBlocks = ["A", "B"];
+        const results = {};
+
+        // ✅ Get all requirements with due dates
+        const requirementsSnap = await getDocs(collection(db, "REQUIREMENTS"));
+        const allRequirements = requirementsSnap.docs.map((doc) => ({
+            id: doc.id,
+            title: doc.data().title || "Untitled",
+            dueDate: doc.data().dueDate || null,
+            dueTime: doc.data().dueTime
+        }));
+
+        console.log(`📋 Found ${allRequirements.length} requirements with due dates`);
+
+        // ✅ Map title → key for easier access
+        const reverseRequirementMap = {
+            "Student Information Sheet (SIS)": "SIS",
+            "Medical Certificate (PE & Nuero)": "MedCertPhysical",
+            "Medical Certificate (PE & Nuero)": "MedCertNeuro",
+            "Insurance": "Insurance",
+            "Certificate of Registration": "COR",
+            "Certificate of Academic Records": "CAR",
+            "Good Moral": "GoodMoral",
+
+            // 🟩 Pre-Deployment Requirements
+            "Letter of Application": "LOA",
+            "Resume": "Resume",
+            "OJT Orientation Certificate": "PreOrientation",
+            "Parent Waiver": "WaiverSigned",
+            "Letter of Endorsement": "LOE",
+            "Notice of Acceptance": "NOA",
+            "Internship Contract": "InternshipContract",
+            "Work Plan": "Workplan",
+
+            // 🟨 In-Progress Requirements
+            "DTR": "DTR_JAN",
+            "DTR": "DTR_FEB",
+            "DTR": "DTR_MAR",
+            "DTR": "DTR_APR",
+            "DTR": "DTR_MAY",
+            "Monthly Progress Report": "MPR_JAN",
+            "Monthly Progress Report": "MPR_FEB",
+            "Monthly Progress Report": "MPR_MAR",
+            "Monthly Progress Report": "MPR_APR",
+            "Monthly Progress Report": "MPR_MAY",
+            "Midterm/Final Assessment": "MidtermAssessment",
+            "Midterm/Final Assessment": "FinalAssessment",
+
+            // 🟥 Final Requirements
+            "Certificate of Completion": "CertCompletion",
+            "Written Report": "WrittenReport",
+            "E-copy": "ECopy",
+            "Final Presentation": "FinalPresentation"
+        };
+
+        // ✅ Build a quick lookup for due dates
+        const dueDateMap = {};
+        allRequirements.forEach((r) => {
+            const key = reverseRequirementMap[r.title];
+            if (key && r.dueDate) {
+                dueDateMap[key] = {
+                    dueDate: r.dueDate,             // e.g., "2025-10-21"
+                    dueTime: r.dueTime || "23:59"   // fallback to end-of-day if missing
+                };
+            }
+        });
+        // ✅ Fetch each block in parallel
+        await Promise.all(
+            studentBlocks.map(async (block) => {
+                const studentsRef = collection(db, "ACCOUNTS", "STUDENTS", block);
+                const studentsSnap = await getDocs(studentsRef);
+                const blockData = [];
+
+                await Promise.all(
+                    studentsSnap.docs.map(async (studentDoc) => {
+                        const studentID = studentDoc.id;
+                        const sData = studentDoc.data();
+                        const studentName = `${sData.surname || ""}, ${sData.firstname || ""}`.trim();
+                        const requirementStatuses = {};
+
+                        // ✅ Fetch each requirement submission for this student
+                        await Promise.all(
+                            allRequirements.map(async (reqDoc) => {
+                                const reqID = reqDoc.id;
+                                const studentSubRef = collection(db, "DOCUMENTS", reqID, studentID);
+                                const studentSubSnap = await getDocs(studentSubRef);
+
+                                if (!studentSubSnap.empty) {
+                                    studentSubSnap.forEach((subDoc) => {
+                                        const docData = subDoc.data();
+                                        const title = docData.title || "Untitled";
+                                        const status = docData.docustatus || "Pending";
+                                        const shortKey = reverseRequirementMap[title];
+                                        if (shortKey) requirementStatuses[shortKey] = status;
+                                    });
+                                }
+                            })
+                        );
+
+                        blockData.push({
+                            studentID,
+                            studentName,
+                            block,
+                            requirements: requirementStatuses,
+                        });
+                    })
+                );
+
+                results[block] = blockData;
+            })
+        );
+
+        // ✅ Include due dates in the response
+        res.status(200).json({ success: true, results, dueDates: dueDateMap });
+    } catch (error) {
+        console.error("🔥 Error fetching student progress:", error);
+        res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+});
+
+
+
 app.get('/admin/publish-requirements', (req, res) => {
     const publishRequirements = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'duedate.html'), 'utf-8');
     res.send(adminTemplate.replace('{{content}}', publishRequirements));
@@ -463,7 +763,7 @@ app.get('/admin/publish-requirements', (req, res) => {
 
 app.post("/save-requirement", async (req, res) => {
     try {
-        const { type, title, dueDate, datePosted, notes } = req.body;
+        const { type, title, dueDate, dueTime, datePosted, notes } = req.body;
 
         if (!type || !title || !dueDate) {
             return res.status(400).json({ success: false, message: "Missing required fields." });
@@ -474,6 +774,7 @@ app.post("/save-requirement", async (req, res) => {
             type,
             title,
             dueDate,
+            dueTime,
             datePosted,
             notes,
             createdAt: serverTimestamp(),
@@ -507,13 +808,14 @@ app.get("/get-requirements", async (req, res) => {
 app.put("/update-requirement/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { type, title, dueDate, notes } = req.body;
+        const { type, title, dueDate, dueTime, notes } = req.body;
 
         const docRef = doc(db, "REQUIREMENTS", id);
         await updateDoc(docRef, {
             type,
             title,
             dueDate,
+            dueTime,
             notes,
         });
 
@@ -580,38 +882,44 @@ app.get('/api/requirements/:studentID', async (req, res) => {
             "Final Requirements": []
         };
 
+        const allRequirements = [];
+
         requirementsSnap.forEach(docSnap => {
             const data = docSnap.data();
             const type = data.type || "Others";
             if (!grouped[type]) grouped[type] = [];
-            grouped[type].push({
+
+            const reqObj = {
                 id: docSnap.id,
                 title: data.title,
                 description: data.notes || "",
                 dueDate: data.dueDate || "",
+                dueTime: data.dueTime || "",
                 datePosted: data.datePosted || "",
                 createdAt: data.createdAt || "",
                 type: type,
                 status: "To Submit"
+            };
+
+            grouped[type].push(reqObj);
+            allRequirements.push(reqObj);
+        });
+
+        // Step 2: Fetch student's submitted documents in parallel
+        const submittedDocs = {};
+        const submissionPromises = allRequirements.map(req => {
+            const docRef = collection(db, "DOCUMENTS", req.id, studentID);
+            return getDocs(docRef).then(docSnap => {
+                docSnap.forEach(subDoc => {
+                    submittedDocs[req.id] = subDoc.data();
+                });
             });
         });
 
-        // Step 2: Fetch student's submitted documents (using new structure)
-        const submittedDocs = {};
+        // Wait for all submissions to resolve
+        await Promise.all(submissionPromises);
 
-        for (const [type, reqList] of Object.entries(grouped)) {
-            for (const req of reqList) {
-                const docRef = collection(db, "DOCUMENTS", req.id, studentID); // DOCUMENTS/{requirementID}/{studentID}
-                const docSnap = await getDocs(docRef);
-
-                docSnap.forEach(subDoc => {
-                    const data = subDoc.data();
-                    submittedDocs[req.id] = data;
-                });
-            }
-        }
-
-        console.log("📦 Requirements found:", Object.keys(grouped).length);
+        console.log("📦 Requirements found:", allRequirements.length);
         console.log("📄 Submitted docs found:", Object.keys(submittedDocs).length);
 
         // Step 3: Merge submissions into requirements
@@ -622,7 +930,8 @@ app.get('/api/requirements/:studentID', async (req, res) => {
                     ? {
                         ...req,
                         status: submitted.docustatus || "Pending",
-                        submittedPath: submitted.path || null
+                        submittedPath: submitted.path || null,
+                        createdAt: submitted.createdAt || ""
                     }
                     : { ...req, status: "To Submit" };
             });
@@ -635,6 +944,7 @@ app.get('/api/requirements/:studentID', async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to fetch requirements." });
     }
 });
+
 
 
 app.get('/api/document/:requirementID/:studentID', async (req, res) => {
@@ -659,7 +969,7 @@ app.get('/api/document/:requirementID/:studentID', async (req, res) => {
 
 app.post("/api/upload-document", upload.single("file"), async (req, res) => {
     try {
-        const { studentID, requirementID, type, title } = req.body;
+        const { studentID, requirementID, type, title, studentName } = req.body;
 
         if (!studentID || !requirementID) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
@@ -714,6 +1024,26 @@ app.post("/api/upload-document", upload.single("file"), async (req, res) => {
             }
         }
 
+        // --- Fetch the single faculty ---
+        const facultySnap = await getDocs(collection(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS'));
+        if (!facultySnap.empty) {
+            const facultyDoc = facultySnap.docs[0]; // take the first (and only) faculty
+            const facultyID = facultyDoc.id;
+
+            const notifID = crypto.randomUUID().split('-')[0];
+            const notifRef = doc(db, "NOTIFICATIONS", facultyID, "usernotif", notifID);
+
+            const notifData = {
+                title: "Document Submitted",
+                message: `${studentName} uploaded a document for "${title}" in ${type}.`,
+                timestamp: new Date().toISOString(),
+                notified: false
+            };
+
+            await setDoc(notifRef, notifData);
+            console.log(`📩 Notification saved for faculty ${facultyID}`);
+        }
+
         res.json({ success: true, path: firestorePath });
 
     } catch (error) {
@@ -723,20 +1053,125 @@ app.post("/api/upload-document", upload.single("file"), async (req, res) => {
 });
 
 
+
 app.get('/downloadable-forms', (req, res) => {
     const downloadableForms = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'downloadable-forms.html'), 'utf-8');
     res.send(template.replace('{{content}}', downloadableForms));
 });
+
+app.get("/api/get-downloadables", async (req, res) => {
+    try {
+        console.log("🚀 Fetching downloadables from Firestore...");
+        const snapshot = await getDocs(collection(db, "DOWNLOADABLES"));
+        console.log("📄 Snapshot size:", snapshot.size);
+
+        const downloadables = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+
+        res.json({
+            success: true,
+            downloadables, // 👈 this matches what your client expects
+        });
+    } catch (error) {
+        console.error("🔥 Error fetching downloadables:", error);
+        res.status(500).json({ success: false, message: "Error fetching downloadables" });
+    }
+});
+
+
+
 
 app.get('/partner-agency', (req, res) => {
     const partnerAgencies = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'partner-agencies.html'), 'utf-8');
     res.send(template.replace('{{content}}', partnerAgencies));
 });
 
+
+
 app.get('/review-agency', (req, res) => {
     const reviewAgency = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'review-agency.html'), 'utf-8');
     res.send(template.replace('{{content}}', reviewAgency));
 });
+
+app.get("/api/get-partnersreview", async (req, res) => {
+    try {
+        const partnersRef = collection(db, "PARTNERS");
+        const snapshot = await getDocs(partnersRef);
+
+        const partners = [];
+
+        for (const docSnap of snapshot.docs) {
+            const partnerData = docSnap.data();
+            const establishmentID = docSnap.id;
+
+            // Fetch all student reviews for this partner
+            const reviewsRef = collection(db, "REVIEWS", establishmentID, "STUDENTS");
+            const reviewsSnap = await getDocs(reviewsRef);
+
+            let totalStars = 0;
+            const reviews = [];
+
+            reviewsSnap.forEach(reviewDoc => {
+                const data = reviewDoc.data();
+                reviews.push({
+                    firstname: data.firstname,
+                    lastname: data.lastname,
+                    review: data.review,
+                    star: data.star,
+                    createdAt: data.createdAt
+                });
+                totalStars += data.star || 0;
+            });
+
+            const avgRating = reviews.length > 0 ? totalStars / reviews.length : 0;
+
+            partners.push({
+                id: establishmentID,
+                ...partnerData,
+                reviews,
+                rating: avgRating.toFixed(1)
+            });
+        }
+
+        // Sort by creation date if available
+        partners.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+        res.json({ success: true, partners });
+    } catch (error) {
+        console.error("🔥 Error fetching partners:", error);
+        res.status(500).json({ success: false, message: "Error fetching partners", error });
+    }
+});
+
+// POST: Save Review
+app.post("/api/save-review", async (req, res) => {
+    try {
+        const { establishmentID, studentID, firstname, lastname, review, star } = req.body;
+
+        if (!establishmentID || !studentID) {
+            return res.status(400).json({ success: false, message: "Missing required fields." });
+        }
+
+        const reviewRef = doc(db, "REVIEWS", establishmentID, "STUDENTS", studentID);
+        const createdAt = new Date().toISOString();
+
+        await setDoc(reviewRef, {
+            firstname,
+            lastname,
+            review,
+            star,
+            createdAt
+        });
+
+        res.json({ success: true, message: "Review saved successfully." });
+    } catch (error) {
+        console.error("🔥 Error saving review:", error);
+        res.status(500).json({ success: false, message: "Error saving review", error });
+    }
+});
+
 
 app.get('/account', (req, res) => {
     const account = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'account.html'), 'utf-8');

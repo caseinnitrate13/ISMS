@@ -536,7 +536,7 @@ document.addEventListener("DOMContentLoaded", function () {
         dateSubmitted = d.toLocaleDateString();
         timeSubmitted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }
-      
+
       let displayStatus = '';
       let statusClass = '';
 
@@ -1103,6 +1103,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     accountData.status = "Active";
+    accountData.internshipstatus = "Pening";
     // --- Duplicate check ---
     if (studentExists(accountData.student_id)) {
       showFeedback(`⚠️ Student ID "${accountData.student_id}" already exists.`, "warning");
@@ -1356,6 +1357,127 @@ async function updateStatus(button, newStatus) {
 
 // PARTNER ESTABLISHMENTS 
 document.addEventListener("DOMContentLoaded", () => {
+
+  async function loadPartners() {
+    try {
+      const res = await fetch("/api/get-partners");
+      const data = await res.json();
+
+      if (!data.success) throw new Error("Failed to fetch partners");
+
+      const container = document.querySelector(".dashboard .row");
+      container.innerHTML = ""; // clear existing cards
+
+      data.partners.forEach((partner, index) => {
+        const col = document.createElement("div");
+        col.className = "col-lg-4 mb-4";
+        col.dataset.moaStatus = partner.moaStatus;
+        col.dataset.name = partner.establishmentName;
+        col.dataset.moaDate = partner.moaSince;
+        col.dataset.address = partner.address;
+        col.dataset.positions = partner.positions;
+
+        col.innerHTML = `
+        <div class="card hte-card shadow-lg border-0 h-100 custom-card-hover position-relative">
+          <div class="card-body custom-card-shadow">
+            <div class="d-flex justify-content-left">
+              <div class="flex align-items-center justify-content-left">
+                <input type="checkbox" data-id="${partner.id}" style="width: 16px; height: 16px; margin-top: 16px;" />
+              </div>
+            </div>
+
+            <div class="text-center mt-4 mb-3">
+              <h5 class="card-title fw-semibold text-uppercase" style="font-size: 1.1rem;">
+                ${partner.establishmentName}
+              </h5>
+            </div>
+          </div>
+
+          <!-- Icon Button to trigger modal -->
+          <button class="btn btn-light position-absolute bottom-0 end-0 m-3 rounded-circle shadow border"
+            data-bs-toggle="modal" data-bs-target="#detailsModal${index}">
+            <i class="bi bi-card-list color-violet"></i>
+          </button>
+        </div>
+      `;
+
+        container.appendChild(col);
+
+        // Create modal dynamically
+        // Create modal dynamically
+        const modal = document.createElement("div");
+        modal.className = "modal fade";
+        modal.id = `detailsModal${index}`;
+        modal.tabIndex = -1;
+        modal.setAttribute("aria-labelledby", `detailsModalLabel${index}`);
+        modal.setAttribute("aria-hidden", "true");
+        modal.innerHTML = `
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <form id="detailsForm${index}">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="detailsModalLabel${index}">Establishment Details</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <!-- Establishment Name -->
+                  <label><strong>Name:</strong></label>
+                  <input type="text" class="form-control mb-2" id="hte${index}Name" value="${partner.establishmentName || ''}">
+
+                  <!-- Address -->
+                  <label><strong>Address:</strong></label>
+                  <input type="text" class="form-control mb-2" id="hte${index}Address" value="${partner.address || ''}">
+
+                  <!-- Company Profile -->
+                  <label><strong>Company Profile (PDF/DOC):</strong></label>
+                  <input type="file" class="form-control mb-2" id="hte${index}ProfileFile" accept=".pdf,.doc,.docx">
+                  ${partner.documents?.profileFilePath
+            ? `<a href="/${partner.documents.profileFilePath}" target="_blank" class="large text-primary d-block mb-2">View existing company profile</a>`
+            : `<span class="text-muted small d-block mb-2">No file uploaded</span>`}
+
+                  <!-- MOA Status -->
+                  <label><strong>MOA Status:</strong></label>
+                  <select class="form-control mb-2" id="hte${index}MoaStatus">
+                    <option value="New" ${partner.moaStatus === "New" ? "selected" : ""}>New</option>
+                    <option value="Renewed" ${partner.moaStatus === "Renewed" ? "selected" : ""}>Renewed</option>
+                    <option value="Expired" ${partner.moaStatus === "Expired" ? "selected" : ""}>Expired</option>
+                  </select>
+
+                  <!-- MOA Date -->
+                  <label><strong>MOA Established Since:</strong></label>
+                  <input type="date" class="form-control mb-2" id="hte${index}MoaDate" value="${partner.moaSince || ''}">
+
+                  <!-- Signed MOA -->
+                  <label><strong>Signed MOA Image (JPG/PNG):</strong></label>
+                  <input type="file" class="form-control mb-2" id="hte${index}MoaImage" accept=".jpg,.jpeg,.png">
+                  ${partner.documents?.moaFilePath
+            ? `<a href="/${partner.documents.moaFilePath}" target="_blank" class="large text-primary d-block mb-2">View existing signed MOA</a>`
+            : `<span class="text-muted small d-block mb-2">No MOA uploaded</span>`}
+
+                  <!-- Positions -->
+                  <label><strong>Available Positions:</strong></label>
+                  <input type="text" class="form-control" id="hte${index}Positions" value="${partner.positions || ''}">
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-main" onclick="saveDetails(${index}, '${partner.id}')">Save</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+
+      });
+
+    } catch (err) {
+      console.error("❌ Error loading partners:", err);
+    }
+  }
+
+  loadPartners();
+
   const mainEl = document.getElementById('main') || document.body;
   const deleteBtn = document.getElementById('deleteBtn');
   const deleteModalEl = document.getElementById('deleteConfirmModal');
@@ -1405,7 +1527,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cb.parentElement;
   }
 
-  confirmDeleteBtn.addEventListener('click', function () {
+  confirmDeleteBtn.addEventListener('click', async function () {
     const checked = getAllSelectableCheckboxes().filter(cb => cb.checked);
 
     if (checked.length === 0) {
@@ -1414,18 +1536,36 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    checked.forEach(cb => {
-      const removable = getRemovableElementFromCheckbox(cb);
-      if (removable) {
-        removable.remove();
-      } else {
-        cb.remove();
+    // Collect all establishment IDs (assuming each checkbox has a data-id attribute)
+    const idsToDelete = checked.map(cb => cb.getAttribute('data-id')).filter(Boolean);
+
+    if (idsToDelete.length > 0) {
+      try {
+        const res = await fetch("/api/delete-partners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: idsToDelete })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // Remove from DOM visually
+          checked.forEach(cb => {
+            const removable = getRemovableElementFromCheckbox(cb);
+            if (removable) removable.remove();
+          });
+
+          console.log(`${idsToDelete.length} partner(s) deleted successfully.`);
+        } else {
+          console.error("Failed to delete partners:", data.message);
+        }
+      } catch (err) {
+        console.error("Error deleting partners:", err);
       }
-    });
+    }
 
     deleteModal.hide();
     updateDeleteButtonState();
-    console.log(`${checked.length} item(s) deleted.`);
   });
 
   deleteModalEl.addEventListener('keydown', (e) => {
@@ -1496,105 +1636,142 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Save edits from detail modal
-  function saveDetails(hteNumber) {
-    const name = document.getElementById(`hte${hteNumber}Name`).value.trim();
-    const address = document.getElementById(`hte${hteNumber}Address`).value.trim();
-    const moaStatus = document.getElementById(`hte${hteNumber}MoaStatus`).value.trim();
-    const moaDate = document.getElementById(`hte${hteNumber}MoaDate`).value || "";
-    const positions = document.getElementById(`hteAve${hteNumber}`).value.trim();
+  async function saveDetails(index, partnerId) {
+    const name = document.getElementById(`hte${index}Name`).value.trim();
+    const address = document.getElementById(`hte${index}Address`).value.trim();
+    const moaStatus = document.getElementById(`hte${index}MoaStatus`).value.trim();
+    const moaDate = document.getElementById(`hte${index}MoaDate`).value || "";
+    const positions = document.getElementById(`hte${index}Positions`).value.trim();
 
-    const modalEl = document.getElementById(`detailsModal${hteNumber}`);
-    // find the button that opens this modal, then the card
-    const openerBtn = document.querySelector(`[data-bs-target="#detailsModal${hteNumber}"]`);
-    const cardEl = openerBtn ? openerBtn.closest(".hte-card") : null;
-    if (!cardEl) {
-      // nothing to update
-      const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
-      document.getElementById("feedbackMessage").textContent = "⚠ Unable to find the related card to update.";
-      fb.show();
-      setTimeout(() => fb.hide(), 1500);
-      // Close modal if exists
-      const instance = bootstrap.Modal.getInstance(modalEl);
-      if (instance) instance.hide();
-      return;
-    }
-
-    const parentCol = cardEl.closest(".col-lg-4");
-    const currentName = (cardEl.querySelector(".card-title")?.textContent || "").trim();
-    const currentMoaStatus = (parentCol?.dataset.moaStatus || "").trim();
-    const currentMoaDate = (parentCol?.dataset.moaDate || "").trim();
-    const currentAddress = (parentCol?.dataset.address || "").trim();
-    const currentPositions = (parentCol?.dataset.positions || "").trim();
-
-    const hasChanges = (
-      name !== currentName ||
-      address !== currentAddress ||
-      moaStatus !== currentMoaStatus ||
-      moaDate !== currentMoaDate ||
-      positions !== currentPositions
-    );
-
-    // close details modal first
-    const modalInstance = bootstrap.Modal.getInstance(modalEl);
-    if (modalInstance) modalInstance.hide();
+    const profileFileInput = document.getElementById(`hte${index}ProfileFile`);
+    const moaFileInput = document.getElementById(`hte${index}MoaImage`);
 
     const feedbackModal = new bootstrap.Modal(document.getElementById("feedbackModal"));
 
-    if (!hasChanges) {
-      document.getElementById("feedbackMessage").textContent = "⚠ No changes made.";
+    // FormData for sending files + text fields
+    const formData = new FormData();
+    formData.append("partnerId", partnerId);
+    formData.append("establishmentName", name);
+    formData.append("address", address);
+    formData.append("moaStatus", moaStatus);
+    formData.append("moaSince", moaDate);
+    formData.append("positions", positions);
+
+    // Attach files only if user uploaded new ones
+    if (profileFileInput.files.length > 0) {
+      formData.append("profileFile", profileFileInput.files[0]);
+    }
+
+    if (moaFileInput.files.length > 0) {
+      formData.append("moaFile", moaFileInput.files[0]);
+    }
+
+    try {
+      const res = await fetch("/api/update-partner", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById("feedbackMessage").textContent = `✅ "${name}" details updated successfully!`;
+        feedbackModal.show();
+        setTimeout(() => feedbackModal.hide(), 1500);
+
+        // Optionally reload partner list or update card UI dynamically
+
+        // Reset the form
+        const form = document.getElementById(`detailsForm${index}`);
+        if (form) form.reset();
+
+        // Clear file previews manually if needed
+        const profilePreview = document.querySelector(`#detailsModal${index} a[href*='profile']`);
+        if (profilePreview) profilePreview.remove();
+        const moaPreview = document.querySelector(`#detailsModal${index} a[href*='moa']`);
+        if (moaPreview) moaPreview.remove();
+
+        loadPartners();
+
+      } else {
+        document.getElementById("feedbackMessage").textContent = "⚠ Failed to update details.";
+        feedbackModal.show();
+        setTimeout(() => feedbackModal.hide(), 1500);
+      }
+    } catch (err) {
+      console.error("❌ Error saving details:", err);
+      document.getElementById("feedbackMessage").textContent = "⚠ Error saving details.";
       feedbackModal.show();
       setTimeout(() => feedbackModal.hide(), 1500);
-      return;
     }
 
-    // Apply changes to card DOM & data-attributes
-    const titleEl = cardEl.querySelector(".card-title");
-    if (titleEl) titleEl.textContent = name;
-
-    if (parentCol) {
-      parentCol.dataset.name = name;
-      parentCol.dataset.address = address;
-      parentCol.dataset.moaStatus = moaStatus;
-      parentCol.dataset.moaDate = moaDate;
-      parentCol.dataset.positions = positions;
-    }
-
-    document.getElementById("feedbackMessage").textContent = `✅ "${name}" details updated successfully!`;
-    feedbackModal.show();
-    setTimeout(() => feedbackModal.hide(), 1500);
+    // Close modal after save
+    const modalEl = document.getElementById(`detailsModal${index}`);
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
   }
+
   window.saveDetails = saveDetails;
 
-  // SINGLE saveCardBtn handler (create new card)
-  document.getElementById("saveCardBtn").addEventListener("click", function (ev) {
+
+
+  document.getElementById("saveCardBtn").addEventListener("click", async function (ev) {
     ev.preventDefault();
+
     const name = document.getElementById("establishmentName").value.trim();
     const address = document.getElementById("establishmentAddress").value.trim();
     const moaStatus = document.getElementById("moaStatus").value;
     const moaSince = document.getElementById("moaSince").value;
     const positions = document.getElementById("availablePositions").value.trim();
+    const companyProfile = document.getElementById("companyProfile").files[0];
+    const signedMoa = document.getElementById("signedMoa").files[0];
 
     // Validation
-    if (!name || !address || !positions) {
-      document.getElementById("feedbackMessage").textContent = "⚠ Please fill in all required fields.";
+    if (!name || !address || !positions || !companyProfile || !signedMoa) {
+      document.getElementById("feedbackMessage").textContent = "⚠ Please fill in all required fields and upload files.";
       const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
       fb.show();
       setTimeout(() => fb.hide(), 1500);
       return;
     }
 
-    // Add card
-    hteCounter++;
-    const newCol = document.createElement("div");
-    newCol.className = "col-lg-4 mb-4";
-    // set dataset attributes (use dataset for easy access)
-    newCol.dataset.moaStatus = moaStatus;
-    newCol.dataset.name = name;
-    newCol.dataset.moaDate = moaSince;
-    newCol.dataset.address = address;
-    newCol.dataset.positions = positions;
+    try {
+      // 🔹 Prepare FormData for backend upload
+      const formData = new FormData();
+      formData.append("establishmentName", name);
+      formData.append("address", address);
+      formData.append("moaStatus", moaStatus);
+      formData.append("moaSince", moaSince);
+      formData.append("positions", positions);
+      formData.append("companyProfile", companyProfile);
+      formData.append("signedMoa", signedMoa);
 
-    newCol.innerHTML = `
+      // 🔹 Send to backend
+      const response = await fetch("/api/save-partner", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to save partner.");
+      }
+
+      const establishmentID = result.establishmentID;
+
+      // 🔹 Add card visually
+      hteCounter++;
+      const newCol = document.createElement("div");
+      newCol.className = "col-lg-4 mb-4";
+      newCol.dataset.moaStatus = moaStatus;
+      newCol.dataset.name = name;
+      newCol.dataset.moaDate = moaSince;
+      newCol.dataset.address = address;
+      newCol.dataset.positions = positions;
+      newCol.dataset.establishmentId = establishmentID; // store Firestore ID
+
+      newCol.innerHTML = `
       <div class="card hte-card shadow-lg border-0 h-100 custom-card-hover position-relative">
         <div class="card-body custom-card-shadow">
           <div class="d-flex justify-content-left">
@@ -1613,16 +1790,16 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    cardContainer.appendChild(newCol);
+      cardContainer.appendChild(newCol);
 
-    // Create modal for this card
-    const newModal = document.createElement("div");
-    newModal.className = "modal fade";
-    newModal.id = `detailsModal${hteCounter}`;
-    newModal.setAttribute("tabindex", "-1");
-    newModal.setAttribute("aria-labelledby", `detailsModalLabel${hteCounter}`);
-    newModal.setAttribute("aria-hidden", "true");
-    newModal.innerHTML = `
+      // 🔹 Create modal for details
+      const newModal = document.createElement("div");
+      newModal.className = "modal fade";
+      newModal.id = `detailsModal${hteCounter}`;
+      newModal.setAttribute("tabindex", "-1");
+      newModal.setAttribute("aria-labelledby", `detailsModalLabel${hteCounter}`);
+      newModal.setAttribute("aria-hidden", "true");
+      newModal.innerHTML = `
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header bg-dark-purple text-white">
@@ -1631,42 +1808,50 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="modal-body">
             <label><strong>Name:</strong></label>
-            <input type="text" class="form-control" id="hte${hteCounter}Name" value="${name}">
+            <input type="text" class="form-control" value="${name}">
             <label><strong>Address:</strong></label>
-            <input type="text" class="form-control" id="hte${hteCounter}Address" value="${address}">
+            <input type="text" class="form-control" value="${address}">
             <label><strong>MOA Status:</strong></label>
-            <select class="form-control" id="hte${hteCounter}MoaStatus">
+            <select class="form-control">
               <option ${moaStatus === "New" ? "selected" : ""}>New</option>
               <option ${moaStatus === "Renewed" ? "selected" : ""}>Renewed</option>
               <option ${moaStatus === "Expired" ? "selected" : ""}>Expired</option>
             </select>
             <label><strong>MOA Established Since:</strong></label>
-            <input type="date" class="form-control" id="hte${hteCounter}MoaDate" value="${moaSince}">
+            <input type="date" class="form-control" value="${moaSince}">
             <label><strong>Available Positions:</strong></label>
-            <input type="text" class="form-control" id="hteAve${hteCounter}" value="${positions}">
+            <input type="text" class="form-control" value="${positions}">
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-main" onclick="saveDetails(${hteCounter})">Save</button>
+            <button type="button" class="btn btn-main">Save</button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
     `;
-    document.body.appendChild(newModal);
+      document.body.appendChild(newModal);
 
-    // Close Add Modal
-    const addCardModalEl = document.getElementById("addCardModal");
-    const addCardModalInst = bootstrap.Modal.getInstance(addCardModalEl);
-    if (addCardModalInst) addCardModalInst.hide();
+      // 🔹 Close Add Modal
+      const addCardModalEl = document.getElementById("addCardModal");
+      const addCardModalInst = bootstrap.Modal.getInstance(addCardModalEl);
+      if (addCardModalInst) addCardModalInst.hide();
 
-    // Reset form
-    document.getElementById("addCardForm").reset();
+      // 🔹 Reset form
+      document.getElementById("addCardForm").reset();
 
-    // Success feedback
-    document.getElementById("feedbackMessage").textContent = `✅ "${name}" has been added successfully!`;
-    const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
-    fb.show();
-    setTimeout(() => fb.hide(), 1500);
+      // 🔹 Success Feedback
+      document.getElementById("feedbackMessage").textContent = `✅ "${name}" has been added successfully!`;
+      const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
+      fb.show();
+      setTimeout(() => fb.hide(), 1500);
+
+    } catch (error) {
+      console.error("🔥 Error saving partner:", error);
+      document.getElementById("feedbackMessage").textContent = "❌ Failed to save partner establishment.";
+      const fb = new bootstrap.Modal(document.getElementById("feedbackModal"));
+      fb.show();
+      setTimeout(() => fb.hide(), 2000);
+    }
   });
 });
 
@@ -1701,21 +1886,27 @@ document.addEventListener("DOMContentLoaded", () => {
             : new Date(req.createdAt || 0);
 
           const col = document.createElement("div");
+          const formattedTime = new Date(`1970-01-01T${req.dueTime}`).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+
           col.classList.add("col-md-4", "position-relative");
           col.setAttribute("data-created-at", createdAt.toISOString());
           col.dataset.id = req.id; // 🔑 store Firestore document ID here
           col.innerHTML = `
-    <input type="checkbox" class="form-check-input position-absolute top-2 start-2 m-2 z-3">
-    <div class="card h-100 border-success">
-      <div class="card-body d-flex flex-column">
-        <h5 class="card-title">${req.type}</h5>
-        <h5>${req.title}</h5>
-        <p><strong>Due:</strong> ${new Date(req.dueDate).toLocaleDateString()}</p>
-        <p><strong>Date Posted:</strong> ${createdAt.toLocaleDateString()}</p>
-        <p class="text-muted small" style="flex-grow: 1;">${req.notes || ""}</p>
-      </div>
-    </div>
-  `;
+            <input type="checkbox" class="form-check-input position-absolute top-2 start-2 m-2 z-3">
+              <div class="card h-100 border-success">
+                <div class="card-body d-flex flex-column">
+                <h5 class="card-title">${req.type}</h5>
+                <h5>${req.title}</h5>
+                <p><strong>Due:</strong> ${new Date(req.dueDate).toLocaleDateString()} ${formattedTime || ''}</p>
+                <p><strong>Date Posted:</strong> ${createdAt.toLocaleDateString()}</p>
+                <p class="text-muted small" style="flex-grow: 1;">${req.notes || ""}</p>
+              </div>
+            </div>
+            `;
           container.appendChild(col);
         });
 
@@ -1748,22 +1939,30 @@ document.addEventListener("DOMContentLoaded", () => {
   deadlineForm.addEventListener('submit', async function (e) {
     e.preventDefault();
 
+
     const type = document.getElementById('requirementType').value;
     const title = document.getElementById('deadlineTitle').value;
     const dueDate = document.getElementById('dueDate').value;
+    const dueTime = document.getElementById('dueTime').value; // ⏰ new line
     const datePosted = document.getElementById('datePosted').value || new Date().toISOString().split('T')[0];
     const notes = document.getElementById('notes').value;
 
+    const formattedTime = new Date(`1970-01-01T${dueTime}`).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+
     const col = document.createElement('div');
     col.classList.add('col-md-4', 'position-relative');
-    col.setAttribute("data-date-posted", datePosted); // 🔑 store raw date for sorting
+    col.setAttribute("data-date-posted", datePosted);
     col.innerHTML = `
       <input type="checkbox" class="form-check-input position-absolute top-2 start-2 m-2 z-3">
       <div class="card h-100 border-success">
         <div class="card-body d-flex flex-column">
           <h5 class="card-title">${type}</h5>
           <h5>${title}</h5>
-          <p><strong>Due:</strong> ${new Date(dueDate).toLocaleDateString()}</p>
+          <p><strong>Due:</strong> ${new Date(dueDate).toLocaleDateString()} ${formattedTime}</p>
           <p><strong>Date Posted:</strong> ${new Date(datePosted).toLocaleDateString()}</p>
           <p class="text-muted small" style="flex-grow: 1;">${notes}</p>
         </div>
@@ -1774,7 +1973,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/save-requirement", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, title, dueDate, datePosted, notes })
+        body: JSON.stringify({ type, title, dueDate, dueTime, datePosted, notes })
       });
 
       const result = await response.json();
@@ -1919,6 +2118,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const category = selectedCard.querySelector(".card-title").textContent.trim();
     const title = selectedCard.querySelectorAll("h5")[1].textContent.trim();
     const dueText = selectedCard.querySelector("p:nth-of-type(1)").textContent.replace("Due:", "").trim();
+    const [dueDatePart, dueTimePart] = dueText.split(" "); // split date and time
+
+    document.getElementById("editDueDate").value = new Date(dueDatePart).toISOString().split("T")[0];
+    document.getElementById("editDueTime").value = dueTimePart || "";
+
     const postedText = selectedCard.querySelector("p:nth-of-type(2)").textContent.replace("Date Posted:", "").trim();
     const notes = selectedCard.querySelector("p.text-muted").textContent.trim();
 
@@ -1972,6 +2176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const newCategory = document.getElementById("editRequirementType").value;
     const newTitle = document.getElementById("editDeadlineTitle").value;
     const newDueDate = document.getElementById("editDueDate").value;
+    const newDueTime = document.getElementById("editDueTime").value;
     const newDatePosted = document.getElementById("editDatePosted").textContent; // not editable
     const newNotes = document.getElementById("editNotes").value;
 
@@ -1986,6 +2191,7 @@ document.addEventListener("DOMContentLoaded", () => {
           type: newCategory,
           title: newTitle,
           dueDate: newDueDate,
+          dueTime: newDueTime,
           notes: newNotes,
         }),
       });
@@ -1995,10 +2201,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (result.success) {
         console.log("✅ Requirement updated successfully in Firestore");
 
+        const formattedTime = new Date(`1970-01-01T${newDueTime}`).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+
         // Update UI
         selectedCard.querySelector(".card-title").textContent = newCategory;
         selectedCard.querySelectorAll("h5")[1].textContent = newTitle;
-        selectedCard.querySelector("p:nth-of-type(1)").innerHTML = `<strong>Due:</strong> ${new Date(newDueDate).toLocaleDateString()}`;
+        selectedCard.querySelector("p:nth-of-type(1)").innerHTML = `<strong>Due:</strong> ${new Date(newDueDate).toLocaleDateString()} ${formattedTime}`;
         selectedCard.querySelector("p:nth-of-type(2)").innerHTML = `<strong>Date Posted:</strong> ${newDatePosted}`;
         selectedCard.querySelector("p.text-muted").textContent = newNotes;
 
@@ -2044,14 +2256,17 @@ document.addEventListener("DOMContentLoaded", () => {
 // STUDENT PROGRESS(STUDENT CHECKLIST)
 
 // STUDENT PROGRESS (STUDENT CHECKLIST) — Scoped, robust per-block implementation
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+
+
   // keep current filters/search per block so both apply at once
   const currentFilter = { A: "all", B: "all" };
   const currentSearch = { A: "", B: "" };
 
+
   // Apply both status filter and search for a block
   function applyFilters(block) {
-    const tableId = `block${block}Table`;
+    const tableId = `progressblock${block}Table`;
     const table = document.getElementById(tableId);
     if (!table || !table.tBodies[0]) return;
     const tbody = table.tBodies[0];
@@ -2227,6 +2442,134 @@ document.addEventListener("DOMContentLoaded", () => {
     updateDeleteButton(block);
   });
 
-  // ---- Important: if you have DataTables/jQuery code targeting blockATable/blockBTable, remove it.
-  // DataTables manipulates DOM and WILL conflict with this plain-JS implementation.
+  // Show loading state for both tables first
+  ["A", "B"].forEach(block => {
+    const tableBody = document.querySelector(`#progressblock${block}Table tbody`);
+    if (tableBody) {
+      tableBody.innerHTML = `<tr><td colspan="40" class="text-center text-muted py-3">Loading...</td></tr>`;
+    }
+  });
+
+  try {
+    const res = await fetch("/api/student-progress");
+    const data = await res.json();
+
+    console.log(data);
+
+    if (!data.success) {
+      ["A", "B"].forEach(block => {
+        const tableBody = document.querySelector(`#progressblock${block}Table tbody`);
+        if (tableBody) {
+          tableBody.innerHTML = `<tr><td colspan="40" class="text-center text-danger py-3">Failed to fetch data</td></tr>`;
+        }
+      });
+      return;
+    }
+
+    // ✅ Get due dates and pass them to populateBlockTable
+    const dueDates = data.dueDates || {}; // store globally if you’ll reuse
+    populateBlockTable("A", data.results.A || [], dueDates);
+    populateBlockTable("B", data.results.B || [], dueDates);
+
+    // ✅ After populating, check if tables are empty
+    ["A", "B"].forEach(block => {
+      const tableBody = document.querySelector(`#progressblock${block}Table tbody`);
+      if (tableBody && (!tableBody.children.length || tableBody.innerHTML.trim() === "")) {
+        tableBody.innerHTML = `<tr><td colspan="40" class="text-center text-muted py-3">No submissions</td></tr>`;
+      }
+    });
+
+  } catch (err) {
+    console.error("Error loading progress:", err);
+    ["A", "B"].forEach(block => {
+      const tableBody = document.querySelector(`#progressblock${block}Table tbody`);
+      if (tableBody) {
+        tableBody.innerHTML = `<tr><td colspan="40" class="text-center text-danger py-3">Error loading data</td></tr>`;
+      }
+    });
+  }
+
+
+  function populateBlockTable(block, students, dueDates = {}) {
+    const tableBody = document.querySelector(`#progressblock${block}Table tbody`);
+    if (!tableBody) return;
+    tableBody.innerHTML = "";
+
+    const allReqs = [
+      "SIS", "MedCertPhysical", "MedCertNeuro", "Insurance", "COR", "CAR",
+      "GoodMoral", "LOA", "Resume", "PreOrientation", "WaiverSigned", "LOE", "NOA",
+      "InternshipContract", "Workplan",
+      "DTR_JAN", "DTR_FEB", "DTR_MAR", "DTR_APR", "DTR_MAY",
+      "MPR_JAN", "MPR_FEB", "MPR_MAR", "MPR_APR", "MPR_MAY",
+      "MidtermAssessment", "FinalAssessment",
+      "CertCompletion", "WrittenReport", "ECopy", "FinalPresentation"
+    ];
+
+    students.forEach((student, index) => {
+      const req = student.requirements || {};
+      const now = new Date();
+
+      allReqs.forEach((key) => {
+        const dueStr = dueDates[key]?.dueDate; // get the date
+        const dueTime = dueDates[key]?.dueTime; // fallback to end of day if no time
+        if (dueStr) {
+          // Combine date and time into a single ISO string
+          const dueDate = new Date(`${dueStr}T${dueTime}:00`);
+          if (!req[key] || req[key] === "Pending" || req[key] === "To Revise") {
+            if (now > dueDate) {
+              const daysPast = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
+              req[key] = "Overdue";
+              req[`${key}_pastDue`] = `${daysPast} days past due`;
+            }
+          }
+        }
+      });
+
+
+      // 🧮 Count completed
+      const completed = allReqs.filter(
+        (key) => req[key] && !["Pending", "Overdue", "To Revise"].includes(req[key])
+      ).length;
+
+      const total = allReqs.length;
+      const percentage = Math.round((completed / total) * 100);
+      const hasOverdue = allReqs.some((key) => req[key] === "Overdue");
+      let barClass = hasOverdue ? "bg-danger" : percentage < 50 ? "bg-warning" : "bg-success";
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+      <td class="row-num">${index + 1}</td>
+      <td>${student.studentID}</td>
+      <td>${student.studentName}</td>
+      ${allReqs.map((key) => {
+        const val = req[key];
+        const tooltip = req[`${key}_pastDue`] ? `title="${req[`${key}_pastDue`]}"` : "";
+        return `<td class="${getStatusClass(val)}"></td>`;
+      }).join("")}
+      <td>
+        <select class="status-select">
+          <option value="Pending">Pending</option>
+          <option value="Ready for Deployment">Ready for Deployment</option>
+          <option value="Deployed">Deployed</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </td>
+      <td>
+        <div class="progress">
+          <div class="progress-bar ${barClass}" role="progressbar" style="width: ${percentage}%;">${percentage}%</div>
+        </div>
+      </td>
+    `;
+
+      tableBody.appendChild(row);
+    });
+  }
+
+
+  function getStatusClass(status) {
+    if (!status) return "status-default"; // white default
+    const formatted = status.toLowerCase().replace(/\s+/g, "-");
+    return `status-${formatted}`;
+  }
+
 });
