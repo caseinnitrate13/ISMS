@@ -582,6 +582,7 @@ app.get('/api/submitted-requirements', async (req, res) => {
                             createdAt: data.createdAt || "",
                             docustatus: data.docustatus || "Pending",
                             path: `/${data.path}` || "",
+                            remarks: data.remarks
                         });
                     });
                 });
