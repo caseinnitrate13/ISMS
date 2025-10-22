@@ -33,6 +33,126 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  const facultyData = JSON.parse(localStorage.getItem('facultyData'));
+  if (!facultyData || !facultyData.id) return;
+
+  const path = location.pathname;
+
+  const isRegisteredAcc = path === '/admin/registered-accounts';
+  const isDownloadable = path === '/admin/downloadable';
+  const isEstablishments = path === '/admin/partner-establishments';
+  const isSubmittedDocs = path === '/admin/submitted-documents';
+  const isStudentProgess = path === '/admin/student-progress';
+  const isPublishReq = path === '/admin/publish-requirements';
+  const isNotifications = path === '/admin/notifications';
+  const isFacultyProfile = path === '/admin/user-profile';
+
+  if (
+    !(
+      isRegisteredAcc ||
+      isDownloadable ||
+      isEstablishments ||
+      isSubmittedDocs ||
+      isStudentProgess ||
+      isPublishReq ||
+      isNotifications ||
+      isFacultyProfile
+    )
+  ) return;
+
+  async function loadNotifications(userId) {
+    const notificationsList = document.querySelector('.notifications');
+    const notificationsBadge = document.querySelector('.badge-number');
+    const dropdownHeader = document.querySelector('.dropdown-header');
+
+    try {
+      const response = await fetch(`/api/faculty/${userId}/notifications`);
+      const data = await response.json();
+
+      if (!data.success) return;
+
+      // ✅ Only include notifications that are NOT yet notified
+      const unreadNotifications = data.notifications.filter(n => !n.notified);
+      const unreadCount = unreadNotifications.length;
+
+      // Clear existing notification items and dividers
+      notificationsList.querySelectorAll('.notification-item, .dropdown-divider').forEach(item => item.remove());
+
+      // Show only top 2 unread notifications
+      const limitedNotifications = unreadNotifications.slice(0, 2);
+
+      for (const notification of limitedNotifications) {
+        const { id, title, message, timestamp } = notification;
+        const date = new Date(timestamp);
+        const formattedTime = date.toLocaleString('en-US', {
+          month: 'short',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+
+        const notificationItem = document.createElement('li');
+        notificationItem.classList.add('notification-item');
+        notificationItem.style.cursor = 'pointer';
+        notificationItem.innerHTML = `
+          <i class="bi bi-bell text-primary"></i>
+          <div>
+            <h4>${title}</h4>
+            <p>${message}</p>
+            <p>${formattedTime}</p>
+          </div>
+        `;
+
+        // 👇 When clicked, mark as read & redirect
+        notificationItem.addEventListener('click', async () => {
+          try {
+            await fetch(`/api/faculty/${userId}/notifications/${id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ notified: true })
+            });
+
+            // Redirect based on title
+            if (title.toLowerCase().includes('document submitted')) {
+              window.location.href = '/admin/submitted-documents';
+            } else {
+              window.location.href = '/admin/notifications';
+            }
+          } catch (err) {
+            console.error('⚠️ Failed to mark notification as read:', err);
+          }
+        });
+
+        const divider = document.createElement('li');
+        divider.innerHTML = `<hr class="dropdown-divider">`;
+
+        notificationsList.appendChild(notificationItem);
+        notificationsList.appendChild(divider);
+      }
+
+      // 🧭 Update header & badge
+      notificationsBadge.textContent = unreadCount;
+      dropdownHeader.innerHTML =
+        unreadCount > 0
+          ? `You have <span class="badge rounded-pill bg-primary p-2 ms-2">${unreadCount}</span> new notifications
+             <a href="/admin/notifications"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>`
+          : `You have no new notifications
+             <a href="/admin/notifications"><span class="badge rounded-pill bg-secondary p-2 ms-2">View all</span></a>`;
+    } catch (error) {
+      console.error('🔥 Error loading notifications:', error);
+    }
+  }
+
+  // Initial load
+  loadNotifications(facultyData.id);
+
+  // Poll every 5 seconds for updates
+  setInterval(() => loadNotifications(facultyData.id), 5000);
+});
+
+
 
 // DOWNLOADABLE REQUIREMENTS
 document.addEventListener("DOMContentLoaded", () => {

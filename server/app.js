@@ -848,6 +848,58 @@ app.get('/admin/notifications', (req, res) => {
     res.send(adminTemplate.replace('{{content}}', notifications));
 });
 
+app.get("/api/faculty/:facultyID/notifications", async (req, res) => {
+    try {
+        const { facultyID } = req.params;
+        if (!facultyID) {
+            return res.status(400).json({ success: false, message: "Faculty ID is required" });
+        }
+
+        const notifRef = collection(db, "NOTIFICATIONS", facultyID, "usernotif");
+        const notifSnap = await getDocs(notifRef);
+
+        const notifications = notifSnap.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                title: data.title,
+                message: data.message,
+                timestamp: data.timestamp,
+                notified: data.notified || false,
+            };
+        }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        res.json({ success: true, notifications });
+    } catch (error) {
+        console.error("🔥 Error fetching notifications:", error);
+        res.status(500).json({ success: false, message: "Error fetching notifications", error });
+    }
+});
+
+// ✅ Mark faculty notification as read (set notified = true)
+app.patch('/api/faculty/:facultyID/notifications/:notifID', async (req, res) => {
+    try {
+        const { facultyID, notifID } = req.params;
+        const { notified } = req.body;
+
+        if (!facultyID || !notifID) {
+            return res.status(400).json({ success: false, message: 'Faculty ID and notification ID are required' });
+        }
+
+        // Firestore reference:
+        // ACCOUNTS -> FACULTY -> ACCOUNTS -> facultyID -> notifications -> notifID
+        const notifRef = doc(db, 'NOTIFICATIONS', facultyID, 'usernotif', notifID);
+
+        await updateDoc(notifRef, { notified });
+
+        res.json({ success: true, message: 'Notification status updated successfully.' });
+    } catch (error) {
+        console.error('🔥 Error updating notification status:', error);
+        res.status(500).json({ success: false, message: 'Error updating notification status', error: error.message });
+    }
+});
+
+
 app.get('/admin/user-profile', (req, res) => {
     const userProfile = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'users-profile.html'), 'utf-8');
     res.send(adminTemplate.replace('{{content}}', userProfile));
