@@ -500,10 +500,10 @@ section {
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 .notification-card.highlight {
-  background: #d4edda;
+  background: #b299f3c8;
 }
-.notification-icon {
-  color: #2C1776;
+.notification-icon.text-success {
+  color: #2C1776 !important;
   margin-right: 0.75rem;
 }
 .notification-header {
