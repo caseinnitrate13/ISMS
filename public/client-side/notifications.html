@@ -1,37 +1,82 @@
-<div class="pagetitle">
-    <h1>Notifications</h1>
-    <nav>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/progress-tracker">Home</a></li>
-            <li class="breadcrumb-item active">Notifications</li>
-        </ol>
-    </nav>
-</div><!-- End Page Title -->
+<div class="pagetitle d-flex align-items-center justify-content-between">
+    <div>
+        <h1>Notifications</h1>
+    </div>
 
-
-<section class="section">
-
-    <div class="card bg-white mb-3">
-            <!-- Recent Notifications -->
-        <div class="box-title border-bottom p-3 d-flex justify-content-between">
-            <h6 class="m-0 text-dark fw-bold ">Recent</h6>
-            <span class="badge rounded-pill bg-primary p-2 ms-2 pointer" id="showAllInitial">Show All</span>
+    <div class="d-flex align-items-center gap-2">
+        <!-- ✅ Sort Dropdown -->
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-outline-secondary btn-same-size" type="button" id="sortNotifButton"
+                data-bs-toggle="dropdown" aria-expanded="false" title="Sort">
+                <i class="bi bi-sort-down"></i>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="sortNotifButton">
+                <li><a class="dropdown-item sort-option" data-sort="newest">Newest First</a></li>
+                <li><a class="dropdown-item sort-option" data-sort="oldest">Oldest First</a></li>
+            </ul>
         </div>
-        <div id="recentBody" class="box-body p-0">
-            <!-- the notificatin will automatically be displayed -->
+
+        <!-- ✅ Mark as Read/Unread Dropdown -->
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-outline-secondary btn-same-size" type="button" id="markNotifButton"
+                data-bs-toggle="dropdown" aria-expanded="false" title="Mark as">
+                <i class="bi bi-check2-circle"></i>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="markNotifButton">
+                <li><a class="dropdown-item mark-option" data-action="read">Mark as Read</a></li>
+                <li><a class="dropdown-item mark-option" data-action="unread">Mark as Unread</a></li>
+            </ul>
         </div>
+
+        <!-- ✅ Delete Button -->
+        <button class="btn btn-outline-danger btn-same-size" id="notifDeleteNotifBtn" title="Delete">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
+</div>
+
+<div class="mb-4" id="notificationList">
+
+    <section class="section">
+        <!-- Recent Notifications -->
+        <div class="card bg-white mb-3">
+            <div class="box-title border-bottom p-3">
+                <h6 class="m-0 text-dark fw-bold ">Recent</h6>
+            </div>
+            <div id="recentBody" class="box-body p-0">
+                <!-- the notifications will automatically be displayed -->
+            </div>
         </div> <!-- End of Recent Notifications -->
 
         <!-- Earlier Notifications -->
         <div class="card bg-white mt-5 mb-5">
-        <div class="box-title border-bottom p-3 d-flex justify-content-between">
-            <h6 class="m-0 text-dark fw-bold">Earlier</h6>
-            <span class="badge rounded-pill bg-primary p-2 ms-2 pointer" id="showAllInitial">Show All</span>
-        </div>
-        <div id='earlierBody' class="box-body p-0">
-            
-        </div>
-    </div> <!-- End of Earlier Notifications -->
+            <div class="box-title border-bottom p-3 d-flex justify-content-between">
+                <h6 class="m-0 text-dark fw-bold">Earlier</h6>
+                <span class="badge rounded-pill bg-primary p-2 ms-2">View all</span>
+            </div>
+            <div id='earlierBody' class="box-body p-0">
+                <!-- the notifications will automatically be displayed -->
+            </div>
+        </div> <!-- End of Earlier Notifications -->
+    </section>
 
-
-</section>
+    <!-- ✅ Confirmation Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete the selected notification(s)?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="notifConfirmDeleteBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

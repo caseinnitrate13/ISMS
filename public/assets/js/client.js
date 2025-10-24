@@ -33,6 +33,274 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+// ✅ NOTIFICATIONS — FULL MERGED SCRIPT
+document.addEventListener('DOMContentLoaded', () => {
+    const studentData = JSON.parse(localStorage.getItem('studentData'));
+    if (!studentData || !studentData.id) return;
+    const userId = studentData.id;
+    const path = location.pathname;
+
+
+    const isProgressTracker = path === '/progress-tracker';
+    const isSubmission = path === '/submission';
+    const isAccountPage = path === '/account';
+    const isdwFormPage = path === '/downloadable-forms';
+    const isPartnerAgenciesPage = path === '/partner-agency';
+    const isReviewAgenciesPage = path === '/review-agency';
+    const isNotificationPage = path === '/notifications';
+
+
+    // Load only on valid pages
+    if (!(
+        isProgressTracker || isSubmission || isAccountPage || isdwFormPage || isPartnerAgenciesPage
+        || isReviewAgenciesPage || isNotificationPage
+    )) return;
+
+    /* ------------------------------
+       🟣 HEADER NOTIFICATION DROPDOWN
+    ------------------------------- */
+    async function loadNotifications(userId) {
+        const notificationsList = document.querySelector('.notifications');
+        const notificationsBadge = document.querySelector('.badge-number');
+        const dropdownHeader = document.querySelector('.dropdown-header');
+
+        try {
+            const response = await fetch(`/api/faculty/${userId}/notifications`);
+            const data = await response.json();
+
+            if (!data.success) return;
+
+            // ✅ Only include notifications that are NOT yet notified
+            const unreadNotifications = data.notifications.filter(n => !n.notified);
+            const unreadCount = unreadNotifications.length;
+
+            // Clear existing notification items and dividers
+            notificationsList.querySelectorAll('.notification-item, .dropdown-divider').forEach(item => item.remove());
+
+            // Show only top 2 unread notifications
+            const limitedNotifications = unreadNotifications.slice(0, 2);
+
+            for (const notification of limitedNotifications) {
+                const { id, title, message, timestamp } = notification;
+                const date = new Date(timestamp);
+                const formattedTime = date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+
+                const notificationItem = document.createElement('li');
+                notificationItem.classList.add('notification-item');
+                notificationItem.style.cursor = 'pointer';
+                notificationItem.innerHTML = `
+          <i class="bi bi-bell text-primary"></i>
+          <div>
+            <h4>${title}</h4>
+            <p>${message}</p>
+            <p>${formattedTime}</p>
+          </div>
+        `;
+
+                // 👇 When clicked, mark as read & redirect
+                notificationItem.addEventListener('click', async () => {
+                    try {
+                        await fetch(`/api/faculty/${userId}/notifications/${id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ notified: true })
+                        });
+
+                        // Redirect based on title
+                        if (title.toLowerCase().includes('document status update'))
+                            window.location.href = '/submission';
+                        else window.location.href = '/notifications';
+                    } catch (err) {
+                        console.error('⚠️ Failed to mark notification as read:', err);
+                    }
+                });
+
+                const divider = document.createElement('li');
+                divider.innerHTML = `<hr class="dropdown-divider">`;
+
+                notificationsList.appendChild(notificationItem);
+                notificationsList.appendChild(divider);
+            }
+
+            // 🧭 Update header & badge
+            notificationsBadge.textContent = unreadCount;
+            dropdownHeader.innerHTML =
+                unreadCount > 0
+                    ? `You have <span class="badge rounded-pill bg-primary p-2 ms-2">${unreadCount}</span> new notifications
+             <a href="/notifications"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>`
+                    : `You have no new notifications
+             <a href="/notifications"><span class="badge rounded-pill bg-secondary p-2 ms-2">View all</span></a>`;
+        } catch (error) {
+            console.error('🔥 Error loading notifications:', error);
+        }
+    }
+
+    // Initial load
+    loadNotifications(studentData.id);
+
+    // Poll every 5 seconds for updates
+    /* ------------------------------
+       🟣 PAGE NOTIFICATIONS (Full List)
+    ------------------------------- */
+    if (!isNotificationPage) return;
+
+    const recentBody = document.getElementById('recentBody');
+    const earlierBody = document.getElementById('earlierBody');
+    const viewAllBadge = document.querySelector('.box-title .badge');
+    const notificationList = document.getElementById('notificationList');
+    const notifDeleteBtn = document.getElementById('notifDeleteNotifBtn');
+    const notifConfirmDeleteBtn = document.getElementById('notifConfirmDeleteBtn');
+
+    let selectedCards = [];
+
+    // Load all notifications
+    async function loadAllNotifications() {
+        try {
+            const response = await fetch(`/api/student/${userId}/notifications`);
+            const data = await response.json();
+            if (!data.success) return;
+
+            const notifications = data.notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            recentBody.innerHTML = '';
+            earlierBody.innerHTML = '';
+
+            const recent = notifications.slice(0, 3);
+            const earlier = notifications.slice(3);
+
+            recent.forEach(n => recentBody.appendChild(createNotificationCard(n)));
+            earlier.slice(0, 2).forEach(n => earlierBody.appendChild(createNotificationCard(n)));
+
+            // View all toggle
+            let isViewingAll = false;
+            viewAllBadge.addEventListener('click', () => {
+                earlierBody.innerHTML = '';
+                if (!isViewingAll) {
+                    earlier.forEach(n => earlierBody.appendChild(createNotificationCard(n)));
+                    viewAllBadge.textContent = 'View less';
+                    viewAllBadge.classList.replace('bg-primary', 'bg-secondary');
+                    isViewingAll = true;
+                } else {
+                    earlier.slice(0, 2).forEach(n => earlierBody.appendChild(createNotificationCard(n)));
+                    viewAllBadge.textContent = 'View all';
+                    viewAllBadge.classList.replace('bg-secondary', 'bg-primary');
+                    isViewingAll = false;
+                }
+            });
+        } catch (err) {
+            console.error('🔥 Error loading notifications:', err);
+        }
+    }
+
+    // Create notification card
+    function createNotificationCard({ id, title, message, timestamp, notified }) {
+        const date = new Date(timestamp);
+        const formattedTime = date.toLocaleString('en-US', {
+            month: 'short', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hour12: true
+        });
+
+        const wrapper = document.createElement('div');
+        wrapper.className = `notification-card d-flex justify-content-between align-items-start ${!notified ? 'highlight' : ''}`;
+        wrapper.innerHTML = `
+      <div class="d-flex align-items-center w-100">
+        <input type="checkbox" class="notif-checkbox me-3" data-id="${id}">
+        <div class="notification-icon ${!notified ? 'text-success' : 'text-muted'} me-3">
+          <i class="bi ${!notified ? 'bi-bell-fill' : 'bi-bell'} fs-5"></i>
+        </div>
+        <div>
+          <div class="notification-header fw-bold">${title}</div>
+          <div>${message}</div>
+          <div class="notification-time text-muted mt-1" style="font-size: 12px;">${formattedTime}</div>
+        </div>
+      </div>
+    `;
+
+        // Click to mark as read
+        wrapper.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('notif-checkbox')) return;
+            try {
+                await fetch(`/api/faculty/${userId}/notifications/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notified: true })
+                });
+                if (title.toLowerCase().includes('document status update'))
+                    window.location.href = '/submission';
+                else window.location.href = '/notifications';
+            } catch (err) {
+                console.error('⚠️ Failed to mark as read:', err);
+            }
+        });
+
+        return wrapper;
+    }
+
+    // Sorting
+    document.querySelectorAll('.sort-option').forEach(option => {
+        option.addEventListener('click', function () {
+            const sortType = this.dataset.sort;
+            const cards = Array.from(notificationList.querySelectorAll('.notification-card'));
+            cards.sort((a, b) => {
+                const dateA = new Date(a.querySelector('.notification-time').textContent.trim());
+                const dateB = new Date(b.querySelector('.notification-time').textContent.trim());
+                return sortType === 'newest' ? dateB - dateA : dateA - dateB;
+            });
+            cards.forEach(card => notificationList.appendChild(card));
+        });
+    });
+
+    // Mark as Read/Unread
+    document.querySelectorAll('.mark-option').forEach(option => {
+        option.addEventListener('click', async function () {
+            const action = this.dataset.action;
+            const selected = document.querySelectorAll('.notif-checkbox:checked');
+            for (const checkbox of selected) {
+                const id = checkbox.dataset.id;
+                await fetch(`/api/faculty/${userId}/notifications/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notified: action === 'read' })
+                });
+            }
+            loadAllNotifications();
+        });
+    });
+
+    // Delete notifications
+    notifDeleteBtn.addEventListener('click', () => {
+        selectedCards = document.querySelectorAll('.notif-checkbox:checked');
+        if (selectedCards.length === 0) {
+            alert('Please select at least one notification to delete.');
+            return;
+        }
+        const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        modal.show();
+    });
+
+    notifConfirmDeleteBtn.addEventListener('click', async () => {
+        for (const checkbox of selectedCards) {
+            const id = checkbox.dataset.id;
+            await fetch(`/api/faculty/${userId}/notifications/${id}`, { method: 'DELETE' });
+            checkbox.closest('.notification-card').remove();
+        }
+        const modalEl = document.getElementById('confirmDeleteModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+    });
+
+    // Load notifications initially + refresh
+    loadAllNotifications();
+    setInterval(loadAllNotifications, 10000);
+});
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
     // SIDEBAR
     const progressTracker = document.getElementById('progress-tracker');
@@ -457,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('studentID', studentID);
-        
+
         formData.append('requirementID', requirementID);
         formData.append('type', type);
         formData.append('title', title);

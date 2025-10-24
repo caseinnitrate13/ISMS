@@ -420,31 +420,29 @@
 
 
 /* NOTIFICATION */
-.notification{
-  display: -webkit-box;
-  -webkit-line-clamp: 2; 
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 3em;
-  line-height: 1.5em;
-}
 
-/* ACCOUNT */
-.profile-img,
-.rounded-profile {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
+.notification-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
-
-.rounded-profile,
-#headerProfile {
-  border-radius: 50%;
+.notification-card.highlight {
+  background: #b299f3c8;
 }
-
-#headerProfile {
-  width: 30px;
-  height: 30px;
-  object-fit: cover
+.notification-icon.text-success {
+  color: #2C1776 !important;
+  margin-right: 0.75rem;
+}
+.notification-header {
+  font-weight: bold;
+  font-size: 1rem;
+}
+.notification-time {
+  font-size: 0.85rem;
+  color: gray;
+}
+.notification-actions {
+  cursor: pointer;
 }

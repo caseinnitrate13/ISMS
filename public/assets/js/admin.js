@@ -60,59 +60,78 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ------------------------------
      🟣 HEADER NOTIFICATION DROPDOWN
   ------------------------------- */
-  async function loadNotificationsHeader() {
+  async function loadNotifications(userId) {
     const notificationsList = document.querySelector('.notifications');
     const notificationsBadge = document.querySelector('.badge-number');
     const dropdownHeader = document.querySelector('.dropdown-header');
-    if (!notificationsList || !notificationsBadge || !dropdownHeader) return;
 
     try {
       const response = await fetch(`/api/faculty/${userId}/notifications`);
       const data = await response.json();
+
       if (!data.success) return;
 
-      const unread = data.notifications.filter(n => !n.notified);
-      const unreadCount = unread.length;
+      // ✅ Only include notifications that are NOT yet notified
+      const unreadNotifications = data.notifications.filter(n => !n.notified);
+      const unreadCount = unreadNotifications.length;
 
-      // Clear dropdown
-      notificationsList.innerHTML = '';
+      // Clear existing notification items and dividers
+      notificationsList.querySelectorAll('.notification-item, .dropdown-divider').forEach(item => item.remove());
 
-      // Limit to top 2
-      const topNotifications = unread.slice(0, 2);
-      topNotifications.forEach(n => {
-        const { id, title, message, timestamp } = n;
+      // Show only top 2 unread notifications
+      const limitedNotifications = unreadNotifications.slice(0, 2);
+
+      for (const notification of limitedNotifications) {
+        const { id, title, message, timestamp } = notification;
         const date = new Date(timestamp);
-        const formatted = date.toLocaleString('en-US', {
-          month: 'short', day: '2-digit',
-          hour: '2-digit', minute: '2-digit',
+        const formattedTime = date.toLocaleString('en-US', {
+          month: 'short',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
           hour12: true
         });
 
-        const li = document.createElement('li');
-        li.classList.add('notification-item');
-        li.innerHTML = `
+        const notificationItem = document.createElement('li');
+        notificationItem.classList.add('notification-item');
+        notificationItem.style.cursor = 'pointer';
+        notificationItem.innerHTML = `
           <i class="bi bi-bell text-primary"></i>
           <div>
             <h4>${title}</h4>
             <p>${message}</p>
-            <p>${formatted}</p>
+            <p>${formattedTime}</p>
           </div>
         `;
-        li.addEventListener('click', async () => {
-          await fetch(`/api/faculty/${userId}/notifications/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ notified: true })
-          });
-          if (title.toLowerCase().includes('document submitted'))
-            window.location.href = '/admin/submitted-documents';
-          else window.location.href = '/admin/notifications';
-        });
-        notificationsList.appendChild(li);
-        notificationsList.appendChild(document.createElement('hr')).className = 'dropdown-divider';
-      });
 
-      // Update badge + header
+        // 👇 When clicked, mark as read & redirect
+        notificationItem.addEventListener('click', async () => {
+          try {
+            await fetch(`/api/faculty/${userId}/notifications/${id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ notified: true })
+            });
+
+            // Redirect based on title
+            if (title.toLowerCase().includes('document submitted')) {
+              window.location.href = '/admin/submitted-documents';
+            } else {
+              window.location.href = '/admin/notifications';
+            }
+          } catch (err) {
+            console.error('⚠️ Failed to mark notification as read:', err);
+          }
+        });
+
+        const divider = document.createElement('li');
+        divider.innerHTML = `<hr class="dropdown-divider">`;
+
+        notificationsList.appendChild(notificationItem);
+        notificationsList.appendChild(divider);
+      }
+
+      // 🧭 Update header & badge
       notificationsBadge.textContent = unreadCount;
       dropdownHeader.innerHTML =
         unreadCount > 0
@@ -120,14 +139,16 @@ document.addEventListener('DOMContentLoaded', () => {
              <a href="/admin/notifications"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>`
           : `You have no new notifications
              <a href="/admin/notifications"><span class="badge rounded-pill bg-secondary p-2 ms-2">View all</span></a>`;
-    } catch (err) {
-      console.error('⚠️ Header notifications error:', err);
+    } catch (error) {
+      console.error('🔥 Error loading notifications:', error);
     }
   }
 
-  // Load initially + every 5s
-  loadNotificationsHeader();
-  setInterval(loadNotificationsHeader, 5000);
+  // Initial load
+  loadNotifications(facultyData.id);
+
+  // Poll every 5 seconds for updates
+  setInterval(() => loadNotifications(facultyData.id), 5000);
 
   /* ------------------------------
      🟣 PAGE NOTIFICATIONS (Full List)
@@ -920,7 +941,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const res = await fetch("/api/update-docustatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requirementID, studentID, submitteddocuID, newStatus }),
+          body: JSON.stringify({ requirementID, requirermentTitle, studentID, submitteddocuID, newStatus }),
         });
         const result = await res.json();
         if (!result.success) {
@@ -987,6 +1008,7 @@ document.addEventListener("DOMContentLoaded", function () {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             requirementID,
+            requirementTitle,
             studentID,
             submitteddocuID,
             newStatus,

@@ -603,28 +603,59 @@ app.get('/api/submitted-requirements', async (req, res) => {
 
 app.post('/api/update-docustatus', async (req, res) => {
     try {
-        const { requirementID, studentID, submitteddocuID, newStatus, remarks } = req.body;
+        const { requirementID, requirementTitle, studentID, submitteddocuID, newStatus, remarks } = req.body;
 
         if (!requirementID || !studentID || !submitteddocuID || !newStatus) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
+        // 1️⃣ Update the document status
         const docRef = doc(db, "DOCUMENTS", requirementID, studentID, submitteddocuID);
         const updateData = { docustatus: newStatus };
-
         if (remarks) updateData.remarks = remarks;
 
         await updateDoc(docRef, updateData);
-
         console.log(`✅ Updated docustatus to "${newStatus}" for ${requirementID}/${studentID}/${submitteddocuID}`);
         if (remarks) console.log(`🗒 Remarks: ${remarks}`);
 
-        res.status(200).json({ success: true, message: "Status updated successfully" });
+        // 2️⃣ Create a customized notification message
+        let message = "";
+
+        switch (newStatus.toLowerCase()) {
+            case "completed":
+                message = `Your submitted document for "${requirementTitle}" has been approved.`;
+                break;
+            case "to revise":
+                message = `Your submitted document for "${requirementTitle}" needs revision.`;
+                break;
+            default:
+                message = `Your submitted document for "${requirementTitle}" has been updated to "${newStatus}".`;
+                break;
+        }
+
+        if (remarks) message += ` Remarks: ${remarks}`;
+
+        // 3️⃣ Add the notification to Firestore
+        const notifRef = collection(db, "NOTIFICATIONS", studentID, "usernotif");
+        const notifData = {
+            title: "Document Status Update",
+            message,
+            timestamp: new Date().toISOString(),
+            notified: false
+        };
+
+        await addDoc(notifRef, notifData);
+        console.log(`🔔 Notification sent to student ${studentID}: "${notifData.message}"`);
+
+        // 4️⃣ Response
+        res.status(200).json({ success: true, message: "Status updated and notification sent" });
+
     } catch (error) {
-        console.error("🔥 Error updating docustatus:", error);
+        console.error("🔥 Error updating docustatus and sending notification:", error);
         res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 });
+
 
 
 app.get('/admin/student-progress', (req, res) => {
@@ -1245,6 +1276,71 @@ app.get('/account', (req, res) => {
 app.get('/notifications', (req, res) => {
     const notifications = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'notifications.html'), 'utf-8');
     res.send(template.replace('{{content}}', notifications));
+});
+
+
+
+app.get("/api/student/:studentID/notifications", async (req, res) => {
+    try {
+        const { studentID } = req.params;
+        if (!studentID) {
+            return res.status(400).json({ success: false, message: "Student ID is required" });
+        }
+
+        const notifRef = collection(db, "NOTIFICATIONS", studentID, "usernotif");
+        const notifSnap = await getDocs(notifRef);
+
+        const notifications = notifSnap.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                title: data.title,
+                message: data.message,
+                timestamp: data.timestamp,
+                notified: data.notified || false,
+            };
+        }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        res.json({ success: true, notifications });
+    } catch (error) {
+        console.error("🔥 Error fetching notifications:", error);
+        res.status(500).json({ success: false, message: "Error fetching notifications", error });
+    }
+});
+
+// PATCH — mark notification as read/unread
+app.patch("/api/student/:studentID/notifications/:notifID", async (req, res) => {
+    try {
+        const { facultyID, notifID } = req.params;
+        const { notified } = req.body;
+
+        if (typeof notified !== "boolean") {
+            return res.status(400).json({ success: false, message: "Invalid notified value" });
+        }
+
+        const notifDoc = doc(db, "NOTIFICATIONS", studentID, "usernotif", notifID);
+        await updateDoc(notifDoc, { notified });
+
+        res.json({ success: true, message: `Notification marked as ${notified ? "read" : "unread"}` });
+    } catch (error) {
+        console.error("🔥 Error updating notification:", error);
+        res.status(500).json({ success: false, message: "Error updating notification", error });
+    }
+});
+
+// DELETE — remove notification
+app.delete("/api/student/:studentID/notifications/:notifID", async (req, res) => {
+    try {
+        const { studentID, notifID } = req.params;
+
+        const notifDoc = doc(db, "NOTIFICATIONS", studentID, "usernotif", notifID);
+        await deleteDoc(notifDoc);
+
+        res.json({ success: true, message: "Notification deleted successfully" });
+    } catch (error) {
+        console.error("🔥 Error deleting notification:", error);
+        res.status(500).json({ success: false, message: "Error deleting notification", error });
+    }
 });
 
 
