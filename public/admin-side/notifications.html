@@ -43,9 +43,9 @@
       <div class="box-title border-bottom p-3">
         <h6 class="m-0 text-dark fw-bold ">Recent</h6>
       </div>
-      <ul id="recentBody" class="box-body p-0">
+      <div id="recentBody" class="box-body p-0">
         <!-- the notifications will automatically be displayed -->
-      </ul>
+      </div>
     </div> <!-- End of Recent Notifications -->
 
     <!-- Earlier Notifications -->
@@ -54,74 +54,27 @@
         <h6 class="m-0 text-dark fw-bold">Earlier</h6>
         <span class="badge rounded-pill bg-primary p-2 ms-2">View all</span>
       </div>
-      <ul id='earlierBody' class="box-body p-0">
+      <div id='earlierBody' class="box-body p-0">
         <!-- the notifications will automatically be displayed -->
-      </ul>
+      </div>
     </div> <!-- End of Earlier Notifications -->
   </section>
-<!-- 
-  <div class="section-title">Recent</div>
 
-  <div class="notification-card highlight d-flex justify-content-between align-items-start">
-    <div class="d-flex">
-      <input type="checkbox" class="notif-checkbox me-2 mt-2">
-      <div class="notification-icon">
-        <i class="bi bi-bell-fill"></i>
-      </div>
-      <div>
-        <div class="notification-header">New Student Registration</div>
-        <div>A student named <strong>John Doe</strong> has created an account. Please review their profile for approval.
+  <!-- ✅ Confirmation Modal -->
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmDeleteLabel">Confirm Delete</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="notification-time mt-1">Apr 24, 2025 - 1:20 PM</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="notification-card highlight d-flex justify-content-between align-items-start">
-    <div class="d-flex">
-      <input type="checkbox" class="notif-checkbox me-2 mt-2">
-      <div class="notification-icon">
-        <i class="bi bi-bell-fill"></i>
-      </div>
-      <div>
-        <div class="notification-header">Initial Requirement Submitted</div>
-        <div><strong>Jane Smith</strong> has submitted her Initial Requirements. Please check and verify the documents.
+        <div class="modal-body">
+          Are you sure you want to delete the selected notification(s)?
         </div>
-        <div class="notification-time mt-1">Apr 23, 2025 - 10:05 AM</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="notification-card d-flex justify-content-between align-items-start">
-    <div class="d-flex">
-      <input type="checkbox" class="notif-checkbox me-2 mt-2">
-      <div class="notification-icon">
-        <i class="bi bi-bell"></i>
-      </div>
-      <div>
-        <div class="notification-header">System Announcement</div>
-        <div>Final Requirements deadline has been updated to <strong>July 25, 2025</strong>. Please inform all students.
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="notifConfirmDeleteBtn">Delete</button>
         </div>
-        <div class="notification-time mt-1">Apr 22, 2025 - 3:40 PM</div>
       </div>
     </div>
   </div>
-</div> -->
-<!-- ✅ Confirmation Modal -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmDeleteLabel">Confirm Delete</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Are you sure you want to delete the selected notification(s)?
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="notifConfirmDeleteBtn">Delete</button>
-      </div>
-    </div>
-  </div>
-</div>

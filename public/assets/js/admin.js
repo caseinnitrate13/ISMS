@@ -33,12 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ✅ NOTIFICATIONS — FULL MERGED SCRIPT
 document.addEventListener('DOMContentLoaded', () => {
   const facultyData = JSON.parse(localStorage.getItem('facultyData'));
   if (!facultyData || !facultyData.id) return;
-
+  const userId = facultyData.id;
   const path = location.pathname;
 
+  // Page identifiers
   const isRegisteredAcc = path === '/admin/registered-accounts';
   const isDownloadable = path === '/admin/downloadable';
   const isEstablishments = path === '/admin/partner-establishments';
@@ -48,91 +50,69 @@ document.addEventListener('DOMContentLoaded', () => {
   const isNotifications = path === '/admin/notifications';
   const isFacultyProfile = path === '/admin/user-profile';
 
-  if (
-    !(
-      isRegisteredAcc ||
-      isDownloadable ||
-      isEstablishments ||
-      isSubmittedDocs ||
-      isStudentProgess ||
-      isPublishReq ||
-      isNotifications ||
-      isFacultyProfile
-    )
-  ) return;
+  // Load only on valid pages
+  if (!(
+    isRegisteredAcc || isDownloadable || isEstablishments ||
+    isSubmittedDocs || isStudentProgess || isPublishReq ||
+    isNotifications || isFacultyProfile
+  )) return;
 
-  async function loadNotifications(userId) {
+  /* ------------------------------
+     🟣 HEADER NOTIFICATION DROPDOWN
+  ------------------------------- */
+  async function loadNotificationsHeader() {
     const notificationsList = document.querySelector('.notifications');
     const notificationsBadge = document.querySelector('.badge-number');
     const dropdownHeader = document.querySelector('.dropdown-header');
+    if (!notificationsList || !notificationsBadge || !dropdownHeader) return;
 
     try {
       const response = await fetch(`/api/faculty/${userId}/notifications`);
       const data = await response.json();
-
       if (!data.success) return;
 
-      // ✅ Only include notifications that are NOT yet notified
-      const unreadNotifications = data.notifications.filter(n => !n.notified);
-      const unreadCount = unreadNotifications.length;
+      const unread = data.notifications.filter(n => !n.notified);
+      const unreadCount = unread.length;
 
-      // Clear existing notification items and dividers
-      notificationsList.querySelectorAll('.notification-item, .dropdown-divider').forEach(item => item.remove());
+      // Clear dropdown
+      notificationsList.innerHTML = '';
 
-      // Show only top 2 unread notifications
-      const limitedNotifications = unreadNotifications.slice(0, 2);
-
-      for (const notification of limitedNotifications) {
-        const { id, title, message, timestamp } = notification;
+      // Limit to top 2
+      const topNotifications = unread.slice(0, 2);
+      topNotifications.forEach(n => {
+        const { id, title, message, timestamp } = n;
         const date = new Date(timestamp);
-        const formattedTime = date.toLocaleString('en-US', {
-          month: 'short',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
+        const formatted = date.toLocaleString('en-US', {
+          month: 'short', day: '2-digit',
+          hour: '2-digit', minute: '2-digit',
           hour12: true
         });
 
-        const notificationItem = document.createElement('li');
-        notificationItem.classList.add('notification-item');
-        notificationItem.style.cursor = 'pointer';
-        notificationItem.innerHTML = `
+        const li = document.createElement('li');
+        li.classList.add('notification-item');
+        li.innerHTML = `
           <i class="bi bi-bell text-primary"></i>
           <div>
             <h4>${title}</h4>
             <p>${message}</p>
-            <p>${formattedTime}</p>
+            <p>${formatted}</p>
           </div>
         `;
-
-        // 👇 When clicked, mark as read & redirect
-        notificationItem.addEventListener('click', async () => {
-          try {
-            await fetch(`/api/faculty/${userId}/notifications/${id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ notified: true })
-            });
-
-            // Redirect based on title
-            if (title.toLowerCase().includes('document submitted')) {
-              window.location.href = '/admin/submitted-documents';
-            } else {
-              window.location.href = '/admin/notifications';
-            }
-          } catch (err) {
-            console.error('⚠️ Failed to mark notification as read:', err);
-          }
+        li.addEventListener('click', async () => {
+          await fetch(`/api/faculty/${userId}/notifications/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notified: true })
+          });
+          if (title.toLowerCase().includes('document submitted'))
+            window.location.href = '/admin/submitted-documents';
+          else window.location.href = '/admin/notifications';
         });
+        notificationsList.appendChild(li);
+        notificationsList.appendChild(document.createElement('hr')).className = 'dropdown-divider';
+      });
 
-        const divider = document.createElement('li');
-        divider.innerHTML = `<hr class="dropdown-divider">`;
-
-        notificationsList.appendChild(notificationItem);
-        notificationsList.appendChild(divider);
-      }
-
-      // 🧭 Update header & badge
+      // Update badge + header
       notificationsBadge.textContent = unreadCount;
       dropdownHeader.innerHTML =
         unreadCount > 0
@@ -140,87 +120,81 @@ document.addEventListener('DOMContentLoaded', () => {
              <a href="/admin/notifications"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>`
           : `You have no new notifications
              <a href="/admin/notifications"><span class="badge rounded-pill bg-secondary p-2 ms-2">View all</span></a>`;
-    } catch (error) {
-      console.error('🔥 Error loading notifications:', error);
+    } catch (err) {
+      console.error('⚠️ Header notifications error:', err);
     }
   }
 
-  // Initial load
-  loadNotifications(facultyData.id);
+  // Load initially + every 5s
+  loadNotificationsHeader();
+  setInterval(loadNotificationsHeader, 5000);
 
-  // Poll every 5 seconds for updates
-  setInterval(() => loadNotifications(facultyData.id), 5000);
-  
+  /* ------------------------------
+     🟣 PAGE NOTIFICATIONS (Full List)
+  ------------------------------- */
   if (!isNotifications) return;
 
-  const userId = facultyData.id;
   const recentBody = document.getElementById('recentBody');
   const earlierBody = document.getElementById('earlierBody');
   const viewAllBadge = document.querySelector('.box-title .badge');
+  const notificationList = document.getElementById('notificationList');
+  const notifDeleteBtn = document.getElementById('notifDeleteNotifBtn');
+  const notifConfirmDeleteBtn = document.getElementById('notifConfirmDeleteBtn');
 
-  // 🔄 Fetch notifications from backend
+  let selectedCards = [];
+
+  // Load all notifications
   async function loadAllNotifications() {
     try {
       const response = await fetch(`/api/faculty/${userId}/notifications`);
       const data = await response.json();
-
-      if (!data.success) return console.warn('⚠️ No notifications found');
+      if (!data.success) return;
 
       const notifications = data.notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-      // Reset lists
       recentBody.innerHTML = '';
       earlierBody.innerHTML = '';
 
-      // Separate recent (latest 3) and earlier
-      const recentNotifications = notifications.slice(0, 3);
-      const earlierNotifications = notifications.slice(3);
+      const recent = notifications.slice(0, 3);
+      const earlier = notifications.slice(3);
 
-      // 🧩 Create notification cards
-      recentNotifications.forEach(n => recentBody.appendChild(createNotificationCard(n)));
-      earlierNotifications.slice(0, 2).forEach(n => earlierBody.appendChild(createNotificationCard(n)));
+      recent.forEach(n => recentBody.appendChild(createNotificationCard(n)));
+      earlier.slice(0, 2).forEach(n => earlierBody.appendChild(createNotificationCard(n)));
 
-      // 👁️ Toggle View All / View Less
+      // View all toggle
       let isViewingAll = false;
       viewAllBadge.addEventListener('click', () => {
+        earlierBody.innerHTML = '';
         if (!isViewingAll) {
-          earlierBody.innerHTML = '';
-          earlierNotifications.forEach(n => earlierBody.appendChild(createNotificationCard(n)));
+          earlier.forEach(n => earlierBody.appendChild(createNotificationCard(n)));
           viewAllBadge.textContent = 'View less';
           viewAllBadge.classList.replace('bg-primary', 'bg-secondary');
           isViewingAll = true;
         } else {
-          earlierBody.innerHTML = '';
-          earlierNotifications.slice(0, 2).forEach(n => earlierBody.appendChild(createNotificationCard(n)));
+          earlier.slice(0, 2).forEach(n => earlierBody.appendChild(createNotificationCard(n)));
           viewAllBadge.textContent = 'View all';
           viewAllBadge.classList.replace('bg-secondary', 'bg-primary');
           isViewingAll = false;
         }
       });
-    } catch (error) {
-      console.error('🔥 Error loading all notifications:', error);
+    } catch (err) {
+      console.error('🔥 Error loading notifications:', err);
     }
   }
 
-  // 🧱 Create a single notification card
-  function createNotificationCard(notification) {
-    const { id, title, message, timestamp, notified } = notification;
-
+  // Create notification card
+  function createNotificationCard({ id, title, message, timestamp, notified }) {
     const date = new Date(timestamp);
     const formattedTime = date.toLocaleString('en-US', {
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+      month: 'short', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: true
     });
 
     const wrapper = document.createElement('div');
-    wrapper.className = `notification-card d-flex justify-content-between align-items-start p-3 border-bottom ${!notified ? 'highlight' : ''}`;
+    wrapper.className = `notification-card d-flex justify-content-between align-items-start ${!notified ? 'highlight' : ''}`;
     wrapper.innerHTML = `
-      <div class="d-flex align-items-start w-100">
-        <input type="checkbox" class="notif-checkbox me-3 mt-2" data-id="${id}">
-        <div class="notification-icon ${!notified ? 'text-success' : 'text-muted'}">
+      <div class="d-flex align-items-center w-100">
+        <input type="checkbox" class="notif-checkbox me-3" data-id="${id}">
+        <div class="notification-icon ${!notified ? 'text-success' : 'text-muted'} me-3">
           <i class="bi ${!notified ? 'bi-bell-fill' : 'bi-bell'} fs-5"></i>
         </div>
         <div>
@@ -231,104 +205,83 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Click to mark as read + redirect
+    // Click to mark as read
     wrapper.addEventListener('click', async (e) => {
-      // Prevent clicking the checkbox from triggering redirect
       if (e.target.classList.contains('notif-checkbox')) return;
-
       try {
         await fetch(`/api/faculty/${userId}/notifications/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ notified: true })
         });
-
-        if (title.toLowerCase().includes('document submitted')) {
+        if (title.toLowerCase().includes('document submitted'))
           window.location.href = '/admin/submitted-documents';
-        } else {
-          window.location.href = '/admin/notifications';
-        }
+        else window.location.href = '/admin/notifications';
       } catch (err) {
-        console.error('⚠️ Failed to mark notification as read:', err);
+        console.error('⚠️ Failed to mark as read:', err);
       }
     });
 
     return wrapper;
   }
 
-  // ✅ Load notifications initially
-  loadAllNotifications();
-
-  // 🔁 Refresh every 10 seconds
-  setInterval(loadAllNotifications, 10000);
-});
-
-// NOTIFICATION
-document.addEventListener("DOMContentLoaded", () => {
-  const sortOptions = document.querySelectorAll('.sort-option');
-  const notificationList = document.getElementById('notificationList');
-  const notifDeleteBtn = document.getElementById('notifDeleteNotifBtn');
-  const notifConfirmDeleteBtn = document.getElementById('notifConfirmDeleteBtn');
-  let selectedCards = [];
-
   // Sorting
-  sortOptions.forEach(option => {
+  document.querySelectorAll('.sort-option').forEach(option => {
     option.addEventListener('click', function () {
-      const sortType = this.getAttribute('data-sort');
+      const sortType = this.dataset.sort;
       const cards = Array.from(notificationList.querySelectorAll('.notification-card'));
-
       cards.sort((a, b) => {
         const dateA = new Date(a.querySelector('.notification-time').textContent.trim());
         const dateB = new Date(b.querySelector('.notification-time').textContent.trim());
         return sortType === 'newest' ? dateB - dateA : dateA - dateB;
       });
-
       cards.forEach(card => notificationList.appendChild(card));
     });
   });
 
-  // Mark selected as Read/Unread
-  const markOptions = document.querySelectorAll('.mark-option');
-  markOptions.forEach(option => {
-    option.addEventListener('click', function () {
-      const action = this.getAttribute('data-action');
+  // Mark as Read/Unread
+  document.querySelectorAll('.mark-option').forEach(option => {
+    option.addEventListener('click', async function () {
+      const action = this.dataset.action;
       const selected = document.querySelectorAll('.notif-checkbox:checked');
-
-      selected.forEach(checkbox => {
-        const card = checkbox.closest('.notification-card');
-        if (action === 'read') {
-          card.classList.remove('highlight');
-        } else {
-          card.classList.add('highlight');
-        }
-        checkbox.checked = false;
-      });
+      for (const checkbox of selected) {
+        const id = checkbox.dataset.id;
+        await fetch(`/api/faculty/${userId}/notifications/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notified: action === 'read' })
+        });
+      }
+      loadAllNotifications();
     });
   });
 
-  // Delete selected (show modal first)
-  notifDeleteBtn.addEventListener('click', function () {
+  // Delete notifications
+  notifDeleteBtn.addEventListener('click', () => {
     selectedCards = document.querySelectorAll('.notif-checkbox:checked');
     if (selectedCards.length === 0) {
-      alert("Please select at least one notification to delete.");
+      alert('Please select at least one notification to delete.');
       return;
     }
     const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
     modal.show();
   });
 
-  // Confirm delete inside modal
-  notifConfirmDeleteBtn.addEventListener('click', function () {
-    selectedCards.forEach(checkbox => {
-      const card = checkbox.closest('.notification-card');
-      card.remove();
-    });
+  notifConfirmDeleteBtn.addEventListener('click', async () => {
+    for (const checkbox of selectedCards) {
+      const id = checkbox.dataset.id;
+      await fetch(`/api/faculty/${userId}/notifications/${id}`, { method: 'DELETE' });
+      checkbox.closest('.notification-card').remove();
+    }
     const modalEl = document.getElementById('confirmDeleteModal');
     const modal = bootstrap.Modal.getInstance(modalEl);
     modal.hide();
   });
-});
 
+  // Load notifications initially + refresh
+  loadAllNotifications();
+  setInterval(loadAllNotifications, 10000);
+});
 
 
 // DOWNLOADABLE REQUIREMENTS

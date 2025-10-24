@@ -876,29 +876,40 @@ app.get("/api/faculty/:facultyID/notifications", async (req, res) => {
     }
 });
 
-// ✅ Mark faculty notification as read (set notified = true)
-app.patch('/api/faculty/:facultyID/notifications/:notifID', async (req, res) => {
+// PATCH — mark notification as read/unread
+app.patch("/api/faculty/:facultyID/notifications/:notifID", async (req, res) => {
     try {
         const { facultyID, notifID } = req.params;
         const { notified } = req.body;
 
-        if (!facultyID || !notifID) {
-            return res.status(400).json({ success: false, message: 'Faculty ID and notification ID are required' });
+        if (typeof notified !== "boolean") {
+            return res.status(400).json({ success: false, message: "Invalid notified value" });
         }
 
-        // Firestore reference:
-        // ACCOUNTS -> FACULTY -> ACCOUNTS -> facultyID -> notifications -> notifID
-        const notifRef = doc(db, 'NOTIFICATIONS', facultyID, 'usernotif', notifID);
+        const notifDoc = doc(db, "NOTIFICATIONS", facultyID, "usernotif", notifID);
+        await updateDoc(notifDoc, { notified });
 
-        await updateDoc(notifRef, { notified });
-
-        res.json({ success: true, message: 'Notification status updated successfully.' });
+        res.json({ success: true, message: `Notification marked as ${notified ? "read" : "unread"}` });
     } catch (error) {
-        console.error('🔥 Error updating notification status:', error);
-        res.status(500).json({ success: false, message: 'Error updating notification status', error: error.message });
+        console.error("🔥 Error updating notification:", error);
+        res.status(500).json({ success: false, message: "Error updating notification", error });
     }
 });
 
+// DELETE — remove notification
+app.delete("/api/faculty/:facultyID/notifications/:notifID", async (req, res) => {
+    try {
+        const { facultyID, notifID } = req.params;
+
+        const notifDoc = doc(db, "NOTIFICATIONS", facultyID, "usernotif", notifID);
+        await deleteDoc(notifDoc);
+
+        res.json({ success: true, message: "Notification deleted successfully" });
+    } catch (error) {
+        console.error("🔥 Error deleting notification:", error);
+        res.status(500).json({ success: false, message: "Error deleting notification", error });
+    }
+});
 
 app.get('/admin/user-profile', (req, res) => {
     const userProfile = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'users-profile.html'), 'utf-8');
