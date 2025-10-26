@@ -1,8 +1,6 @@
-<div class="pagetitle d-flex align-items-center justify-content-between">
-  <div>
-    <h1>Admin Profile</h1>
-  </div>
-</div>
+<div class="pagetitle">
+  <h1>Profile</h1>
+</div><!-- End Page Title -->
 
 <section class="section profile">
   <div class="row">
@@ -12,8 +10,8 @@
         <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
 
           <img id="accountProfile" src="/assets/img/account.png" alt="Profile" class="rounded-profile">
-          <h2 id="accountName">Kevin Anderson</h2>
-          <h3 class="fw-bold text-success">Active</h3>
+          <h2 id="accountName"></h2>
+          <h3 id="studentID"></h3>
         </div>
       </div>
 
@@ -47,29 +45,33 @@
 
               <div class="row">
                 <div class="col-lg-3 col-md-4 label ">Full Name</div>
-                <div class="col-lg-9 col-md-8" id="POfullname"></div>
+                <div id="fullname" class="col-lg-9 col-md-8"></div>
               </div>
 
               <div class="row">
-                <div class="col-lg-3 col-md-4 label">Office</div>
-                <div class="col-lg-9 col-md-8" id="POoffice"></div>
+                <div class="col-lg-3 col-md-4 label">Birthday</div>
+                <div id="birthdate" class="col-lg-9 col-md-8"></div>
               </div>
 
               <div class="row">
-                <div class="col-lg-3 col-md-4 label">Role</div>
-                <div class="col-lg-9 col-md-8" id="POrole"></div>
-              </div>
-
-              <div class="row">
-                <div class="col-lg-3 col-md-4 label">Address</div>
-                <div class="col-lg-9 col-md-8" id="POaddress"></div>
+                <div class="col-lg-3 col-md-4 label">Gender</div>
+                <div id="gender" class="col-lg-9 col-md-8"></div>
               </div>
 
               <div class="row">
                 <div class="col-lg-3 col-md-4 label">Email</div>
-                <div class="col-lg-9 col-md-8" id="POemail"></div>
+                <div id="emailaddress" class="col-lg-9 col-md-8"></div>
               </div>
 
+              <div class="row">
+                <div class="col-lg-3 col-md-4 label">Phone</div>
+                <div id="phone" class="col-lg-9 col-md-8"></div>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-3 col-md-4 label">Account Created</div>
+                <div id="regdate" class="col-lg-9 col-md-8"></div>
+              </div>
             </div>
 
             <div class="tab-pane fade profile-edit pt-3" id="profile-edit">
@@ -79,57 +81,76 @@
                 <div class="row mb-3">
                   <label for="profileImage" class="col-md-4 col-lg-3 col-form-label">Profile Image</label>
                   <div class="col-md-8 col-lg-9">
-                    <img id="profileImg" src="assets\img\default profile.jpg" alt="Profile">
+                    <img id="changeProfile" src="/assets/img/account.png" alt="Profile" class="profile-img">
                     <div class="pt-2">
-                      <a href="#" id="uploadProfileImg" class="btn btn-primary btn-sm" title="Upload new profile image">
-                        <i class="bi bi-upload"></i>
-                      </a>
-                      <a href="#" id="removeProfileImg" class="btn btn-danger btn-sm" title="Remove my profile image"><i
-                          class="bi bi-trash"></i></a>
-                      <!-- Hidden file input for image upload -->
-                      <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+                      <a href="#" class="btn btn-primary btn-sm" title="Upload new profile image" data-bs-toggle="modal"
+                        data-bs-target="#uploadProfile"><i class="bi bi-upload"></i></a>
+                      <a href="#" class="btn btn-danger btn-sm" title="Remove my profile image" data-bs-toggle="modal"
+                        data-bs-target="#deleteModal"><i class="bi bi-trash"></i></a>
                     </div>
                   </div>
                 </div>
 
                 <div class="row mb-3">
-                  <label for="editfullName" class="col-md-4 col-lg-3 col-form-label">Full Name</label>
-                  <div class="col-md-8 col-lg-9">
-                    <input name="fullName" type="text" class="form-control" id="editfullName" value="">
+                  <!-- Surname -->
+                  <div class="col-md-4">
+                    <label class="form-label">Surname</label>
+                    <input type="text" name="editsurname" class="form-control" required>
+                  </div>
+
+                  <!-- First Name -->
+                  <div class="col-md-4">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="editfirstname" class="form-control" required>
+                  </div>
+
+                  <!-- Middle Name -->
+                  <div class="col-md-4">
+                    <label class="form-label">Middle Name</label>
+                    <input type="text" name="editmiddlename" class="form-control">
                   </div>
                 </div>
 
                 <div class="row mb-3">
-                  <label for="editoffice" class="col-md-4 col-lg-3 col-form-label">Office</label>
-                  <div class="col-md-8 col-lg-9">
-                    <input name="company" type="text" class="form-control" id="editoffice" value="">
+                  <!-- Suffix -->
+                  <div class="col-md-4">
+                    <label class="form-label">Suffix</label>
+                    <input type="text" name="editsuffix" class="form-control">
+                  </div>
+
+                  <!-- Birthdate -->
+                  <div class="col-md-4">
+                    <label class="form-label">Birthdate</label>
+                    <input type="date" name="editbirthdate" class="form-control" required>
+                  </div>
+
+                  <!-- Gender -->
+                  <div class="col-md-4">
+                    <label class="form-label">Gender</label>
+                    <select name="editgender" class="form-select" required>
+                      <option value="">Select...</option>
+                      <option>Male</option>
+                      <option>Female</option>
+                    </select>
                   </div>
                 </div>
 
                 <div class="row mb-3">
-                  <label for="editrole" class="col-md-4 col-lg-3 col-form-label">Role</label>
-                  <div class="col-md-8 col-lg-9">
-                    <input name="role" type="text" class="form-control" id="editrole" value="">
+                  <!-- Email -->
+                  <div class="col-md-4">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="editemail" class="form-control" required>
                   </div>
-                </div>
 
-
-                <div class="row mb-3">
-                  <label for="editaddress" class="col-md-4 col-lg-3 col-form-label">Address</label>
-                  <div class="col-md-8 col-lg-9">
-                    <input name="address" type="text" class="form-control" id="editaddress" value="">
-                  </div>
-                </div>
-
-                <div class="row mb-3">
-                  <label for="editemail" class="col-md-4 col-lg-3 col-form-label">Email</label>
-                  <div class="col-md-8 col-lg-9">
-                    <input name="email" type="email" class="form-control" id="editemail" value="">
+                  <!-- Contact Number -->
+                  <div class="col-md-3">
+                    <label class="form-label">Contact Number</label>
+                    <input type="text" name="editcontact" class="form-control" required>
                   </div>
                 </div>
 
                 <div class="text-center">
-                  <button type="submit" class="btn btn-save" id="saveChanges">Save Changes</button>
+                  <button id="editBtn" type="submit" class="btn btn-primary">Edit Profile</button>
                 </div>
               </form><!-- End Profile Edit Form -->
 
@@ -159,10 +180,9 @@
                     <input name="renewpassword" type="password" class="form-control" id="renewPassword">
                   </div>
                 </div>
-                <div id="fileFeedback" class="invalid-feedback text-size2 d-none"></div>
 
                 <div class="text-center">
-                  <button type="submit" class="btn btn-change" id="changePassword">Change Password</button>
+                  <button type="submit" class="btn btn-primary">Change Password</button>
                 </div>
               </form><!-- End Change Password Form -->
 
@@ -177,19 +197,64 @@
   </div>
 </section>
 
-<!-- Notoce Modal -->
-<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="uploadProfile" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header custom-modal-header-sm">
-        <h5 class="modal-title" id="errorModalLabel">Notice</h5>
+      <div class="modal-header">
+        <h5 class="modal-title">Upload Profile Picture</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p id="errorMessage"></p>
-        <div class="mt-auto d-flex justify-content-end">
-          <button type="button" class="btn btn-sm custom-btn-primary" data-bs-dismiss="modal">Okay</button>
+        <form id="profileForm">
+          <div class="mb-3 text-center">
+            <label for="profileUpload" class="form-label">Upload your image.</label>
+
+            <!-- Preview box -->
+            <div id="profilePreview"
+              class="file-preview border rounded p-3 d-flex flex-column align-items-center justify-content-center"
+              style="cursor: pointer; min-height: 200px;">
+              <span id="placeholder">
+                <i class="bi bi-plus"></i>
+                <h6>Click or Drag File</h6>
+              </span>
+              <img id="previewImg" src="" alt="Preview" class="img-fluid rounded d-none" style="max-height: 200px;">
+            </div>
+
+            <!-- Hidden file input -->
+            <input type="file" id="profileUpload" accept="image/*" hidden>
+
+            <div class="text-center mt-3">
+              <button type="button" id="profileUploadBtn" class="btn outlined-btn border-dark rounded-pill ps-4 pe-4">
+                <i class="bi bi-upload me-2"></i>Upload File
+              </button>
+            </div>
+          </div>
+
+        </form>
+        <div class="modal-footer d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveProfileBtn">Save changes</button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- delete modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-3 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Delete Profile Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="deleteModalBody">
+        <p>Are you sure you want to delete your profile image?</p>
+      </div>
+      <div class="modal-footer d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="deleteBtn">Delete</button>
       </div>
     </div>
   </div>

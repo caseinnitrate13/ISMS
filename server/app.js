@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 
 //Firebase Connection
 const { db } = require('./config');
-const { doc, setDoc, getDoc, getDocs, collection, deleteDoc, updateDoc, addDoc, serverTimestamp } = require('firebase/firestore');
+const { doc, setDoc, getDoc, getDocs, collection, deleteDoc, updateDoc, addDoc, serverTimestamp, writeBatch } = require('firebase/firestore');
 
 const app = express();
 app.use(express.json());
@@ -609,14 +609,17 @@ app.post('/api/update-docustatus', async (req, res) => {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
-        // 1️⃣ Update the document status
         const docRef = doc(db, "DOCUMENTS", requirementID, studentID, submitteddocuID);
-        const updateData = { docustatus: newStatus };
-        if (remarks) updateData.remarks = remarks;
+
+        // ✅ Always include remarks, even if blank
+        const updateData = {
+            docustatus: newStatus,
+            remarks: remarks ?? ""
+        };
 
         await updateDoc(docRef, updateData);
         console.log(`✅ Updated docustatus to "${newStatus}" for ${requirementID}/${studentID}/${submitteddocuID}`);
-        if (remarks) console.log(`🗒 Remarks: ${remarks}`);
+        console.log(`🗒 Remarks: "${remarks}"`);
 
         // 2️⃣ Create a customized notification message
         let message = "";
@@ -744,6 +747,7 @@ app.get("/api/student-progress", async (req, res) => {
                         const studentID = studentDoc.id;
                         const sData = studentDoc.data();
                         const studentName = `${sData.surname || ""}, ${sData.firstname || ""}`.trim();
+                        const internshipstatus = sData.internshipstatus;
                         const requirementStatuses = {};
 
                         // ✅ Fetch each requirement submission for this student
@@ -770,6 +774,7 @@ app.get("/api/student-progress", async (req, res) => {
                             studentName,
                             block,
                             requirements: requirementStatuses,
+                            internshipstatus,
                         });
                     })
                 );
@@ -783,6 +788,40 @@ app.get("/api/student-progress", async (req, res) => {
     } catch (error) {
         console.error("🔥 Error fetching student progress:", error);
         res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+});
+
+app.post("/api/update-internshipstatus", async (req, res) => {
+    try {
+        const { block, studentID, newStatus } = req.body;
+
+        if (!block || !studentID || !newStatus) {
+            return res.status(400).json({ success: false, message: "Missing required fields." });
+        }
+
+        // 🔹 Update internshipstatus in student's record
+        const studentRef = doc(db, "ACCOUNTS", "STUDENTS", block, studentID);
+        await updateDoc(studentRef, { internshipstatus: newStatus });
+
+        // 🔹 Create a personalized notification
+        const notifRef = collection(db, "NOTIFICATIONS", studentID, "usernotif");
+        await addDoc(notifRef, {
+            title: "Internship Status Update",
+            message: `Your internship status has been updated to "${newStatus}".`,
+            timestamp: new Date().toISOString(),
+            notified: false,
+        });
+
+        console.log(`✅ Internship status updated and notification sent to ${studentID}`);
+        res.json({ success: true, message: "Internship status and notification saved." });
+
+    } catch (error) {
+        console.error("🔥 Error updating internship status:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error updating internship status.",
+            error: error.message,
+        });
     }
 });
 
@@ -801,8 +840,9 @@ app.post("/save-requirement", async (req, res) => {
             return res.status(400).json({ success: false, message: "Missing required fields." });
         }
 
+        // ✅ 1. Save the new requirement
         const requirementsRef = collection(db, "REQUIREMENTS");
-        await addDoc(requirementsRef, {
+        const newRequirementRef = await addDoc(requirementsRef, {
             type,
             title,
             dueDate,
@@ -812,12 +852,58 @@ app.post("/save-requirement", async (req, res) => {
             createdAt: serverTimestamp(),
         });
 
-        res.json({ success: true, message: "Requirement saved successfully." });
+        console.log(`📘 New requirement added: ${title} (${newRequirementRef.id})`);
+
+        // ✅ 2. Define student blocks (adjust if more exist)
+        const blocks = ["A", "B"]; // add/remove depending on your Firestore structure
+
+        let totalNotified = 0;
+        const batch = writeBatch(db);
+
+        // ✅ 3. Loop through each block and get student IDs
+        for (const block of blocks) {
+            const studentsRef = collection(db, "ACCOUNTS", "STUDENTS", block);
+            const studentSnapshot = await getDocs(studentsRef);
+
+            if (!studentSnapshot.empty) {
+                studentSnapshot.forEach((studentDoc) => {
+                    const studentID = studentDoc.id;
+                    const notifRef = doc(collection(db, "NOTIFICATIONS", studentID, "usernotif"));
+
+                    batch.set(notifRef, {
+                        title: "New Requirement Added",
+                        message: `A new requirement "${title}" has been posted. Please check the details.`,
+                        requirementID: newRequirementRef.id,
+                        type,
+                        status: "unread",
+                        timestamp: new Date().toISOString(),
+                        notified: false,
+                    });
+
+                    totalNotified++;
+                });
+            }
+        }
+
+        // ✅ 4. Commit all notifications in a single batch
+        await batch.commit();
+
+        console.log(`📢 Notifications sent to ${totalNotified} students.`);
+
+        res.json({
+            success: true,
+            message: `Requirement saved and notifications sent to ${totalNotified} students.`,
+        });
     } catch (error) {
-        console.error("🔥 Error saving requirement:", error);
-        res.status(500).json({ success: false, message: "Error saving requirement.", error });
+        console.error("🔥 Error saving requirement or sending notifications:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error saving requirement or sending notifications.",
+            error: error.message,
+        });
     }
 });
+
 
 // Fetch all requirements
 app.get("/get-requirements", async (req, res) => {
@@ -946,6 +1032,60 @@ app.get('/admin/user-profile', (req, res) => {
     const userProfile = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'users-profile.html'), 'utf-8');
     res.send(adminTemplate.replace('{{content}}', userProfile));
 });
+
+app.get('/get-faculty/:facultyID', async (req, res) => {
+    try {
+        const { facultyID } = req.params;
+        const facultyRef = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', facultyID);
+        const facultySnap = await getDoc(facultyRef);
+
+        if (!facultySnap.exists()) {
+            return res.status(404).json({ success: false, message: "Faculty not found" });
+        }
+
+        const data = facultySnap.data();
+
+        res.json({
+            success: true,
+            faculty: {
+                id: facultyID,
+                firstname: data.firstname || '',
+                middlename: data.middlename || '',
+                lastname: data.lastname || '',
+                suffix: data.suffix || '',
+                email: data.email || '',
+                regdate: data.regdate || '',
+                birthdate: data.birthdate || '',
+                gender: data.gender || '',
+                contact: data.contact || '',
+                profilePic: data.profilePic || '/assets/img/account-green.png'
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching faculty:", error);
+        res.status(500).json({ success: false, message: "Server error fetching faculty", error });
+    }
+});
+
+app.post("/update-faculty-profile", async (req, res) => {
+    try {
+        const { facultyID, updatedData } = req.body;
+
+        if (!facultyID || !updatedData) {
+            return res.status(400).json({ success: false, message: "Missing required data" });
+        }
+
+        const facultyRef = doc(db, "ACCOUNTS", "FACULTY", "ACCOUNTS", facultyID);
+        await updateDoc(facultyRef, updatedData);
+
+        console.log(`✅ Faculty profile updated for: ${facultyID}`);
+        res.json({ success: true, message: "Profile updated successfully" });
+    } catch (error) {
+        console.error("🔥 Error updating faculty profile:", error);
+        res.status(500).json({ success: false, message: "Error updating profile", error });
+    }
+});
+
 
 
 // CLIENT SIDE PAGES
@@ -1271,6 +1411,59 @@ app.post("/api/save-review", async (req, res) => {
 app.get('/account', (req, res) => {
     const account = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'account.html'), 'utf-8');
     res.send(template.replace('{{content}}', account));
+});
+
+app.get('/get-student/:block/:studentID', async (req, res) => {
+    try {
+        const { block, studentID } = req.params;
+        const studentRef = doc(db, 'ACCOUNTS', 'STUDENTS', block, studentID);
+        const studentSnap = await getDoc(studentRef);
+
+        if (!studentSnap.exists()) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        const studentData = studentSnap.data();
+        res.json({
+            success: true,
+            student: {
+                id: studentID,
+                firstname: studentData.firstname || '',
+                middlename: studentData.middlename || '',
+                lastname: studentData.surname || '',
+                suffix: studentData.suffix || '',
+                status: studentData.status || 'Pending',
+                birthdate: studentData.birthdate || '',
+                gender: studentData.gender || '',
+                email: studentData.email || '',
+                phone: studentData.contact || '',
+                regdate: studentData.reg_date || '',
+                profilePic: studentData.profilePic || '/assets/img/account-green.png',
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching student:", error);
+        res.status(500).json({ success: false, message: "Server error fetching student", error });
+    }
+});
+
+app.post("/update-student-profile", async (req, res) => {
+    try {
+        const { block, studentID, updatedData } = req.body;
+
+        if (!block || !studentID || !updatedData) {
+            return res.status(400).json({ success: false, message: "Missing required data" });
+        }
+
+        const studentRef = doc(db, "ACCOUNTS", "STUDENTS", block, studentID);
+        await updateDoc(studentRef, updatedData);
+
+        console.log(`✅ Updated profile for student: ${studentID}`);
+        res.json({ success: true, message: "Profile updated successfully" });
+    } catch (error) {
+        console.error("🔥 Error updating student profile:", error);
+        res.status(500).json({ success: false, message: "Error updating profile", error });
+    }
 });
 
 app.get('/notifications', (req, res) => {

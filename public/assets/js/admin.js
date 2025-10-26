@@ -1,37 +1,302 @@
 // FACULTY DETAILS
-document.addEventListener('DOMContentLoaded', () => {
-  const facultyData = JSON.parse(localStorage.getItem('facultyData'));
-  console.log(facultyData);
-
-  if (!facultyData) {
-    console.warn("No faculty data found in localStorage.");
-    return;
-  }
-
-  // Identify which page you're on
+document.addEventListener('DOMContentLoaded', async () => {
   const path = location.pathname;
 
+  // Identify faculty admin pages
   const isRegisteredAcc = path === '/admin/registered-accounts';
   const isDownloadable = path === '/admin/downloadable';
   const isEstablishments = path === '/admin/partner-establishments';
   const isSubmittedDocs = path === '/admin/submitted-documents';
-  const isStudentProgess = path === '/admin/student-progress';
+  const isStudentProgress = path === '/admin/student-progress';
   const isPublishReq = path === '/admin/publish-requirements';
   const isNotifications = path === '/admin/notifications';
   const isFacultyProfile = path === '/admin/user-profile';
 
-  // Common header elements
-  const headerProfile = document.getElementById('headerProfile');
-  const headerName = document.querySelector('.nav-profile span');
+  // Get faculty credentials (stored after login)
+  const facultyID = JSON.parse(localStorage.getItem('facultyData'))?.id;
 
-  // 🧩 Display faculty info in header (for specified pages)
-  if (isRegisteredAcc || isDownloadable || isEstablishments || isSubmittedDocs
-    || isStudentProgess || isPublishReq || isNotifications || isFacultyProfile
-  ) {
-    if (headerName) headerName.textContent = `${facultyData.firstname} ${facultyData.lastname}`;
-    if (headerProfile) headerProfile.src = facultyData.profilePic || '/assets/img/account-green.png';
+  if (!facultyID) {
+    console.warn("⚠️ No faculty credentials found. Redirecting to login...");
+    window.location.href = '/';
+    return;
+  }
+
+  try {
+    // 🔍 Fetch latest faculty info from backend
+    const response = await fetch(`/get-faculty/${facultyID}`);
+    const result = await response.json();
+
+    if (!result.success) {
+      console.error("Error fetching faculty data:", result.message);
+      return;
+    }
+
+    const facultyData = result.faculty;
+    console.log(facultyData);
+
+    // Common header elements
+    const headerProfile = document.getElementById('headerProfile');
+    const headerName = document.querySelector('.nav-profile span');
+
+    // 🧩 Display faculty info in header (for all admin pages)
+    if (
+      isRegisteredAcc ||
+      isDownloadable ||
+      isEstablishments ||
+      isSubmittedDocs ||
+      isStudentProgress ||
+      isPublishReq ||
+      isNotifications ||
+      isFacultyProfile
+    ) {
+      if (headerName) headerName.textContent = `${facultyData.firstname} ${facultyData.lastname}`;
+      if (headerProfile) headerProfile.src = facultyData.profilePic || '/assets/img/account-green.png';
+    }
+
+    // ✅ If on Faculty Profile page, show full info
+    if (isFacultyProfile) {
+      document.getElementById('accountName').textContent =
+        `${facultyData.firstname} ${facultyData.middlename ? facultyData.middlename + ' ' : ''}${facultyData.lastname}`;
+      document.getElementById('studentID').textContent = facultyData.id || '';
+
+      // 🖼️ Profile
+      const accountProfile = document.getElementById('accountProfile');
+      if (accountProfile) accountProfile.src = facultyData.profilePic || '/assets/img/account-green.png';
+
+      // 🧾 Static details
+      document.getElementById('fullname').textContent =
+        `${facultyData.firstname} ${facultyData.middlename ? facultyData.middlename + ' ' : ''}${facultyData.lastname}`;
+      document.getElementById('emailaddress').textContent = facultyData.email || '—';
+      document.getElementById('birthdate').textContent = facultyData.birthdate || '—';
+      document.getElementById('regdate').textContent = facultyData.regdate || '—';
+
+      // 🧩 Editable form fields
+      document.querySelector('input[name="editsurname"]').value = facultyData.lastname || '';
+      document.querySelector('input[name="editfirstname"]').value = facultyData.firstname || '';
+      document.querySelector('input[name="editmiddlename"]').value = facultyData.middlename || '';
+      document.querySelector('input[name="editsuffix"]').value = facultyData.suffix || '';
+      document.querySelector('input[name="editemail"]').value = facultyData.email || '';
+      document.querySelector('input[name="editbirthdate"]').value = facultyData.birthdate || '';
+      document.querySelector('select[name="editgender"]').value = facultyData.gender || '';
+      document.querySelector('input[name="editcontact"]').value = facultyData.contact || '';
+
+      const profileImg = document.getElementById('changeProfile');
+      if (profileImg) profileImg.src = facultyData.profilePic || '/assets/img/account-green.png';
+
+    }
+  } catch (error) {
+    console.error("🔥 Error fetching faculty data:", error);
+  }
+
+  // 🧩 Handle Faculty Profile Save
+  const editForm = document.querySelector("#profile-edit form");
+
+  if (editForm) {
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const facultyData = JSON.parse(localStorage.getItem("facultyData"));
+      const facultyID = facultyData?.id;
+
+      if (!facultyID) {
+        alert("Faculty credentials not found. Please log in again.");
+        return;
+      }
+
+      // Collect updated form data
+      const updatedData = {
+        lastname: document.querySelector('input[name="editsurname"]').value.trim(),
+        firstname: document.querySelector('input[name="editfirstname"]').value.trim(),
+        middlename: document.querySelector('input[name="editmiddlename"]').value.trim(),
+        suffix: document.querySelector('input[name="editsuffix"]').value.trim(),
+        email: document.querySelector('input[name="editemail"]').value.trim(),
+        birthdate: document.querySelector('input[name="editbirthdate"]').value,
+        gender: document.querySelector('select[name="editgender"]').value,
+        contact: document.querySelector('input[name="editcontact"]').value.trim(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      try {
+        const response = await fetch("/update-faculty-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ facultyID, updatedData }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // alert("✅ Faculty profile updated successfully!");
+        } else {
+          alert("⚠️ Failed to update profile: " + result.message);
+        }
+      } catch (error) {
+        console.error("🔥 Error updating faculty profile:", error);
+        alert("An error occurred while saving your profile.");
+      }
+    });
+  }
+
+});
+
+// EDIT PROFILE 
+document.addEventListener("DOMContentLoaded", function () {
+
+  const fileInput = document.getElementById("profileUpload");
+  const previewImg = document.getElementById("previewImg");
+  const placeholder = document.getElementById("placeholder");
+  const previewBox = document.getElementById("profilePreview");
+  const uploadBtn = document.getElementById("profileUploadBtn");
+  const saveBtn = document.getElementById("saveProfileBtn");
+  const deleteBtn = document.getElementById("deleteBtn");
+
+  // edit/save toggle
+  const editBtn = document.getElementById("editBtn");
+  const editFormInputs = document.querySelectorAll(
+    "#profile-edit input, #profile-edit select, #profile-edit a.btn"
+  );
+
+
+  // initially disable all inputs
+  function setFormDisabled(disabled) {
+    editFormInputs.forEach((el) => {
+      el.disabled = disabled;
+      if (disabled) {
+        el.classList.add("disabled");
+        el.setAttribute("tabindex", "-1"); // prevent tabbing to disabled links
+      } else {
+        el.classList.remove("disabled");
+        el.removeAttribute("tabindex");
+      }
+    });
+  }
+
+  setFormDisabled(true);
+
+  editBtn?.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    if (editBtn.textContent === "Edit Profile") {
+      // editing mode
+      setFormDisabled(false);
+      editBtn.textContent = "Save Changes";
+    } else {
+      // Save & disable again (trigger existing submit logic)
+      editForm.dispatchEvent(new Event("submit"));
+      setFormDisabled(true);
+      editBtn.textContent = "Edit Profile";
+    }
+  });
+
+  let tempImage = null;
+  const defaultImg = "/assets/img/account.png";
+
+  const savedImage = localStorage.getItem("profileImage");
+  const savedData = JSON.parse(localStorage.getItem("profileData")) || {};
+
+  if (savedImage) updateAllProfiles(savedImage);
+  if (Object.keys(savedData).length > 0) applyProfileData(savedData);
+
+  // --- File Upload Trigger ---
+  uploadBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    fileInput.click();
+  });
+  previewBox?.addEventListener("click", () => fileInput.click());
+
+  // --- Preview new image ---
+  fileInput?.addEventListener("change", function () {
+    const file = this.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        tempImage = e.target.result;
+
+        // Show preview inside modal
+        previewImg.src = tempImage;
+        previewImg.classList.remove("d-none");
+        placeholder.classList.add("d-none");
+
+        // Only update changeProfile for now
+        const changeProfile = document.getElementById("changeProfile");
+        if (changeProfile) changeProfile.src = tempImage;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // --- Save button (in modal) ---
+  saveBtn?.addEventListener("click", function () {
+    if (tempImage) {
+      console.log("Temporary image stored, waiting for submit...");
+    }
+    const modalEl = document.getElementById("uploadProfile");
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+  });
+
+  // --- Delete Profile Image ---
+  deleteBtn?.addEventListener("click", function () {
+    tempImage = defaultImg;
+    const changeProfile = document.getElementById("changeProfile");
+    if (changeProfile) changeProfile.src = defaultImg;
+
+    // Close delete modal
+    const modalEl = document.getElementById("deleteModal");
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+
+    console.log("🗑️ Profile image reset to default. Will apply on submit.");
+  });
+
+  // --- Submit Main Edit Form ---
+  const editForm = document.querySelector("#profile-edit form");
+  editForm?.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    if (tempImage) {
+      updateAllProfiles(tempImage);
+      localStorage.setItem("profileImage", tempImage);
+      tempImage = null;
+    }
+
+    const newData = {
+      fullname: document.getElementById("editFullname").value,
+      company: document.getElementById("editCompany").value,
+      position: document.getElementById("editPosition").value,
+      address: document.getElementById("editAddress").value,
+      phone: document.getElementById("editPhone").value,
+      email: document.getElementById("editEmail").value,
+    };
+
+    applyProfileData(newData);
+
+    localStorage.setItem("profileData", JSON.stringify(newData));
+
+    console.log("Profile updated & saved");
+  });
+
+  // --- Helpers ---
+  function updateAllProfiles(image) {
+    ["accountProfile", "changeProfile", "headerProfile"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.src = image;
+    });
+  }
+
+  function applyProfileData(data) {
+    if (data.fullname) {
+      document.getElementById("accountName").textContent = data.fullname;
+      document.getElementById("fullname").textContent = data.fullname;
+    }
+    if (data.company) document.getElementById("company").textContent = data.company;
+    if (data.position) document.getElementById("position").textContent = data.position;
+    if (data.address) document.getElementById("address").textContent = data.address;
+    if (data.phone) document.getElementById("phone").textContent = data.phone;
+    if (data.email) document.getElementById("email").textContent = data.email;
   }
 });
+
 
 // ✅ NOTIFICATIONS — FULL MERGED SCRIPT
 document.addEventListener('DOMContentLoaded', () => {
@@ -931,9 +1196,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // ✅ APPROVE — save immediately
     if (currentAction === "approve") {
       const newStatus = "Completed";
+      const remarks = ""; // ✅ Set remarks to blank
+
       statusCell.textContent = "Approved";
       statusCell.classList.add("text-success", "fw-bold");
       statusCell.classList.remove("text-danger");
+
+      const remarksCell = currentRow.querySelector(".remarks-cell");
+      remarksCell.textContent = ""; // ✅ Clear remarks visually
 
       confirmationModal.hide();
 
@@ -941,9 +1211,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const res = await fetch("/api/update-docustatus", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requirementID, requirermentTitle, studentID, submitteddocuID, newStatus }),
+          body: JSON.stringify({
+            requirementID,
+            requirementTitle,
+            studentID,
+            submitteddocuID,
+            newStatus,
+            remarks,
+          }),
         });
+
         const result = await res.json();
+
         if (!result.success) {
           console.error("❌ Failed to update Firestore:", result.message);
           feedbackMessage.textContent = `❌ Failed to approve document.`;
@@ -958,6 +1237,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("🔥 Error sending update:", error);
       }
     }
+
 
     // ❌ DECLINE — ask for remarks before saving
     else if (currentAction === "decline") {
@@ -991,6 +1271,7 @@ document.addEventListener("DOMContentLoaded", function () {
       statusCell.classList.remove("text-success");
 
       const remarksCell = currentRow.querySelector(".remarks-cell");
+      remarksCell.textContent = remarkText;
 
       // ✅ Update status cell appearance
       statusCell.textContent = "Declined";
@@ -998,7 +1279,7 @@ document.addEventListener("DOMContentLoaded", function () {
       statusCell.classList.remove("text-success");
 
       // ✅ Show the entered remarks in the table cell
-      remarksCell.textContent = remarkText;
+
 
       confirmationModal.hide();
 
@@ -1309,7 +1590,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     accountData.status = "Active";
-    accountData.internshipstatus = "Pening";
+    accountData.internshipstatus = "Pending";
     // --- Duplicate check ---
     if (studentExists(accountData.student_id)) {
       showFeedback(`⚠️ Student ID "${accountData.student_id}" already exists.`, "warning");
@@ -2625,11 +2906,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Re-evaluate filters when a row's status-select changes
   function setupStatusChange(block) {
-    const table = document.getElementById(`block${block}Table`);
+    const table = document.getElementById(`progressblock${block}Table`);
     if (!table) return;
-    table.addEventListener("change", (e) => {
+
+    table.addEventListener("change", async (e) => {
       if (e.target && e.target.matches("select.status-select")) {
         applyFilters(block);
+
+        const row = e.target.closest("tr");
+        const studentID = row.cells[1]?.innerText.trim();
+        const newStatus = e.target.value;
+
+        if (!studentID) return;
+
+        try {
+          const res = await fetch("/api/update-internshipstatus", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ block, studentID, newStatus }),
+          });
+
+          const result = await res.json();
+
+          if (result.success) {
+            console.log(`✅ Internship status for ${studentID} updated to ${newStatus}`);
+          } else {
+            console.error(`❌ Failed to update internship status: ${result.message}`);
+          }
+        } catch (err) {
+          console.error("🔥 Error updating internship status:", err);
+        }
       }
     });
   }
@@ -2744,30 +3050,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const row = document.createElement("tr");
       row.innerHTML = `
-      <td class="row-num">${index + 1}</td>
-      <td>${student.studentID}</td>
-      <td>${student.studentName}</td>
-      ${allReqs.map((key) => {
+        <td class="row-num">${index + 1}</td>
+        <td>${student.studentID}</td>
+        <td>${student.studentName}</td>
+        ${allReqs.map((key) => {
         const val = req[key];
         const tooltip = req[`${key}_pastDue`] ? `title="${req[`${key}_pastDue`]}"` : "";
-        return `<td class="${getStatusClass(val)}"></td>`;
+        return `<td class="${getStatusClass(val)}" ${tooltip}></td>`;
       }).join("")}
-      <td>
-        <select class="status-select">
-          <option value="Pending">Pending</option>
-          <option value="Ready for Deployment">Ready for Deployment</option>
-          <option value="Deployed">Deployed</option>
-          <option value="Completed">Completed</option>
-        </select>
-      </td>
-      <td>
-        <div class="progress">
-          <div class="progress-bar ${barClass}" role="progressbar" style="width: ${percentage}%;">${percentage}%</div>
-        </div>
-      </td>
-    `;
-
+        <td>
+          <select class="status-select">
+            <option value="Pending" ${student.internshipstatus === "Pending" ? "selected" : ""}>Pending</option>
+            <option value="Ready for Deployment" ${student.internshipstatus === "Ready for Deployment" ? "selected" : ""}>Ready for Deployment</option>
+            <option value="Deployed" ${student.internshipstatus === "Deployed" ? "selected" : ""}>Deployed</option>
+            <option value="Completed" ${student.internshipstatus === "Completed" ? "selected" : ""}>Completed</option>
+          </select>
+        </td>
+        <td>
+          <div class="progress">
+            <div class="progress-bar ${barClass}" role="progressbar" style="width: ${percentage}%;">${percentage}%</div>
+          </div>
+        </td>
+      `;
       tableBody.appendChild(row);
+
     });
   }
 

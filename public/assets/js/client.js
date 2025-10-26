@@ -1,16 +1,8 @@
 // USER DETAILS
-document.addEventListener('DOMContentLoaded', () => {
-    const studentData = JSON.parse(localStorage.getItem('studentData'));
-    console.log(studentData);
-
-    if (!studentData) {
-        console.warn("No student data found in localStorage.");
-        return;
-    }
-
-    // Identify which page you're on
+document.addEventListener('DOMContentLoaded', async () => {
     const path = location.pathname;
 
+    // Identify pages
     const isProgressTracker = path === '/progress-tracker';
     const isSubmission = path === '/submission';
     const isAccountPage = path === '/account';
@@ -19,19 +11,311 @@ document.addEventListener('DOMContentLoaded', () => {
     const isReviewAgenciesPage = path === '/review-agency';
     const isNotificationPage = path === '/notifications';
 
-    // Common header elements
-    const headerProfile = document.getElementById('headerProfile');
-    const headerName = document.querySelector('.nav-profile span');
+    // Get student ID and block from session
+    const studentData = JSON.parse(localStorage.getItem('studentData'));
+    console.log(studentData);
+    const studentID = studentData?.id;
+    const block = studentData?.block;
 
-    // 🧩 Display student info in header (for most pages)
-    if (isProgressTracker || isSubmission || isAccountPage || isdwFormPage || isPartnerAgenciesPage
-        || isReviewAgenciesPage || isNotificationPage
-    ) {
-        if (headerName) headerName.textContent = `${studentData.firstname} ${studentData.lastname}`;
-        if (headerProfile) headerProfile.src = studentData.profilePic || '/assets/img/account-green.png';
+    if (!studentID || !block) {
+        console.warn("⚠️ No student credentials found. Redirecting to login...");
+        window.location.href = '/login';
+        return;
+    }
+
+    try {
+        // 🔍 Fetch latest student info from backend
+        const response = await fetch(`/get-student/${block}/${studentID}`);
+        const result = await response.json();
+
+        if (!result.success) {
+            console.error("Error fetching student data:", result.message);
+            return;
+        }
+
+        const studentData = result.student;
+
+        // Common header elements
+        const headerProfile = document.getElementById('headerProfile');
+        const headerName = document.querySelector('.nav-profile span');
+
+        // 🧩 Display student info in header (for most pages)
+        if (
+            isProgressTracker ||
+            isSubmission ||
+            isAccountPage ||
+            isdwFormPage ||
+            isPartnerAgenciesPage ||
+            isReviewAgenciesPage ||
+            isNotificationPage
+        ) {
+            if (headerName) headerName.textContent = `${studentData.firstname} ${studentData.lastname}`;
+            if (headerProfile) headerProfile.src = studentData.profilePic || '/assets/img/account-green.png';
+        }
+
+        // ✅ If on Account page, show full info
+        if (isAccountPage) {
+            document.getElementById('accountName').textContent =
+                `${studentData.firstname} ${studentData.middlename ? studentData.middlename + ' ' : ''}${studentData.lastname}`;
+            document.getElementById('studentID').textContent = studentData.id || '';
+
+            // --- STATUS ---
+            const statusElement = document.getElementById('status');
+            const status = studentData.status || '';
+            statusElement.textContent = status;
+
+            // Remove old colors
+            statusElement.classList.remove('text-success', 'text-danger', 'text-primary');
+
+            // Apply color
+            if (status.toLowerCase() === 'active') {
+                statusElement.classList.add('text-success');
+            } else if (status.toLowerCase() === 'inactive') {
+                statusElement.classList.add('text-danger');
+            } else {
+                statusElement.classList.add('text-primary');
+            }
+
+            // 🖼️ Profile
+            const accountProfile = document.getElementById('accountProfile');
+            if (accountProfile) accountProfile.src = studentData.profilePic || '/assets/img/account-green.png';
+
+            // 🧾 Static details
+            document.getElementById('fullname').textContent =
+                `${studentData.firstname} ${studentData.middlename ? studentData.middlename + ' ' : ''}${studentData.lastname}`;
+            document.getElementById('birthdate').textContent = studentData.birthdate || '—';
+            document.getElementById('gender').textContent = studentData.gender || '—';
+            document.getElementById('emailaddress').textContent = studentData.email || '—';
+            document.getElementById('phone').textContent = studentData.phone || '—';
+            document.getElementById('regdate').textContent = studentData.regdate || '—';
+
+            // 🧩 Editable form fields
+            document.querySelector('input[name="editsurname"]').value = studentData.lastname || '';
+            document.querySelector('input[name="editfirstname"]').value = studentData.firstname || '';
+            document.querySelector('input[name="editmiddlename"]').value = studentData.middlename || '';
+            document.querySelector('input[name="editsuffix"]').value = studentData.suffix || '';
+            document.querySelector('input[name="editbirthdate"]').value = studentData.birthdate || '';
+            document.querySelector('select[name="editgender"]').value = studentData.gender || '';
+            document.querySelector('input[name="editemail"]').value = studentData.email || '';
+            document.querySelector('input[name="editcontact"]').value = studentData.phone || '';
+
+            const profileImg = document.getElementById('changeProfile');
+            if (profileImg) profileImg.src = studentData.profilePic || '/assets/img/account-green.png';
+        }
+
+    } catch (error) {
+        console.error("🔥 Error fetching student data:", error);
+    }
+
+    // 🧩 Handle Edit Profile Save
+    const editForm = document.querySelector("#profile-edit form");
+
+    if (editForm) {
+        editForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const studentData = JSON.parse(localStorage.getItem("studentData"));
+            const studentID = studentData?.id;
+            const block = studentData?.block;
+
+            if (!studentID || !block) {
+                alert("Student information not found. Please log in again.");
+                return;
+            }
+
+            // Collect updated form data
+            const updatedData = {
+                surname: document.querySelector('input[name="editsurname"]').value.trim(),
+                firstname: document.querySelector('input[name="editfirstname"]').value.trim(),
+                middlename: document.querySelector('input[name="editmiddlename"]').value.trim(),
+                suffix: document.querySelector('input[name="editsuffix"]').value.trim(),
+                birthdate: document.querySelector('input[name="editbirthdate"]').value,
+                gender: document.querySelector('select[name="editgender"]').value,
+                email: document.querySelector('input[name="editemail"]').value.trim(),
+                phone: document.querySelector('input[name="editcontact"]').value.trim(),
+            };
+
+            try {
+                const response = await fetch("/update-student-profile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ block, studentID, updatedData }),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // alert("✅ Profile updated successfully!");
+                } else {
+                    alert("⚠️ Failed to update profile: " + result.message);
+                }
+            } catch (error) {
+                console.error("🔥 Error updating profile:", error);
+                alert("An error occurred while saving your profile.");
+            }
+        });
     }
 
 });
+
+// EDIT PROFILE 
+document.addEventListener("DOMContentLoaded", function () {
+
+    const fileInput = document.getElementById("profileUpload");
+    const previewImg = document.getElementById("previewImg");
+    const placeholder = document.getElementById("placeholder");
+    const previewBox = document.getElementById("profilePreview");
+    const uploadBtn = document.getElementById("profileUploadBtn");
+    const saveBtn = document.getElementById("saveProfileBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+
+    // edit/save toggle
+    const editBtn = document.getElementById("editBtn");
+    const editFormInputs = document.querySelectorAll(
+        "#profile-edit input, #profile-edit select, #profile-edit a.btn"
+    );
+
+    // initially disable all inputs
+    function setFormDisabled(disabled) {
+        editFormInputs.forEach((el) => {
+            el.disabled = disabled;
+            if (disabled) {
+                el.classList.add("disabled");
+                el.setAttribute("tabindex", "-1"); // prevent tabbing to disabled links
+            } else {
+                el.classList.remove("disabled");
+                el.removeAttribute("tabindex");
+            }
+        });
+    }
+
+    setFormDisabled(true);
+
+    editBtn?.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        if (editBtn.textContent === "Edit Profile") {
+            // editing mode
+            setFormDisabled(false);
+            editBtn.textContent = "Save Changes";
+        } else {
+            // Save & disable again (trigger existing submit logic)
+            editForm.dispatchEvent(new Event("submit"));
+            setFormDisabled(true);
+            editBtn.textContent = "Edit Profile";
+        }
+    });
+
+    let tempImage = null;
+    const defaultImg = "/assets/img/account.png";
+
+    const savedImage = localStorage.getItem("profileImage");
+    const savedData = JSON.parse(localStorage.getItem("profileData")) || {};
+
+    if (savedImage) updateAllProfiles(savedImage);
+    if (Object.keys(savedData).length > 0) applyProfileData(savedData);
+
+    // --- File Upload Trigger ---
+    uploadBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        fileInput.click();
+    });
+    previewBox?.addEventListener("click", () => fileInput.click());
+
+    // --- Preview new image ---
+    fileInput?.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file && file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                tempImage = e.target.result;
+
+                // Show preview inside modal
+                previewImg.src = tempImage;
+                previewImg.classList.remove("d-none");
+                placeholder.classList.add("d-none");
+
+                // Only update changeProfile for now
+                const changeProfile = document.getElementById("changeProfile");
+                if (changeProfile) changeProfile.src = tempImage;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // --- Save button (in modal) ---
+    saveBtn?.addEventListener("click", function () {
+        if (tempImage) {
+            console.log("Temporary image stored, waiting for submit...");
+        }
+        const modalEl = document.getElementById("uploadProfile");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+    });
+
+    // --- Delete Profile Image ---
+    deleteBtn?.addEventListener("click", function () {
+        tempImage = defaultImg;
+        const changeProfile = document.getElementById("changeProfile");
+        if (changeProfile) changeProfile.src = defaultImg;
+
+        // Close delete modal
+        const modalEl = document.getElementById("deleteModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+
+        console.log("🗑️ Profile image reset to default. Will apply on submit.");
+    });
+
+    // --- Submit Main Edit Form ---
+    const editForm = document.querySelector("#profile-edit form");
+    editForm?.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        if (tempImage) {
+            updateAllProfiles(tempImage);
+            localStorage.setItem("profileImage", tempImage);
+            tempImage = null;
+        }
+
+        const newData = {
+            fullname: document.getElementById("editFullname").value,
+            company: document.getElementById("editCompany").value,
+            position: document.getElementById("editPosition").value,
+            address: document.getElementById("editAddress").value,
+            phone: document.getElementById("editPhone").value,
+            email: document.getElementById("editEmail").value,
+        };
+
+        applyProfileData(newData);
+
+        localStorage.setItem("profileData", JSON.stringify(newData));
+
+        console.log("Profile updated & saved");
+    });
+
+    // --- Helpers ---
+    function updateAllProfiles(image) {
+        ["accountProfile", "changeProfile", "headerProfile"].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.src = image;
+        });
+    }
+
+    function applyProfileData(data) {
+        if (data.fullname) {
+            document.getElementById("accountName").textContent = data.fullname;
+            document.getElementById("fullname").textContent = data.fullname;
+        }
+        if (data.company) document.getElementById("company").textContent = data.company;
+        if (data.position) document.getElementById("position").textContent = data.position;
+        if (data.address) document.getElementById("address").textContent = data.address;
+        if (data.phone) document.getElementById("phone").textContent = data.phone;
+        if (data.email) document.getElementById("email").textContent = data.email;
+    }
+});
+
+
 
 // ✅ NOTIFICATIONS — FULL MERGED SCRIPT
 document.addEventListener('DOMContentLoaded', () => {
@@ -113,9 +397,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
 
                         // Redirect based on title
-                        if (title.toLowerCase().includes('document status update'))
+                        if (
+                            title.toLowerCase().includes('document status update') ||
+                            title.toLowerCase().includes('new requirement added')
+                        ) {
                             window.location.href = '/submission';
-                        else window.location.href = '/notifications';
+                        } else {
+                            window.location.href = '/notifications';
+                        }
+
                     } catch (err) {
                         console.error('⚠️ Failed to mark notification as read:', err);
                     }
@@ -143,8 +433,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load
     loadNotifications(studentData.id);
-
     // Poll every 5 seconds for updates
+    setInterval(() => loadNotifications(studentData.id), 5000);
+
     /* ------------------------------
        🟣 PAGE NOTIFICATIONS (Full List)
     ------------------------------- */
@@ -230,9 +521,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ notified: true })
                 });
-                if (title.toLowerCase().includes('document status update'))
+                if (
+                    title.toLowerCase().includes('document status update') ||
+                    title.toLowerCase().includes('new requirement added')
+                ) {
                     window.location.href = '/submission';
-                else window.location.href = '/notifications';
+                } else {
+                    window.location.href = '/notifications';
+                }
             } catch (err) {
                 console.error('⚠️ Failed to mark as read:', err);
             }
@@ -1445,399 +1741,4 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Show progress circles
     buildProgressCards(groupedData);
-});
-
-
-// PROFILE
-document.addEventListener('DOMContentLoaded', function () {
-    // EDIT PROFILE
-    const profileUpload = document.getElementById('uploadProfile');
-    const deleteProfile = document.getElementById('deleteProfile');
-    const profileInput = document.getElementById('profileInput');
-    const profileImage = document.querySelector('.profile-img');
-
-    // save changes
-    const saveEdit = document.getElementById('editDetails');
-
-    const usernameEdit = document.getElementById('usernameEdit');
-    const companyNameEdit = document.getElementById('companyNameEdit');
-    const companyAddressEdit = document.getElementById('companyAddressEdit');
-    const emailEdit = document.getElementById('emailEdit');
-    const phoneNumEdit = document.getElementById('phoneNumEdit');
-
-    const username = document.getElementById('username');
-    const companyName = document.getElementById('companyName');
-    const companyAddress = document.getElementById('companyAddress');
-    const email = document.getElementById('email');
-    const phoneNumber = document.getElementById('phoneNumber');
-
-    const formValidation = document.getElementById('editProfileForm');
-
-    const profilecompanyName = document.getElementById('profilecompanyName');
-    const headerCompanyName = document.getElementById('headerCompanyName');
-    const headerProfileImg = document.getElementById('headerProfileImg');
-    const ProfileImgDisplay = document.getElementById('profileDisplay');
-    const defaultImage = "/assets/img/account.png";
-
-    let isEditing = false;
-    let uploadedImageURL = defaultImage;
-
-    profileUpload.disabled = true;
-    profileUpload.style.pointerEvents = 'none';
-    deleteProfile.disabled = true;
-    deleteProfile.style.pointerEvents = 'none';
-
-    saveEdit.addEventListener('click', function () {
-        if (!isEditing) {
-            profileUpload.disabled = false;
-            profileUpload.style.pointerEvents = 'auto';
-            deleteProfile.style.pointerEvents = 'auto';
-            deleteProfile.disabled = false;
-
-            profileUpload.addEventListener("click", function (event) {
-                event.preventDefault();
-                profileInput.click();
-            });
-
-            profileInput.addEventListener("change", function (event) {
-                if (event.target.files.length > 0) {
-                    const file = event.target.files[0];
-                    uploadedImageURL = URL.createObjectURL(file);
-                    profileImage.src = uploadedImageURL;
-                }
-            });
-
-            deleteProfile.addEventListener('click', function () {
-                const storedUser = JSON.parse(localStorage.getItem("user"));
-                const userID = storedUser?.userID;
-
-                if (!userID) return;
-                profileImage.src = defaultImage;
-                profileInput.value = "";
-                uploadedImageURL = defaultImage;
-
-                fetch('/delete-profile-pic', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ userID })
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            console.log('Profile picture deleted successfully.');
-                        } else {
-                            console.error('Error deleting profile picture:', data.message);
-                        }
-                    })
-                    .catch(err => console.error('Error:', err));
-            });
-
-
-            usernameEdit.readOnly = false;
-            companyNameEdit.readOnly = false;
-            companyAddressEdit.readOnly = false;
-            emailEdit.readOnly = false;
-            phoneNumEdit.readOnly = false;
-
-            usernameEdit.focus();
-            saveEdit.textContent = "Save Changes";
-
-        } else {
-            if (!formValidation.checkValidity()) {
-                formValidation.classList.add("was-validated");
-                return;
-            }
-
-            const storedUser = JSON.parse(localStorage.getItem("user"));
-            const userID = storedUser?.userID;
-
-            const formData = new FormData();
-            formData.append("userID", userID);
-            formData.append("username", usernameEdit.value.trim());
-            formData.append("companyName", companyNameEdit.value.trim());
-            formData.append("companyAddress", companyAddressEdit.value.trim());
-            formData.append("email", emailEdit.value.trim());
-            formData.append("phoneNumber", phoneNumEdit.value.trim());
-
-            if (profileInput.files.length > 0) {
-                formData.append("profilePic", profileInput.files[0]);
-            }
-
-            fetch('/update-profile', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('Profile updated successfully.');
-
-                        username.textContent = usernameEdit.value.trim();
-                        companyName.textContent = companyNameEdit.value.trim();
-                        companyAddress.textContent = companyAddressEdit.value.trim();
-                        email.textContent = emailEdit.value.trim();
-                        phoneNumber.textContent = phoneNumEdit.value.trim();
-
-                        profilecompanyName.textContent = companyNameEdit.value.trim();
-                        headerCompanyName.textContent = companyNameEdit.value.trim();
-
-                        const imagePath = data.profilepicPath || uploadedImageURL;
-                        profileImage.src = imagePath;
-                        ProfileImgDisplay.src = imagePath;
-                        headerProfileImg.src = imagePath;
-
-                        location.reload()
-                    } else {
-                        console.error('Error updating profile:', data.message);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-
-            // Disable editing
-            usernameEdit.readOnly = true;
-            companyNameEdit.readOnly = true;
-            companyAddressEdit.readOnly = true;
-            emailEdit.readOnly = true;
-            phoneNumEdit.readOnly = true;
-
-            profileUpload.disabled = true;
-            profileUpload.style.pointerEvents = 'none';
-            deleteProfile.disabled = true;
-            deleteProfile.style.pointerEvents = 'none';
-
-            saveEdit.textContent = "Edit Details";
-        }
-
-        isEditing = !isEditing;
-    });
-
-
-    //CHANGE PASSWORD
-    document.querySelector('#profile-change-password form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        const userID = storedUser?.userID;
-        const currentPasswordInput = document.getElementById("currentPassword");
-        const newPasswordInput = document.getElementById("newPassword");
-        const renewPasswordInput = document.getElementById("renewPassword");
-
-        const currentPassword = currentPasswordInput.value;
-        const newPassword = newPasswordInput.value;
-        const renewPassword = renewPasswordInput.value;
-
-        const currentFeedback = document.getElementById("currentPasswordFeedback");
-        const newFeedback = document.getElementById("newPasswordFeedback");
-        const renewFeedback = document.getElementById("renewPasswordFeedback");
-
-        [currentPasswordInput, newPasswordInput, renewPasswordInput].forEach(input => input.classList.remove("is-invalid"));
-        [currentFeedback, newFeedback, renewFeedback].forEach(fb => fb.style.display = "none");
-
-        if (!userID) return alert("User not logged in.");
-
-        let hasError = false;
-
-        if (!newPassword) {
-            newPasswordInput.classList.add("is-invalid");
-            newFeedback.style.display = "block";
-            newFeedback.textContent = "New password is required.";
-            hasError = true;
-        }
-
-        if (newPassword !== renewPassword) {
-            renewPasswordInput.classList.add("is-invalid");
-            renewFeedback.style.display = "block";
-            renewFeedback.textContent = "Passwords do not match.";
-            hasError = true;
-        }
-
-        if (hasError) return;
-
-        try {
-            const res = await fetch('/change-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userID, currentPassword, newPassword })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                currentPasswordInput.value = "";
-                newPasswordInput.value = "";
-                renewPasswordInput.value = "";
-                document.getElementById("alertModalLabel").textContent = "Success";
-                document.getElementById("alertModalBody").textContent = data.message || "Password changed successfully.";
-                const alertModal = new bootstrap.Modal(document.getElementById('alertModal'));
-                alertModal.show();
-            } else {
-                currentPasswordInput.classList.add("is-invalid");
-                currentFeedback.style.display = "block";
-                currentFeedback.textContent = data.message || "Current password is incorrect.";
-            }
-        } catch (err) {
-            console.error("Error changing password:", err);
-            alert("Server error.");
-        }
-    });
-
-
-});
-
-// EDIT PROFILE 
-document.addEventListener("DOMContentLoaded", function () {
-
-    const fileInput = document.getElementById("profileUpload");
-    const previewImg = document.getElementById("previewImg");
-    const placeholder = document.getElementById("placeholder");
-    const previewBox = document.getElementById("profilePreview");
-    const uploadBtn = document.getElementById("profileUploadBtn");
-    const saveBtn = document.getElementById("saveProfileBtn");
-    const deleteBtn = document.getElementById("deleteBtn");
-
-    // edit/save toggle
-    const editBtn = document.getElementById("editBtn");
-    const editFormInputs = document.querySelectorAll(
-        "#profile-edit input, #profile-edit a.btn"
-    );
-
-    // initially disable all inputs
-    function setFormDisabled(disabled) {
-        editFormInputs.forEach((el) => {
-            el.disabled = disabled;
-            if (disabled) {
-                el.classList.add("disabled");
-                el.setAttribute("tabindex", "-1"); // prevent tabbing to disabled links
-            } else {
-                el.classList.remove("disabled");
-                el.removeAttribute("tabindex");
-            }
-        });
-    }
-
-    setFormDisabled(true);
-
-    editBtn?.addEventListener("click", function (e) {
-        e.preventDefault();
-
-        if (editBtn.textContent === "Edit Profile") {
-            // editing mode
-            setFormDisabled(false);
-            editBtn.textContent = "Save Changes";
-        } else {
-            // Save & disable again (trigger existing submit logic)
-            editForm.dispatchEvent(new Event("submit"));
-            setFormDisabled(true);
-            editBtn.textContent = "Edit Profile";
-        }
-    });
-
-    let tempImage = null;
-    const defaultImg = "/assets/img/account.png";
-
-    const savedImage = localStorage.getItem("profileImage");
-    const savedData = JSON.parse(localStorage.getItem("profileData")) || {};
-
-    if (savedImage) updateAllProfiles(savedImage);
-    if (Object.keys(savedData).length > 0) applyProfileData(savedData);
-
-    // --- File Upload Trigger ---
-    uploadBtn?.addEventListener("click", (e) => {
-        e.preventDefault();
-        fileInput.click();
-    });
-    previewBox?.addEventListener("click", () => fileInput.click());
-
-    // --- Preview new image ---
-    fileInput?.addEventListener("change", function () {
-        const file = this.files[0];
-        if (file && file.type.startsWith("image/")) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                tempImage = e.target.result;
-
-                // Show preview inside modal
-                previewImg.src = tempImage;
-                previewImg.classList.remove("d-none");
-                placeholder.classList.add("d-none");
-
-                // Only update changeProfile for now
-                const changeProfile = document.getElementById("changeProfile");
-                if (changeProfile) changeProfile.src = tempImage;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // --- Save button (in modal) ---
-    saveBtn?.addEventListener("click", function () {
-        if (tempImage) {
-            console.log("Temporary image stored, waiting for submit...");
-        }
-        const modalEl = document.getElementById("uploadProfile");
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-    });
-
-    // --- Delete Profile Image ---
-    deleteBtn?.addEventListener("click", function () {
-        tempImage = defaultImg;
-        const changeProfile = document.getElementById("changeProfile");
-        if (changeProfile) changeProfile.src = defaultImg;
-
-        // Close delete modal
-        const modalEl = document.getElementById("deleteModal");
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-
-        console.log("🗑️ Profile image reset to default. Will apply on submit.");
-    });
-
-    // --- Submit Main Edit Form ---
-    const editForm = document.querySelector("#profile-edit form");
-    editForm?.addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        if (tempImage) {
-            updateAllProfiles(tempImage);
-            localStorage.setItem("profileImage", tempImage);
-            tempImage = null;
-        }
-
-        const newData = {
-            fullname: document.getElementById("editFullname").value,
-            company: document.getElementById("editCompany").value,
-            position: document.getElementById("editPosition").value,
-            address: document.getElementById("editAddress").value,
-            phone: document.getElementById("editPhone").value,
-            email: document.getElementById("editEmail").value,
-        };
-
-        applyProfileData(newData);
-
-        localStorage.setItem("profileData", JSON.stringify(newData));
-
-        console.log("Profile updated & saved");
-    });
-
-    // --- Helpers ---
-    function updateAllProfiles(image) {
-        ["accountProfile", "changeProfile", "headerProfile"].forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) el.src = image;
-        });
-    }
-
-    function applyProfileData(data) {
-        if (data.fullname) {
-            document.getElementById("accountName").textContent = data.fullname;
-            document.getElementById("fullname").textContent = data.fullname;
-        }
-        if (data.company) document.getElementById("company").textContent = data.company;
-        if (data.position) document.getElementById("position").textContent = data.position;
-        if (data.address) document.getElementById("address").textContent = data.address;
-        if (data.phone) document.getElementById("phone").textContent = data.phone;
-        if (data.email) document.getElementById("email").textContent = data.email;
-    }
 });
