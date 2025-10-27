@@ -156,6 +156,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // 🧩 Handle Change Password
+    const passwordForm = document.querySelector("#changePasswordForm");
+
+    if (passwordForm) {
+        const renewPassword = document.getElementById("renewPassword");
+        const newPassword = document.getElementById("newPassword");
+
+        // Real-time password match check
+        renewPassword.addEventListener("input", () => {
+            if (renewPassword.value !== newPassword.value) {
+                renewPassword.setCustomValidity("Passwords do not match");
+            } else {
+                renewPassword.setCustomValidity("");
+            }
+        });
+
+        passwordForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            if (!passwordForm.checkValidity()) {
+                passwordForm.classList.add("was-validated");
+                return;
+            }
+
+            const studentData = JSON.parse(localStorage.getItem("studentData"));
+            const studentID = studentData?.id;
+            const block = studentData?.block;
+
+            if (!studentID || !block) {
+                alert("⚠️ Student information not found. Please log in again.");
+                return;
+            }
+
+            const currentPassword = document.getElementById("currentPassword").value.trim();
+            const newPasswordVal = newPassword.value.trim();
+
+            try {
+                const response = await fetch("/change-student-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ block, studentID, currentPassword, newPassword: newPasswordVal }),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    passwordForm.reset();
+                    passwordForm.classList.remove("was-validated");
+                    alert("✅ Password changed successfully!");
+                } else {
+                    alert("⚠️ " + result.message);
+                }
+            } catch (error) {
+                console.error("🔥 Error changing password:", error);
+                alert("An error occurred while changing your password.");
+            }
+        });
+    }
+
+
+
 });
 
 // EDIT PROFILE 

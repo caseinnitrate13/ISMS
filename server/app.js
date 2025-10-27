@@ -1086,6 +1086,49 @@ app.post("/update-faculty-profile", async (req, res) => {
     }
 });
 
+// POST /change-faculty-password
+app.post("/change-faculty-password", async (req, res) => {
+    try {
+        const { facultyID, currentPassword, newPassword } = req.body;
+
+        if (!facultyID || !currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: "Missing required fields." });
+        }
+
+        // Reference to the correct Firestore document
+        const facultyRef = doc(db, "ACCOUNTS", "FACULTY", "ACCOUNTS", facultyID);
+        const facultySnap = await getDoc(facultyRef);
+
+        if (!facultySnap.exists()) {
+            return res.json({ success: false, message: "Faculty not found." });
+        }
+
+        const facultyData = facultySnap.data();
+
+        // Validate current password
+        if (facultyData.password !== currentPassword) {
+            return res.json({ success: false, message: "Current password is incorrect." });
+        }
+
+        // Update with new password
+        await updateDoc(facultyRef, {
+            password: newPassword,
+            updatedAt: new Date().toISOString(),
+        });
+
+        console.log(`✅ Password changed for faculty: ${facultyID}`);
+        res.json({ success: true, message: "Password changed successfully." });
+
+    } catch (error) {
+        console.error("🔥 Error changing faculty password:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error while changing password.",
+            error: error.message,
+        });
+    }
+});
+
 
 
 // CLIENT SIDE PAGES
@@ -1463,6 +1506,39 @@ app.post("/update-student-profile", async (req, res) => {
     } catch (error) {
         console.error("🔥 Error updating student profile:", error);
         res.status(500).json({ success: false, message: "Error updating profile", error });
+    }
+});
+
+app.post("/change-student-password", async (req, res) => {
+    try {
+        const { block, studentID, currentPassword, newPassword } = req.body;
+
+        if (!block || !studentID || !currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: "Missing required fields." });
+        }
+
+        // Reference student document
+        const studentRef = doc(db, "ACCOUNTS", "STUDENTS", block, studentID);
+        const studentSnap = await getDoc(studentRef);
+
+        if (!studentSnap.exists()) {
+            return res.status(404).json({ success: false, message: "Student not found." });
+        }
+
+        const studentData = studentSnap.data();
+
+        // Check current password
+        if (studentData.password !== currentPassword) {
+            return res.status(401).json({ success: false, message: "Current password is incorrect." });
+        }
+
+        // Update password
+        await updateDoc(studentRef, { password: newPassword });
+
+        res.json({ success: true, message: "Password updated successfully." });
+    } catch (error) {
+        console.error("🔥 Error changing student password:", error);
+        res.status(500).json({ success: false, message: "Server error while changing password.", error });
     }
 });
 

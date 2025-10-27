@@ -137,6 +137,68 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // 🧩 Handle Faculty Change Password
+  const passwordForm = document.querySelector("#changePasswordForm");
+
+  if (passwordForm) {
+    const renewPassword = document.getElementById("renewPassword");
+    const newPassword = document.getElementById("newPassword");
+
+    // Real-time password match check
+    renewPassword.addEventListener("input", () => {
+      if (renewPassword.value !== newPassword.value) {
+        renewPassword.setCustomValidity("Passwords do not match");
+      } else {
+        renewPassword.setCustomValidity("");
+      }
+    });
+
+    passwordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // Use native HTML validation
+      if (!passwordForm.checkValidity()) {
+        passwordForm.classList.add("was-validated");
+        return;
+      }
+
+      // Get faculty credentials from localStorage
+      const facultyData = JSON.parse(localStorage.getItem("facultyData"));
+      const facultyID = facultyData?.id;
+
+      if (!facultyID) {
+        alert("Faculty credentials not found. Please log in again.");
+        return;
+      }
+
+      const currentPassword = document.getElementById("currentPassword").value.trim();
+      const newPasswordVal = newPassword.value.trim();
+
+      try {
+        // Call backend route
+        const response = await fetch("/change-faculty-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ facultyID, currentPassword, newPassword: newPasswordVal }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          passwordForm.reset();
+          passwordForm.classList.remove("was-validated");
+          alert("✅ Password changed successfully!");
+        } else {
+          alert("⚠️ " + result.message);
+        }
+      } catch (error) {
+        console.error("🔥 Error changing password:", error);
+        alert("An error occurred while changing your password.");
+      }
+    });
+  }
+
+
 });
 
 // EDIT PROFILE 
@@ -297,8 +359,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-
-// ✅ NOTIFICATIONS — FULL MERGED SCRIPT
+//NOTIFICATIONS — FULL MERGED SCRIPT
 document.addEventListener('DOMContentLoaded', () => {
   const facultyData = JSON.parse(localStorage.getItem('facultyData'));
   if (!facultyData || !facultyData.id) return;
