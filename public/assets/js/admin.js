@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const facultyData = result.faculty;
     console.log(facultyData);
 
+    console.log(facultyData.profilePic);
+
     // Common header elements
     const headerProfile = document.getElementById('headerProfile');
     const headerName = document.querySelector('.nav-profile span');
@@ -82,7 +84,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const profileImg = document.getElementById('changeProfile');
       if (profileImg) profileImg.src = facultyData.profilePic || '/assets/img/account-green.png';
-
     }
   } catch (error) {
     console.error("🔥 Error fetching faculty data:", error);
@@ -126,7 +127,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const result = await response.json();
 
         if (result.success) {
-          // alert("✅ Faculty profile updated successfully!");
+          console.log("✅ Faculty profile updated successfully!");
+
+          // ✅ If a new profile pic is selected, upload it now
+          if (tempImageFile) {
+            await uploadProfilePicture(tempImageFile);
+          }
+
         } else {
           alert("⚠️ Failed to update profile: " + result.message);
         }
@@ -198,12 +205,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-
-});
-
-// EDIT PROFILE 
-document.addEventListener("DOMContentLoaded", function () {
-
   const fileInput = document.getElementById("profileUpload");
   const previewImg = document.getElementById("previewImg");
   const placeholder = document.getElementById("placeholder");
@@ -217,7 +218,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const editFormInputs = document.querySelectorAll(
     "#profile-edit input, #profile-edit select, #profile-edit a.btn"
   );
-
 
   // initially disable all inputs
   function setFormDisabled(disabled) {
@@ -251,13 +251,8 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   let tempImage = null;
+  let tempImageFile = null; // ✅ store the File for uploading
   const defaultImg = "/assets/img/account.png";
-
-  const savedImage = localStorage.getItem("profileImage");
-  const savedData = JSON.parse(localStorage.getItem("profileData")) || {};
-
-  if (savedImage) updateAllProfiles(savedImage);
-  if (Object.keys(savedData).length > 0) applyProfileData(savedData);
 
   // --- File Upload Trigger ---
   uploadBtn?.addEventListener("click", (e) => {
@@ -270,6 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
   fileInput?.addEventListener("change", function () {
     const file = this.files[0];
     if (file && file.type.startsWith("image/")) {
+      tempImageFile = file;
       const reader = new FileReader();
       reader.onload = function (e) {
         tempImage = e.target.result;
@@ -279,7 +275,6 @@ document.addEventListener("DOMContentLoaded", function () {
         previewImg.classList.remove("d-none");
         placeholder.classList.add("d-none");
 
-        // Only update changeProfile for now
         const changeProfile = document.getElementById("changeProfile");
         if (changeProfile) changeProfile.src = tempImage;
       };
@@ -287,76 +282,68 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // --- Save button (in modal) ---
+  // ✅ PROFILE PICTURE HANDLING
+  async function uploadProfilePicture(file) {
+    const formData = new FormData();
+    formData.append("facultyID", facultyID);
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload-faculty-profile-pic", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        console.log("✅ Profile picture uploaded");
+        document.getElementById("changeProfile").src = `/${data.path}?t=${Date.now()}`;
+        tempImageFile = null;
+      } else {
+        alert("⚠️ " + data.message);
+      }
+    } catch (err) {
+      console.error("🔥 Error uploading profile picture:", err);
+    }
+  }
+
+  async function deleteProfilePicture() {
+    try {
+      const res = await fetch("/api/delete-faculty-profile-pic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ facultyID }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        console.log("🗑️ Profile picture deleted");
+        document.getElementById("changeProfile").src = defaultImg;
+      } else {
+        alert("⚠️ " + data.message);
+      }
+    } catch (err) {
+      console.error("🔥 Error deleting profile picture:", err);
+    }
+  }
+
+  // --- Delete Profile Image ---
+  deleteBtn?.addEventListener("click", async function () {
+    await deleteProfilePicture();
+    const modalEl = document.getElementById("deleteModal");
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+  });
+
+  // --- Save Modal Button (for preview only) ---
   saveBtn?.addEventListener("click", function () {
     if (tempImage) {
-      console.log("Temporary image stored, waiting for submit...");
+      console.log("Temporary image ready for upload on save changes");
     }
     const modalEl = document.getElementById("uploadProfile");
     const modal = bootstrap.Modal.getInstance(modalEl);
     modal.hide();
   });
-
-  // --- Delete Profile Image ---
-  deleteBtn?.addEventListener("click", function () {
-    tempImage = defaultImg;
-    const changeProfile = document.getElementById("changeProfile");
-    if (changeProfile) changeProfile.src = defaultImg;
-
-    // Close delete modal
-    const modalEl = document.getElementById("deleteModal");
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
-
-    console.log("🗑️ Profile image reset to default. Will apply on submit.");
-  });
-
-  // --- Submit Main Edit Form ---
-  const editForm = document.querySelector("#profile-edit form");
-  editForm?.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    if (tempImage) {
-      updateAllProfiles(tempImage);
-      localStorage.setItem("profileImage", tempImage);
-      tempImage = null;
-    }
-
-    const newData = {
-      fullname: document.getElementById("editFullname").value,
-      company: document.getElementById("editCompany").value,
-      position: document.getElementById("editPosition").value,
-      address: document.getElementById("editAddress").value,
-      phone: document.getElementById("editPhone").value,
-      email: document.getElementById("editEmail").value,
-    };
-
-    applyProfileData(newData);
-
-    localStorage.setItem("profileData", JSON.stringify(newData));
-
-    console.log("Profile updated & saved");
-  });
-
-  // --- Helpers ---
-  function updateAllProfiles(image) {
-    ["accountProfile", "changeProfile", "headerProfile"].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.src = image;
-    });
-  }
-
-  function applyProfileData(data) {
-    if (data.fullname) {
-      document.getElementById("accountName").textContent = data.fullname;
-      document.getElementById("fullname").textContent = data.fullname;
-    }
-    if (data.company) document.getElementById("company").textContent = data.company;
-    if (data.position) document.getElementById("position").textContent = data.position;
-    if (data.address) document.getElementById("address").textContent = data.address;
-    if (data.phone) document.getElementById("phone").textContent = data.phone;
-    if (data.email) document.getElementById("email").textContent = data.email;
-  }
 });
 
 //NOTIFICATIONS — FULL MERGED SCRIPT
@@ -1612,7 +1599,6 @@ document.addEventListener("DOMContentLoaded", () => {
       <td>
         <div class="d-flex gap-1">
           <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'Active')">Active</button>
-          <button class="btn btn-success btn-sm" onclick="updateStatus(this, 'Completed')">Completed</button>
           <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'Inactive')">Inactive</button>
         </div>
       </td>

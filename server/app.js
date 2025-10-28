@@ -71,10 +71,8 @@ app.post('/login', async (req, res) => {
         // --- Check faculty (adjusted path) ---
         const facultyRef = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', studentID);
         const facultySnap = await getDoc(facultyRef);
-
         if (facultySnap.exists()) {
             const data = facultySnap.data();
-
             if (data.password === password) {
                 return res.send({
                     success: true,
@@ -103,7 +101,6 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
 // ADMIN SIDE PAGES
 const adminTemplate = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'template-admin.html'), 'utf-8');
 
@@ -111,7 +108,6 @@ app.get('/admin/downloadable', (req, res) => {
     const downloadable = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'downloadable.html'), 'utf-8');
     res.send(adminTemplate.replace('{{content}}', downloadable));
 });
-
 
 app.post("/api/upload-downloadable", upload.single("file"), async (req, res) => {
     try {
@@ -1045,6 +1041,15 @@ app.get('/get-faculty/:facultyID', async (req, res) => {
 
         const data = facultySnap.data();
 
+        // 🧩 Handle missing or empty profilePic properly
+        let profilePicPath = '/assets/img/account-green.png'; // default
+        if (data.profilePic && data.profilePic.trim() !== '') {
+            // Prepend slash only if it’s a relative path (e.g., "uploads/faculty/...")
+            profilePicPath = data.profilePic.startsWith('/')
+                ? data.profilePic
+                : `/${data.profilePic}`;
+        }
+
         res.json({
             success: true,
             faculty: {
@@ -1058,7 +1063,7 @@ app.get('/get-faculty/:facultyID', async (req, res) => {
                 birthdate: data.birthdate || '',
                 gender: data.gender || '',
                 contact: data.contact || '',
-                profilePic: data.profilePic || '/assets/img/account-green.png'
+                profilePic: profilePicPath
             }
         });
     } catch (error) {
@@ -1066,6 +1071,7 @@ app.get('/get-faculty/:facultyID', async (req, res) => {
         res.status(500).json({ success: false, message: "Server error fetching faculty", error });
     }
 });
+
 
 app.post("/update-faculty-profile", async (req, res) => {
     try {
@@ -1128,6 +1134,59 @@ app.post("/change-faculty-password", async (req, res) => {
         });
     }
 });
+
+// 🟡 UPLOAD Faculty Profile Picture
+app.post("/api/upload-faculty-profile-pic", upload.single("file"), async (req, res) => {
+    try {
+        const { facultyID } = req.body;
+        if (!facultyID || !req.file)
+            return res.status(400).json({ success: false, message: "Missing faculty ID or file." });
+
+        const uploadDir = path.join(__dirname, "uploads", "faculty", facultyID, "profile_pic");
+        fs.mkdirSync(uploadDir, { recursive: true });
+
+        const filePath = path.join(uploadDir, "profile.jpg");
+        fs.writeFileSync(filePath, req.file.buffer);
+
+        const relativePath = path.relative(__dirname, filePath).replace(/\\/g, "/");
+
+        // ✅ Update Firestore
+        const facultyRef = doc(db, "ACCOUNTS", "FACULTY", "ACCOUNTS", facultyID);
+        await updateDoc(facultyRef, {
+            profilePic: relativePath
+        });
+
+        res.json({ success: true, message: "Profile picture uploaded.", path: relativePath });
+    } catch (err) {
+        console.error("❌ Error uploading faculty profile picture:", err);
+        res.status(500).json({ success: false, message: "Server error uploading file." });
+    }
+});
+
+// 🔴 DELETE Faculty Profile Picture
+app.post("/api/delete-faculty-profile-pic", async (req, res) => {
+    try {
+        const { facultyID } = req.body;
+        if (!facultyID)
+            return res.status(400).json({ success: false, message: "Missing faculty ID." });
+
+        const uploadDir = path.join(__dirname, "uploads", "faculty", facultyID, "profile_pic");
+        const filePath = path.join(uploadDir, "profile.jpg");
+
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+        const facultyRef = doc(db, "ACCOUNTS", "FACULTY", "ACCOUNTS", facultyID);
+        await updateDoc(facultyRef, {
+            profilePic: ""
+        });
+
+        res.json({ success: true, message: "Profile picture deleted." });
+    } catch (err) {
+        console.error("❌ Error deleting faculty profile picture:", err);
+        res.status(500).json({ success: false, message: "Server error deleting profile picture." });
+    }
+});
+
 
 
 
@@ -1532,15 +1591,86 @@ app.post("/change-student-password", async (req, res) => {
             return res.status(401).json({ success: false, message: "Current password is incorrect." });
         }
 
-        // Update password
-        await updateDoc(studentRef, { password: newPassword });
+        // Update password with timestamp
+        await updateDoc(studentRef, {
+            password: newPassword,
+            updatedAt: new Date().toISOString(),
+        });
 
+        console.log(`✅ Password updated for student: ${studentID}`);
         res.json({ success: true, message: "Password updated successfully." });
+
     } catch (error) {
         console.error("🔥 Error changing student password:", error);
-        res.status(500).json({ success: false, message: "Server error while changing password.", error });
+        res.status(500).json({
+            success: false,
+            message: "Server error while changing password.",
+            error: error.message,
+        });
     }
 });
+
+app.post("/api/upload-student-profile-pic", upload.single("file"), async (req, res) => {
+    try {
+        const { block, studentID } = req.body;
+        if (!block || !studentID) {
+            return res.json({ success: false, message: "Missing student credentials" });
+        }
+
+        if (!req.file) {
+            return res.json({ success: false, message: "No file uploaded" });
+        }
+
+        // Ensure upload directory exists
+        const uploadPath = path.join(__dirname, "uploads", "students", block, studentID, "profile_pic");
+        fs.mkdirSync(uploadPath, { recursive: true });
+
+        const fileName = Date.now() + path.extname(req.file.originalname);
+        const filePath = path.join(uploadPath, fileName);
+
+        // Save file
+        fs.writeFileSync(filePath, req.file.buffer);
+
+        // Relative path for frontend
+        const relativePath = `uploads/students/${block}/${studentID}/profile_pic/${fileName}`;
+
+        // Update Firestore
+        const studentRef = doc(db, "ACCOUNTS", "STUDENTS", block, studentID);
+        await updateDoc(studentRef, { profilePic: `/${relativePath}` });
+
+        res.json({ success: true, message: "Profile picture uploaded", path: relativePath });
+    } catch (error) {
+        console.error("🔥 Upload student profile pic error:", error);
+        res.status(500).json({ success: false, message: "Error uploading profile picture" });
+    }
+});
+
+// ===============================
+// 🗑️ Delete Student Profile Picture
+// ===============================
+app.post("/api/delete-student-profile-pic", async (req, res) => {
+    try {
+        const { block, studentID } = req.body;
+        if (!block || !studentID) {
+            return res.json({ success: false, message: "Missing student credentials" });
+        }
+
+        const folderPath = path.join(__dirname, "uploads", "students", block, studentID, "profile_pic");
+
+        if (fs.existsSync(folderPath)) {
+            fs.readdirSync(folderPath).forEach((file) => fs.unlinkSync(path.join(folderPath, file)));
+        }
+
+        const studentRef = doc(db, "ACCOUNTS", "STUDENTS", block, studentID);
+        await updateDoc(studentRef, { profilePic: "" });
+
+        res.json({ success: true, message: "Profile picture deleted" });
+    } catch (error) {
+        console.error("🔥 Delete student profile pic error:", error);
+        res.status(500).json({ success: false, message: "Error deleting profile picture" });
+    }
+});
+
 
 app.get('/notifications', (req, res) => {
     const notifications = fs.readFileSync(path.join(__dirname, '..', 'public', 'client-side', 'notifications.html'), 'utf-8');

@@ -215,13 +215,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-
-
-});
-
-// EDIT PROFILE 
-document.addEventListener("DOMContentLoaded", function () {
-
     const fileInput = document.getElementById("profileUpload");
     const previewImg = document.getElementById("previewImg");
     const placeholder = document.getElementById("placeholder");
@@ -268,13 +261,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     let tempImage = null;
-    const defaultImg = "/assets/img/account.png";
+    let tempImageFile = null; // ✅ store selected file
+    const defaultImg = "/assets/img/account-green.png";
 
-    const savedImage = localStorage.getItem("profileImage");
-    const savedData = JSON.parse(localStorage.getItem("profileData")) || {};
-
-    if (savedImage) updateAllProfiles(savedImage);
-    if (Object.keys(savedData).length > 0) applyProfileData(savedData);
 
     // --- File Upload Trigger ---
     uploadBtn?.addEventListener("click", (e) => {
@@ -283,20 +272,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     previewBox?.addEventListener("click", () => fileInput.click());
 
-    // --- Preview new image ---
+    // --- Preview selected image ---
     fileInput?.addEventListener("change", function () {
         const file = this.files[0];
         if (file && file.type.startsWith("image/")) {
+            tempImageFile = file;
             const reader = new FileReader();
             reader.onload = function (e) {
                 tempImage = e.target.result;
-
-                // Show preview inside modal
                 previewImg.src = tempImage;
                 previewImg.classList.remove("d-none");
                 placeholder.classList.add("d-none");
 
-                // Only update changeProfile for now
                 const changeProfile = document.getElementById("changeProfile");
                 if (changeProfile) changeProfile.src = tempImage;
             };
@@ -304,78 +291,72 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // --- Save button (in modal) ---
+    // --- Upload Profile Picture ---
+    async function uploadProfilePicture(file) {
+        const formData = new FormData();
+        formData.append("block", block);
+        formData.append("studentID", studentID);
+        formData.append("file", file);
+
+        try {
+            const res = await fetch("/api/upload-student-profile-pic", {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                console.log("✅ Profile picture uploaded successfully");
+                document.getElementById("changeProfile").src = `/${data.path}?t=${Date.now()}`;
+                tempImageFile = null;
+            } else {
+                alert("⚠️ " + data.message);
+            }
+        } catch (err) {
+            console.error("🔥 Error uploading profile picture:", err);
+        }
+    }
+
+    // --- Delete Profile Picture ---
+    async function deleteProfilePicture() {
+        try {
+            const res = await fetch("/api/delete-student-profile-pic", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ block, studentID }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                console.log("🗑️ Profile picture deleted");
+                document.getElementById("changeProfile").src = defaultImg;
+            } else {
+                alert("⚠️ " + data.message);
+            }
+        } catch (err) {
+            console.error("🔥 Error deleting profile picture:", err);
+        }
+    }
+
+    // --- Delete Button ---
+    deleteBtn?.addEventListener("click", async function () {
+        await deleteProfilePicture();
+        const modalEl = document.getElementById("deleteModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+    });
+
+    // --- Save Button (for preview only) ---
     saveBtn?.addEventListener("click", function () {
-        if (tempImage) {
-            console.log("Temporary image stored, waiting for submit...");
+        if (tempImageFile) {
+            uploadProfilePicture(tempImageFile);
         }
         const modalEl = document.getElementById("uploadProfile");
         const modal = bootstrap.Modal.getInstance(modalEl);
         modal.hide();
     });
 
-    // --- Delete Profile Image ---
-    deleteBtn?.addEventListener("click", function () {
-        tempImage = defaultImg;
-        const changeProfile = document.getElementById("changeProfile");
-        if (changeProfile) changeProfile.src = defaultImg;
-
-        // Close delete modal
-        const modalEl = document.getElementById("deleteModal");
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-
-        console.log("🗑️ Profile image reset to default. Will apply on submit.");
-    });
-
-    // --- Submit Main Edit Form ---
-    const editForm = document.querySelector("#profile-edit form");
-    editForm?.addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        if (tempImage) {
-            updateAllProfiles(tempImage);
-            localStorage.setItem("profileImage", tempImage);
-            tempImage = null;
-        }
-
-        const newData = {
-            fullname: document.getElementById("editFullname").value,
-            company: document.getElementById("editCompany").value,
-            position: document.getElementById("editPosition").value,
-            address: document.getElementById("editAddress").value,
-            phone: document.getElementById("editPhone").value,
-            email: document.getElementById("editEmail").value,
-        };
-
-        applyProfileData(newData);
-
-        localStorage.setItem("profileData", JSON.stringify(newData));
-
-        console.log("Profile updated & saved");
-    });
-
-    // --- Helpers ---
-    function updateAllProfiles(image) {
-        ["accountProfile", "changeProfile", "headerProfile"].forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) el.src = image;
-        });
-    }
-
-    function applyProfileData(data) {
-        if (data.fullname) {
-            document.getElementById("accountName").textContent = data.fullname;
-            document.getElementById("fullname").textContent = data.fullname;
-        }
-        if (data.company) document.getElementById("company").textContent = data.company;
-        if (data.position) document.getElementById("position").textContent = data.position;
-        if (data.address) document.getElementById("address").textContent = data.address;
-        if (data.phone) document.getElementById("phone").textContent = data.phone;
-        if (data.email) document.getElementById("email").textContent = data.email;
-    }
 });
-
 
 
 // ✅ NOTIFICATIONS — FULL MERGED SCRIPT
