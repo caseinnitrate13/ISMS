@@ -1581,32 +1581,55 @@ document.addEventListener("DOMContentLoaded", () => {
   function addAccountToTable(tableId, accountData) {
     const tableBody = document.querySelector(`#${tableId} tbody`);
 
+    // Check if password was reset
+    let passwordDisplay = accountData.password;
+    let resetLogDisplay = '--';
+
+    if (accountData.updatedAt) {
+      passwordDisplay = '**********';
+      resetLogDisplay = formatDate(accountData.updatedAt);
+    }
+
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
-      <td><input type="checkbox" /></td>
-      <td>${accountData.student_id}</td>
-      <td>${accountData.email}</td>
-      <td>${accountData.surname}</td>
-      <td>${accountData.firstname}</td>
-      <td>${accountData.middlename || ""}</td>
-      <td>${accountData.suffix || ""}</td>
-      <td>${accountData.birthdate}</td>
-      <td>${accountData.gender}</td>
-      <td>${accountData.contact}</td>
-      <td>${accountData.reg_date}</td>
-      <td>${accountData.password}</td>
-      <td class="reset-log">--</td>
-      <td>
-        <div class="d-flex gap-1">
-          <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'Active')">Active</button>
-          <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'Inactive')">Inactive</button>
-        </div>
-      </td>
-      <td class="status-cell">${accountData.status || "Active"}</td>
-      <td>--</td>
-    `;
+    <td><input type="checkbox" /></td>
+    <td>${accountData.student_id}</td>
+    <td>${accountData.email}</td>
+    <td>${accountData.surname}</td>
+    <td>${accountData.firstname}</td>
+    <td>${accountData.middlename || ""}</td>
+    <td>${accountData.suffix || ""}</td>
+    <td>${accountData.birthdate}</td>
+    <td>${accountData.gender}</td>
+    <td>${accountData.contact}</td>
+    <td>${accountData.reg_date}</td>
+    <td>${passwordDisplay}</td>
+    <td class="reset-log">${resetLogDisplay}</td>
+    <td>
+      <div class="d-flex gap-1">
+        <button class="btn btn-primary btn-sm" onclick="updateStatus(this, 'Active')">Active</button>
+        <button class="btn btn-danger btn-sm" onclick="updateStatus(this, 'Inactive')">Inactive</button>
+      </div>
+    </td>
+    <td class="status-cell">${accountData.status || "Active"}</td>
+    <td>--</td>
+  `;
     tableBody.appendChild(newRow);
   }
+
+  // --- Helper function to format timestamp like "Oct 29, 2025, 11:08 PM" ---
+  function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
 
   // --- Check if student already exists ---
   function studentExists(student_id) {
