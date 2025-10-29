@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const isSubmittedDocs = path === '/admin/submitted-documents';
   const isStudentProgress = path === '/admin/student-progress';
   const isPublishReq = path === '/admin/publish-requirements';
+  const isAgencyReviews = path === '/admin/agency-reviews';
   const isNotifications = path === '/admin/notifications';
   const isFacultyProfile = path === '/admin/user-profile';
 
@@ -48,6 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       isSubmittedDocs ||
       isStudentProgress ||
       isPublishReq ||
+      isAgencyReviews ||
       isNotifications ||
       isFacultyProfile
     ) {
@@ -345,6 +347,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     modal.hide();
   });
 });
+
+// ✅ SIDEBAR FUNCTION FOR ADMIN
+document.addEventListener('DOMContentLoaded', () => {
+  const registeredAcc = document.getElementById('registered-accounts');
+  const downloadable = document.getElementById('downloadable');
+  const partnerAgencies = document.getElementById('partner-agencies');
+  const submittedDocs = document.getElementById('submitted-documents');
+  const studentProgress = document.getElementById('student-progress');
+  const publishReq = document.getElementById('publish-requirements');
+  const notifications = document.getElementById('notifications');
+  const facultyProfile = document.getElementById('user-profile');
+  const logout = document.getElementById('logout');
+
+  const path = window.location.pathname;
+
+  // Identify faculty admin pages
+  const isRegisteredAcc = path.includes('/admin/registered-accounts');
+  const isDownloadable = path.includes('/admin/downloadable');
+  const isEstablishments = path.includes('/admin/partner-establishments');
+  const isAgencyReviews = path.includes('/admin/agency-reviews');
+  const isSubmittedDocs = path.includes('/admin/submitted-documents');
+  const isStudentProgress = path.includes('/admin/student-progress');
+  const isPublishReq = path.includes('/admin/publish-requirements');
+  const isNotifications = path.includes('/admin/notifications');
+  const isFacultyProfile = path.includes('/admin/user-profile');
+  const isLogout = path.includes('/index.html');
+
+  // Remove all active states first
+  const allLinks = [
+    registeredAcc, downloadable, partnerAgencies, submittedDocs,
+    studentProgress, publishReq, notifications, facultyProfile, logout
+  ];
+  allLinks.forEach(link => link?.classList.remove('active', 'collapsed', 'show'));
+
+  // Apply active styles based on path
+  if (isRegisteredAcc) {
+    registeredAcc.classList.add('active');
+  } else if (isDownloadable) {
+    downloadable.classList.add('active');
+  } else if (isEstablishments || isAgencyReviews) {
+    partnerAgencies.classList.add('active');
+
+    // Highlight correct nested link
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-content a');
+    navLinks.forEach(link => {
+      if (link.getAttribute('href') === path) {
+        link.classList.add('active');
+        const navContent = link.closest('.nav-content');
+        if (navContent) {
+          navContent.classList.add('show');
+          const parentLink = navContent.previousElementSibling;
+          if (parentLink) parentLink.classList.add('active');
+        }
+      }
+    });
+  } else if (isSubmittedDocs) {
+    submittedDocs.classList.add('active');
+  } else if (isStudentProgress) {
+    studentProgress.classList.add('active');
+  } else if (isPublishReq) {
+    publishReq.classList.add('active');
+  } else if (isNotifications) {
+    notifications.classList.add('active');
+  } else if (isFacultyProfile) {
+    facultyProfile.classList.add('active');
+  } else if (isLogout) {
+    logout.classList.add('active');
+  }
+
+  // Collapse everything else except the active one
+  allLinks.forEach(link => {
+    if (!link?.classList.contains('active') && !link?.classList.contains('show')) {
+      link?.classList.add('collapsed');
+    }
+  });
+});
+
+
 
 //NOTIFICATIONS — FULL MERGED SCRIPT
 document.addEventListener('DOMContentLoaded', () => {
@@ -1533,6 +1613,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const addAccountForm = document.getElementById("addAccountForm");
   const addAccountModal = document.getElementById("addAccountModal");
   const feedbackBox = document.getElementById("formFeedback"); // <-- Add this in HTML for user messages
+  setupLiveValidation(addAccountForm);
+
 
   let targetBlock = "A";
   let loadedStudents = []; // store fetched students for duplicate checking
@@ -1649,6 +1731,16 @@ document.addEventListener("DOMContentLoaded", () => {
   addAccountForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
+    const saveBtn = document.getElementById("saveAccountBtn");
+    const spinner = document.getElementById("saveSpinner");
+    const btnTextOriginal = saveBtn.innerHTML; // Save original button HTML
+
+    // --- Validate before saving ---
+    if (!validateFormBeforeSubmit(addAccountForm)) {
+      showFeedback("⚠️ Please fix the highlighted errors.", "warning");
+      return;
+    }
+
     const formData = new FormData(addAccountForm);
     const accountData = Object.fromEntries(formData.entries());
     accountData.targetBlock = targetBlock;
@@ -1656,45 +1748,66 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
     accountData.reg_date = now.toLocaleString("en-US", {
       dateStyle: "medium",
-      timeStyle: "short"
+      timeStyle: "short",
     });
 
     accountData.status = "Active";
     accountData.internshipstatus = "Pending";
-    // --- Duplicate check ---
+
     if (studentExists(accountData.student_id)) {
       showFeedback(`⚠️ Student ID "${accountData.student_id}" already exists.`, "warning");
       return;
     }
 
-    // --- Save to Firestore ---
+    // --- Show loading spinner ---
+    saveBtn.disabled = true;
+    spinner.classList.remove("d-none");
+
+    // Instead of replacing the whole text, find text node and update it
+    saveBtn.querySelector("span.spinner-border").classList.remove("d-none");
+    saveBtn.lastChild.textContent = " Saving...";
+
     try {
       const response = await fetch("/save-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(accountData)
+        body: JSON.stringify(accountData),
       });
 
       const result = await response.json();
+
       if (result.success) {
         console.log("✅ Account saved:", accountData.student_id);
-        showFeedback("✅ Account successfully added!", "success");
+
+        const feedbackMessage = document.getElementById("feedbackMessage");
+        feedbackMessage.textContent = `✅ Account successfully added!`;
+        const feedbackModal = new bootstrap.Modal(document.getElementById("feedbackModal"));
+        feedbackModal.show();
+
+        setTimeout(() => feedbackModal.hide(), 2000);
 
         const tableId = targetBlock === "A" ? "blockATable" : "blockBTable";
         addAccountToTable(tableId, accountData);
         loadedStudents.push(accountData);
+
+        setTimeout(() => {
+          addAccountForm.reset();
+          bootstrap.Modal.getInstance(addAccountModal).hide();
+        }, 2500);
       } else {
-        console.error("⚠️ Failed:", result.message);
         showFeedback("⚠️ Failed to save account.", "danger");
       }
     } catch (error) {
       console.error("🔥 Error saving:", error);
       showFeedback("🔥 Error saving account.", "danger");
+    } finally {
+      // --- Hide spinner & reset button ---
+      spinner.classList.add("d-none");
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = btnTextOriginal; // Restore original button HTML
     }
-
-    addAccountForm.reset();
-    bootstrap.Modal.getInstance(addAccountModal).hide();
   });
+
 
   loadStudents();
 
@@ -1872,6 +1985,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('tempPassword').value = generatePassword();
   });
 
+  // --- Reset modal when closed ---
+  addAccountModal.addEventListener('hidden.bs.modal', () => {
+    addAccountForm.reset(); // Clear all inputs
+    feedbackBox.innerHTML = ''; // Clear feedback
+    addAccountForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    addAccountForm.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+    document.getElementById('tempPassword').value = generatePassword(); // Generate fresh password
+  });
+
+
   document.getElementById('regenPassBtn').addEventListener('click', function () {
     document.getElementById('tempPassword').value = generatePassword();
   });
@@ -1911,6 +2034,77 @@ async function updateStatus(button, newStatus) {
   }
 }
 
+// Inputs Validation
+
+const nameRegex = /^[A-Za-z\s.]+$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const contactRegex = /^[0-9]+$/;
+
+const validators = {
+  surname: value => nameRegex.test(value) || "Surname must contain letters only.",
+  firstname: value => nameRegex.test(value) || "First name must contain letters only.",
+  middlename: value => value === "" || nameRegex.test(value) || "Middle name must contain letters only.",
+  email: value => emailRegex.test(value) || "Please enter a valid email address.",
+  contact: value => contactRegex.test(value) || "Contact number must contain numbers only."
+};
+
+// --- Live Validation Setup ---
+function setupLiveValidation(form) {
+  // --- Attach event listeners to inputs ---
+  Object.keys(validators).forEach(fieldName => {
+    const input = form.querySelector(`input[name="${fieldName}"]`);
+    if (!input) return;
+
+    input.addEventListener("input", () => {
+      validateField(input, validators[fieldName]);
+    });
+  });
+}
+
+// --- Individual Field Validator ---
+function validateField(input, validatorFn) {
+  const value = input.value.trim();
+  const feedback = input.nextElementSibling?.classList.contains("invalid-feedback")
+    ? input.nextElementSibling
+    : null;
+
+  const result = validatorFn(value);
+
+  if (result !== true) {
+    // Invalid
+    input.classList.add("is-invalid");
+    if (!feedback) {
+      const msg = document.createElement("div");
+      msg.className = "invalid-feedback";
+      msg.textContent = result;
+      input.insertAdjacentElement("afterend", msg);
+    } else {
+      feedback.textContent = result;
+    }
+  } else {
+    // Valid
+    input.classList.remove("is-invalid");
+    if (feedback) feedback.remove();
+  }
+}
+
+// --- Final check on submit (in case user skips typing)
+function validateFormBeforeSubmit(form) {
+  let allValid = true;
+  form.querySelectorAll("input").forEach(input => {
+    const name = input.getAttribute("name");
+    if (!name) return;
+    const validatorFn = validators[name];
+    if (validatorFn) {
+      const result = validatorFn(input.value.trim());
+      if (result !== true) {
+        allValid = false;
+        validateField(input, validatorFn);
+      }
+    }
+  });
+  return allValid;
+}
 
 // PARTNER ESTABLISHMENTS 
 document.addEventListener("DOMContentLoaded", () => {
@@ -3155,3 +3349,235 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 });
+
+// REVIEW AGENCY
+document.addEventListener("DOMContentLoaded", async function () {
+
+  // ✅ Fetch partner agencies from backend
+  async function fetchAgencies() {
+    try {
+      const res = await fetch("/api/get-partnersreview");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.partners)) {
+        console.log("✅ Agencies fetched for review:", data.partners);
+        return data.partners;
+      } else {
+        console.warn("⚠️ No agencies found in API response.");
+        return [];
+      }
+    } catch (error) {
+      console.error("🔥 Error fetching agencies:", error);
+      return [];
+    }
+  }
+
+  const agencies = await fetchAgencies();
+  const reviewContainer = document.getElementById("reviewAgenciesCards");
+  if (!reviewContainer) return;
+
+  reviewContainer.innerHTML = "";
+
+  if (agencies.length === 0) {
+    reviewContainer.innerHTML = `<p class="text-center text-muted">No partner agencies available for review.</p>`;
+    return;
+  }
+
+  // ✅ Build each agency card
+  agencies.forEach(agency => {
+    const reviewCard = document.createElement("div");
+    reviewCard.className = "col-md-3";
+
+    const ratingValue = parseFloat(agency.rating || 0);
+    let starsHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      starsHTML += i <= ratingValue
+        ? `<i class="bi bi-star-fill text-warning"></i>`
+        : `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+    }
+
+    reviewCard.innerHTML = `
+            <div class="agencyCard mt-0 g-0 card shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-building fs-3 dark-purple"></i>
+                    <div id="reviewNameCard">${agency.establishmentName || "Unnamed Agency"}</div>
+                    <div id="reviewAddressCard" class="text-muted">${agency.address || "No address"}</div>
+                </div>
+                <div class="text-center mt-0" id="rating">
+                    <div class="stars">${starsHTML}</div>
+                    <div>${ratingValue.toFixed(1)}/5</div>
+                </div>
+                <div class="d-flex justify-content-end p-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm">See Reviews</button>
+                </div>
+            </div>
+        `;
+
+    reviewContainer.appendChild(reviewCard);
+
+    // ✅ Handle "Review" button click
+    const button = reviewCard.querySelector("button");
+    button.addEventListener("click", async () => {
+      document.getElementById("reviewAgenciesCards").style.display = "none";
+      document.getElementById("reviewSelectedCard").style.display = "flex";
+
+      // ✅ Immediately refresh agency data before displaying
+      await refreshAgencyReviews(agency.id);
+
+      // Left side (Agency details)
+      document.getElementById("reviewAgencyName").innerText = agency.establishmentName || "Unnamed Agency";
+      document.getElementById("reviewAgencyAddress").innerText = agency.address || "No address provided";
+
+
+      // Right side (Reviews) — This will already be filled by refreshAgencyReviews
+      const reviewsContainer = document.getElementById("reviewsContainer");
+
+      // ⭐ Interactive Write Review Section (safe rebind)
+      const stars = document.querySelectorAll(".star");
+      const ratingDisplay = document.getElementById("totalRating");
+      let activeStars = 0;
+
+      // Remove previous listeners
+      stars.forEach(star => {
+        const newStar = star.cloneNode(true);
+        star.parentNode.replaceChild(newStar, star);
+      });
+      const freshStars = document.querySelectorAll(".star");
+
+      // Add fresh listeners
+      freshStars.forEach((star, index) => {
+        star.addEventListener("click", () => {
+          for (let i = 0; i < freshStars.length; i++) {
+            const iTag = freshStars[i].querySelector("i");
+            if (i <= index) {
+              iTag.classList.add("bi-star-fill", "text-warning");
+              iTag.classList.remove("bi-star");
+            } else {
+              iTag.classList.remove("bi-star-fill", "text-warning");
+              iTag.classList.add("bi-star");
+            }
+          }
+          activeStars = index + 1;
+          ratingDisplay.textContent = activeStars;
+        });
+      });
+
+      // Replace old submit listener
+      const submit = document.getElementById("submitReview");
+      const newSubmit = submit.cloneNode(true);
+      submit.parentNode.replaceChild(newSubmit, submit);
+
+      newSubmit.addEventListener("click", async function () {
+        const review = document.getElementById("review");
+        const reviewValue = review.value.trim();
+
+        if (reviewValue === "" && activeStars === 0) {
+          alert("Please leave a review or select stars!");
+          return;
+        }
+
+        // ✅ Get student data from localStorage
+        const studentData = JSON.parse(localStorage.getItem("studentData")) || {};
+        const studentID = studentData.id;
+        const firstname = studentData.firstname || "John";
+        const lastname = studentData.lastname || "Doe";
+
+        // ✅ Prepare review payload
+        const reviewData = {
+          establishmentID: agency.id,
+          studentID,
+          firstname,
+          lastname,
+          review: reviewValue,
+          star: activeStars
+        };
+
+        try {
+          const res = await fetch("/api/save-review", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(reviewData)
+          });
+
+          const result = await res.json();
+
+          if (result.success) {
+            console.log("✅ Review saved:", result.message);
+            await refreshAgencyReviews(agency.id); // 🔁 Refresh reviews immediately
+
+            // Reset form
+            review.value = "";
+            ratingDisplay.textContent = "0";
+            freshStars.forEach(s => {
+              const iTag = s.querySelector("i");
+              iTag.classList.remove("bi-star-fill", "text-warning");
+              iTag.classList.add("bi-star");
+            });
+            activeStars = 0;
+          }
+        } catch (err) {
+          console.error("🔥 Error submitting review:", err);
+          alert("Error submitting review. Check console for details.");
+        }
+      });
+    });
+
+  });
+
+  // 🔙 Back button logic
+  const agencyBack = document.getElementById("agencyBack");
+  if (agencyBack) {
+    agencyBack.addEventListener("click", function () {
+      document.getElementById("reviewSelectedCard").style.display = "none";
+      document.getElementById("reviewAgenciesCards").style.display = "flex";
+    });
+  }
+
+  // ♻️ Helper function to refresh agency reviews dynamically
+  async function refreshAgencyReviews(agencyId) {
+    const updatedRes = await fetch(`/api/get-partnersreview`);
+    const updatedData = await updatedRes.json();
+
+    if (updatedData.success) {
+      const updatedAgency = updatedData.partners.find(p => p.id === agencyId);
+      if (updatedAgency) {
+        document.getElementById("reviewRatingValue").innerText = updatedAgency.rating;
+
+        let updatedStarsHTML = "";
+        for (let i = 1; i <= 5; i++) {
+          updatedStarsHTML += i <= Math.round(updatedAgency.rating)
+            ? `<i class="bi bi-star-fill text-warning"></i>`
+            : `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+        }
+        document.getElementById("reviewStars").innerHTML = updatedStarsHTML;
+
+        const reviewsContainer = document.getElementById("reviewsContainer");
+        reviewsContainer.innerHTML = "";
+
+        if (updatedAgency.reviews.length > 0) {
+          updatedAgency.reviews.forEach(r => {
+            let starIcons = "";
+            for (let i = 1; i <= 5; i++) {
+              starIcons += i <= r.star
+                ? `<i class="bi bi-star-fill text-warning"></i>`
+                : `<i class="bi bi-star" style="color: #e4e5e9;"></i>`;
+            }
+
+            const reviewCard = document.createElement("div");
+            reviewCard.className = "card mb-2 p-2";
+            reviewCard.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>${r.firstname} ${r.lastname}</strong>
+                                <div>${starIcons}</div>
+                            </div>
+                            <p class="mb-0 small text-muted">${r.review}</p>
+                        `;
+            reviewsContainer.appendChild(reviewCard);
+          });
+        } else {
+          reviewsContainer.innerHTML = `<p class="text-muted small">No reviews yet.</p>`;
+        }
+      }
+    }
+  }
+});
+

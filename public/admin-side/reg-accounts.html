@@ -1,358 +1,373 @@
 <div class="pagetitle">
-    <h1>Registered Accounts</h1>
-  </div><!-- End Page Title -->
+  <h1>Registered Accounts</h1>
+</div><!-- End Page Title -->
 
-  <section class="section">
-    <div class="row">
-      <div class="col-lg-12">
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
 
-      <!-- BLOCK A --> 
+      <!-- BLOCK A -->
       <div class="card">
         <div class="card-body">
           <!-- Title + Add Button Row -->
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="card-title mb-0">Block A</h5>
             <!-- Add Account Button -->
-            <button id="addAccBtnBlockA" class="btn btn-primary d-flex align-items-center justify-content-center" 
-                    style="width: 40px; height: 40px; border-radius: 8px;" 
-                    data-bs-toggle="modal" data-bs-target="#addAccountModal" data-block="A">
+            <button id="addAccBtnBlockA" class="btn btn-primary d-flex align-items-center justify-content-center"
+              style="width: 40px; height: 40px; border-radius: 8px;" data-bs-toggle="modal"
+              data-bs-target="#addAccountModal" data-block="A">
               <i class="bi bi-person-plus"></i>
             </button>
           </div>
 
-            <!-- Search Bar, Reload Button, Delete Button, and Filter -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <p>This section contains a list of registered accounts for Block A</p>
-              <div class="d-flex align-items-center">
+          <!-- Search Bar, Reload Button, Delete Button, and Filter -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <p>This section contains a list of registered accounts for Block A</p>
+            <div class="d-flex align-items-center">
 
-                <!-- Search -->
-                <input type="text" id="searchInputBlockA" class="form-control form-control-sm me-2" placeholder="Search...">
+              <!-- Search -->
+              <input type="text" id="searchInputBlockA" class="form-control form-control-sm me-2"
+                placeholder="Search...">
 
-                <!-- Filter (dropdown style but keeps select hidden for compatibility) -->
-                <div class="dropdown d-inline-block me-2">
-                  <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
-                          type="button" id="filterActionBlockAButton" data-bs-toggle="dropdown" 
-                          aria-expanded="false" title="Filter">
-                    <i class="bi bi-funnel-fill"></i> <span id="filterLabelBlockA"></span>
-                  </button>
-                  <ul class="dropdown-menu" aria-labelledby="filterActionBlockAButton">
-                    <li><a class="dropdown-item filter-option" data-value="All">All Status</a></li>
-                    <li><a class="dropdown-item filter-option" data-value="active">Active</a></li>
-                    <li><a class="dropdown-item filter-option" data-value="Completed">Completed</a></li>
-                    <li><a class="dropdown-item filter-option" data-value="inactive">Inactive</a></li>
-                  </ul>
-                </div>
+              <!-- Filter (dropdown style but keeps select hidden for compatibility) -->
+              <div class="dropdown d-inline-block me-2">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                  id="filterActionBlockAButton" data-bs-toggle="dropdown" aria-expanded="false" title="Filter">
+                  <i class="bi bi-funnel-fill"></i> <span id="filterLabelBlockA"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="filterActionBlockAButton">
+                  <li><a class="dropdown-item filter-option" data-value="All">All Status</a></li>
+                  <li><a class="dropdown-item filter-option" data-value="active">Active</a></li>
+                  <li><a class="dropdown-item filter-option" data-value="Completed">Completed</a></li>
+                  <li><a class="dropdown-item filter-option" data-value="inactive">Inactive</a></li>
+                </ul>
+              </div>
 
-                <!-- Hidden select (kept for existing JS compatibility) -->
-                <select id="filterActionBlockA" style="display:none;">
-                  <option value="All" selected>All Status</option>
+              <!-- Hidden select (kept for existing JS compatibility) -->
+              <select id="filterActionBlockA" style="display:none;">
+                <option value="All" selected>All Status</option>
+                <option value="active">Active</option>
+                <option value="Completed">Completed</option>
+                <option value="inactive">Inactive</option>
+              </select>
+
+
+
+
+              <!-- Reload -->
+              <button type="button" class="btn btn-sm btn-warning" title="Reload" onclick="location.reload();">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+
+              <!-- Delete -->
+              <button type="button" class="btn btn-sm btn-danger ms-2" id="blockADeleteBtn" title="Delete" disabled
+                data-bs-toggle="modal" data-bs-target="#regAccConfirmDeleteModal">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tip Legend -->
+          <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 12px;">
+            💡 Tip: Click a column header to sort.
+          </div>
+
+          <!-- Table -->
+          <div class="table-responsive">
+            <table class="table" id="blockATable">
+              <thead class="table-light align-middle text-center" style="font-size: 13px;">
+                <tr>
+                  <th></th>
+                  <th>Student ID #</th>
+                  <th>Email address</th>
+                  <th>Surname</th>
+                  <th>First Name</th>
+                  <th>Middle Name</th>
+                  <th>Suffix</th>
+                  <th data-type="date">Birthdate</th>
+                  <th>Gender</th>
+                  <th>Contact number</th>
+                  <th data-type="date">Reg Date</th>
+                  <th>Password</th>
+                  <th>Password Reset Log</th>
+                  <th>Action</th>
+                  <th>Status</th>
+                  <th>Remarks</th>
+                </tr>
+              </thead>
+
+              <tbody class="align-middle text-center" style="font-size: 13px;">
+
+                <!-- No Entries Message -->
+                <tr id="noEntriesMessageBlockA" style="display: none;">
+                  <td colspan="15" style="text-align: center; vertical-align: middle;">
+                    <div>No entries found</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Dropdown below the table -->
+            <div class="mt-3 d-flex align-items-center">
+              <label for="entriesSelectBlockA" class="me-2">Show</label>
+              <select id="entriesSelectBlockA" class="form-select form-select-sm me-2" style="width: auto;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span>entries</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOCK B -->
+      <div class="card">
+        <div class="card-body">
+          <!-- Title + Add Button Row -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Block B</h5>
+            <!-- Add Account Button -->
+            <button id="addAccBtnBlockB" class="btn btn-primary d-flex align-items-center justify-content-center"
+              style="width: 40px; height: 40px; border-radius: 8px;" data-bs-toggle="modal"
+              data-bs-target="#addAccountModal" data-block="B">
+              <i class="bi bi-person-plus"></i>
+            </button>
+          </div>
+          <!-- Search Bar, Reload Button, Delete Button, and Filter -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <p>This section contains a list of registered accounts for Block B</p>
+            <div class="d-flex align-items-center">
+              <!-- Search -->
+              <input type="text" id="searchInputBlockB" class="form-control form-control-sm me-2"
+                placeholder="Search...">
+
+              <!-- Admin Filter (funnel style but keeps original select for functionality) -->
+              <div class="dropdown d-inline-block me-2">
+                <!-- Funnel button -->
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                  id="filterActionBlockBButton" data-bs-toggle="dropdown" aria-expanded="false" title="Filter">
+                  <i class="bi bi-funnel-fill"></i>
+                </button>
+
+                <!-- Dropdown list -->
+                <ul class="dropdown-menu" aria-labelledby="filterActionBlockBButton">
+                  <li><a class="dropdown-item blockB-filter-option" data-value="All">All Status</a></li>
+                  <li><a class="dropdown-item blockB-filter-option" data-value="active">Active</a></li>
+                  <li><a class="dropdown-item blockB-filter-option" data-value="Completed">Completed</a></li>
+                  <li><a class="dropdown-item blockB-filter-option" data-value="inactive">Inactive</a></li>
+                </ul>
+
+                <!-- Original hidden select (kept for JS functionality) -->
+                <select id="filterActionBlockB" class="form-select form-select-sm d-none">
+                  <option value="All">All Status</option>
                   <option value="active">Active</option>
                   <option value="Completed">Completed</option>
                   <option value="inactive">Inactive</option>
                 </select>
-
-
-                
-
-                <!-- Reload -->
-                <button type="button" class="btn btn-sm btn-warning" title="Reload" onclick="location.reload();">
-                  <i class="bi bi-arrow-clockwise"></i>
-                </button>
-
-                <!-- Delete -->
-                <button type="button" class="btn btn-sm btn-danger ms-2" id="blockADeleteBtn" title="Delete" disabled
-                  data-bs-toggle="modal" data-bs-target="#regAccConfirmDeleteModal">
-                  <i class="bi bi-trash"></i>
-                </button>
               </div>
-            </div>
 
-            <!-- Tip Legend -->
-            <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 12px;">
-              💡 Tip: Click a column header to sort.
-            </div>
+              <!-- Reload -->
+              <button type="button" class="btn btn-sm btn-warning" title="Reload" onclick="location.reload();">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
 
-            <!-- Table -->
-            <div class="table-responsive">
-              <table class="table" id="blockATable">
-                <thead class="table-light align-middle text-center" style="font-size: 13px;">
-                  <tr>
-                    <th></th>
-                    <th>Student ID #</th>
-                    <th>Email address</th>
-                    <th>Surname</th>
-                    <th>First Name</th>
-                    <th>Middle Name</th>
-                    <th>Suffix</th>
-                    <th data-type="date">Birthdate</th>
-                    <th>Gender</th>
-                    <th>Contact number</th>
-                    <th data-type="date">Reg Date</th>
-                    <th>Password</th>
-                    <th>Password Reset Log</th> 
-                    <th>Action</th>
-                    <th>Status</th>
-                    <th>Remarks</th>
-                  </tr>
-                </thead>
-
-                <tbody class="align-middle text-center" style="font-size: 13px;">
-
-                  <!-- No Entries Message -->
-                  <tr id="noEntriesMessageBlockA" style="display: none;">
-                    <td colspan="15" style="text-align: center; vertical-align: middle;">
-                      <div>No entries found</div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <!-- Dropdown below the table -->
-              <div class="mt-3 d-flex align-items-center">
-                <label for="entriesSelectBlockA" class="me-2">Show</label>
-                <select id="entriesSelectBlockA" class="form-select form-select-sm me-2" style="width: auto;">
-                  <option value="5">5</option>
-                  <option value="10" selected>10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-                <span>entries</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- BLOCK B -->
-        <div class="card">
-          <div class="card-body">
-            <!-- Title + Add Button Row -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="card-title mb-0">Block B</h5>
-              <!-- Add Account Button -->
-              <button id="addAccBtnBlockB" class="btn btn-primary d-flex align-items-center justify-content-center" 
-                      style="width: 40px; height: 40px; border-radius: 8px;" 
-                      data-bs-toggle="modal" data-bs-target="#addAccountModal" data-block="B">
-                <i class="bi bi-person-plus"></i>
+              <!-- Delete -->
+              <button type="button" class="btn btn-sm btn-danger ms-2" id="blockBDeleteBtn" title="Delete" disabled
+                data-bs-toggle="modal" data-bs-target="#regAccConfirmDeleteModal">
+                <i class="bi bi-trash"></i>
               </button>
             </div>
-            <!-- Search Bar, Reload Button, Delete Button, and Filter -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <p>This section contains a list of registered accounts for Block B</p>
-              <div class="d-flex align-items-center">
-                <!-- Search -->
-                <input type="text" id="searchInputBlockB" class="form-control form-control-sm me-2" placeholder="Search...">
+          </div>
 
-                <!-- Admin Filter (funnel style but keeps original select for functionality) -->
-                <div class="dropdown d-inline-block me-2">
-                  <!-- Funnel button -->
-                  <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
-                          type="button" id="filterActionBlockBButton" data-bs-toggle="dropdown" 
-                          aria-expanded="false" title="Filter">
-                    <i class="bi bi-funnel-fill"></i>
-                  </button>
+          <!-- Tip Legend -->
+          <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 12px;">
+            💡 Tip: Click a column header to sort.
+          </div>
 
-                  <!-- Dropdown list -->
-                  <ul class="dropdown-menu" aria-labelledby="filterActionBlockBButton">
-                    <li><a class="dropdown-item blockB-filter-option" data-value="All">All Status</a></li>
-                    <li><a class="dropdown-item blockB-filter-option" data-value="active">Active</a></li>
-                    <li><a class="dropdown-item blockB-filter-option" data-value="Completed">Completed</a></li>
-                    <li><a class="dropdown-item blockB-filter-option" data-value="inactive">Inactive</a></li>
-                  </ul>
+          <!-- Table -->
+          <div class="table-responsive">
+            <table class="table" id="blockBTable">
+              <thead class="table-light align-middle text-center" style="font-size: 13px;">
+                <tr>
+                  <th></th>
+                  <th>Student ID #</th>
+                  <th>Email address</th>
+                  <th>Surname</th>
+                  <th>First Name</th>
+                  <th>Middle Name</th>
+                  <th>Suffix</th>
+                  <th data-type="date">Birthdate</th>
+                  <th>Gender</th>
+                  <th>Contact number</th>
+                  <th data-type="date">Reg Date</th>
+                  <th>Password</th>
+                  <th>Password Reset Log</th>
+                  <th>Action</th>
+                  <th>Status</th>
+                  <th>Remarks</th>
+                </tr>
+              </thead>
 
-                  <!-- Original hidden select (kept for JS functionality) -->
-                  <select id="filterActionBlockB" class="form-select form-select-sm d-none">
-                    <option value="All">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="Completed">Completed</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-                
-                <!-- Reload -->
-                <button type="button" class="btn btn-sm btn-warning" title="Reload" onclick="location.reload();">
-                  <i class="bi bi-arrow-clockwise"></i>
-                </button>
+              <tbody class="align-middle text-center" style="font-size: 13px;">
 
-                <!-- Delete -->
-                <button type="button" class="btn btn-sm btn-danger ms-2" id="blockBDeleteBtn" title="Delete" disabled
-                  data-bs-toggle="modal" data-bs-target="#regAccConfirmDeleteModal">
-                  <i class="bi bi-trash"></i>
-                </button>
+                <!-- No Entries Message -->
+                <tr id="noEntriesMessageBlockB" style="display: none;">
+                  <td colspan="15" style="text-align: center; vertical-align: middle;">
+                    <div>No entries found</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Dropdown below the table -->
+            <div class="mt-3 d-flex align-items-center">
+              <label for="entriesSelectBlockB" class="me-2">Show</label>
+              <select id="entriesSelectBlockB" class="form-select form-select-sm me-2" style="width: auto;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span>entries</span>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Add Account Modal -->
+<div class="modal fade" id="addAccountModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <form id="addAccountForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Create New Student Account</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <!-- Student ID -->
+            <div class="col-md-4">
+              <label class="form-label">Student ID #</label>
+              <input type="text" name="student_id" class="form-control" required>
+              <div id="formFeedback" class="mt-1"></div>
+            </div>
+
+
+            <!-- Email -->
+            <div class="col-md-4">
+              <label class="form-label">Email Address</label>
+              <input type="email" name="email" class="form-control" required>
+            </div>
+
+            <!-- Temp Password -->
+            <div class="col-md-4">
+              <label class="form-label">Temporary Password</label>
+              <div class="input-group">
+                <input type="text" id="tempPassword" name="password" class="form-control"
+                  placeholder="Auto-generated password" required readonly>
+                <button type="button" class="btn btn-outline-secondary" id="regenPassBtn">↻</button>
               </div>
             </div>
 
-            <!-- Tip Legend -->
-            <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 12px;">
-              💡 Tip: Click a column header to sort.
+            <!-- Surname -->
+            <div class="col-md-4">
+              <label class="form-label">Surname</label>
+              <input type="text" name="surname" class="form-control" required>
             </div>
 
-            <!-- Table -->
-            <div class="table-responsive">
-              <table class="table" id="blockBTable">
-                <thead class="table-light align-middle text-center" style="font-size: 13px;">
-                  <tr>
-                    <th></th>
-                    <th>Student ID #</th>
-                    <th>Email address</th>
-                    <th>Surname</th>
-                    <th>First Name</th>
-                    <th>Middle Name</th>
-                    <th>Suffix</th>
-                    <th data-type="date">Birthdate</th>
-                    <th>Gender</th>
-                    <th>Contact number</th>
-                    <th data-type="date">Reg Date</th>
-                    <th>Password</th>
-                    <th>Password Reset Log</th>
-                    <th>Action</th>
-                    <th>Status</th>
-                    <th>Remarks</th>
-                  </tr>
-                </thead>
-
-                <tbody class="align-middle text-center" style="font-size: 13px;">
-
-                  <!-- No Entries Message -->
-                  <tr id="noEntriesMessageBlockB" style="display: none;">
-                    <td colspan="15" style="text-align: center; vertical-align: middle;">
-                      <div>No entries found</div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <!-- Dropdown below the table -->
-              <div class="mt-3 d-flex align-items-center">
-                <label for="entriesSelectBlockB" class="me-2">Show</label>
-                <select id="entriesSelectBlockB" class="form-select form-select-sm me-2" style="width: auto;">
-                  <option value="5">5</option>
-                  <option value="10" selected>10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-                <span>entries</span>
-              </div>
+            <!-- First Name -->
+            <div class="col-md-4">
+              <label class="form-label">First Name</label>
+              <input type="text" name="firstname" class="form-control" required>
             </div>
 
-            
+            <!-- Middle Name -->
+            <div class="col-md-4">
+              <label class="form-label">Middle Name</label>
+              <input type="text" name="middlename" class="form-control">
+            </div>
+
+            <!-- Suffix -->
+            <div class="col-md-3">
+              <label class="form-label">Suffix</label>
+              <input type="text" name="suffix" class="form-control">
+            </div>
+
+            <!-- Birthdate -->
+            <div class="col-md-3">
+              <label class="form-label">Birthdate</label>
+              <input type="date" name="birthdate" class="form-control" required>
+            </div>
+
+            <!-- Gender -->
+            <div class="col-md-3">
+              <label class="form-label">Gender</label>
+              <select name="gender" class="form-select" required>
+                <option value="">Select...</option>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+            </div>
+
+            <!-- Contact Number -->
+            <div class="col-md-3">
+              <label class="form-label">Contact Number</label>
+              <input type="text" name="contact" class="form-control" required>
+            </div>
           </div>
         </div>
 
-      </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="saveAccountBtn" class="btn btn-primary">
+            <span class="spinner-border spinner-border-sm me-2 d-none" id="saveSpinner" role="status"
+              aria-hidden="true">
+            </span>
+            Save Account
+          </button>
+        </div>
+      </form>
     </div>
-  </section>
+  </div>
+</div>
 
-  <!-- Add Account Modal -->
-  <div class="modal fade" id="addAccountModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <form id="addAccountForm">
-          <div class="modal-header">
-            <h5 class="modal-title">Create New Student Account</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          
-          <div class="modal-body">
-            <div class="row g-3">
-              
-              <!-- Student ID -->
-              <div class="col-md-4">
-                <label class="form-label">Student ID #</label>
-                <input type="text" name="student_id" class="form-control" required>
-                <div id="formFeedback" class="mt-1"></div>
-              </div>
-
-
-              <!-- Email -->
-              <div class="col-md-4">
-                <label class="form-label">Email Address</label>
-                <input type="email" name="email" class="form-control" required>
-              </div>
-
-              <!-- Temp Password -->
-              <div class="col-md-4">
-                <label class="form-label">Temporary Password</label>
-                <div class="input-group">
-                  <input type="text" id="tempPassword" name="password" class="form-control" 
-                        placeholder="Auto-generated password" required readonly>
-                  <button type="button" class="btn btn-outline-secondary" id="regenPassBtn">↻</button>
-                </div>
-              </div>
-
-              <!-- Surname -->
-              <div class="col-md-4">
-                <label class="form-label">Surname</label>
-                <input type="text" name="surname" class="form-control" required>
-              </div>
-
-              <!-- First Name -->
-              <div class="col-md-4">
-                <label class="form-label">First Name</label>
-                <input type="text" name="firstname" class="form-control" required>
-              </div>
-
-              <!-- Middle Name -->
-              <div class="col-md-4">
-                <label class="form-label">Middle Name</label>
-                <input type="text" name="middlename" class="form-control">
-              </div>
-
-              <!-- Suffix -->
-              <div class="col-md-3">
-                <label class="form-label">Suffix</label>
-                <input type="text" name="suffix" class="form-control">
-              </div>
-
-              <!-- Birthdate -->
-              <div class="col-md-3">
-                <label class="form-label">Birthdate</label>
-                <input type="date" name="birthdate" class="form-control" required>
-              </div>
-
-              <!-- Gender -->
-              <div class="col-md-3">
-                <label class="form-label">Gender</label>
-                <select name="gender" class="form-select" required>
-                  <option value="">Select...</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                </select>
-              </div>
-
-              <!-- Contact Number -->
-              <div class="col-md-3">
-                <label class="form-label">Contact Number</label>
-                <input type="text" name="contact" class="form-control" required>
-              </div>
-            </div>
-          </div>
-          
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Account</button>
-          </div>
-        </form>
+<!-- Confirmation Modal -->
+<div class="modal fade" id="regAccConfirmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Confirm Delete</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Do you really want to delete the selected data?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="regAccConfirmDeleteBtn" class="btn btn-danger">Delete</button>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Confirmation Modal -->
-  <div class="modal fade" id="regAccConfirmDeleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title">Confirm Delete</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <p>Do you really want to delete the selected data?</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" id="regAccConfirmDeleteBtn" class="btn btn-danger">Delete</button>
-        </div>
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content bg-dark-purple text-center m-0 p-0">
+      <div class="modal-body text-white small">
+        <p id="feedbackMessage" class="mb-0"></p>
       </div>
     </div>
   </div>

@@ -117,68 +117,90 @@
 
   <!-- ======= Sidebar ======= -->
   <aside id="sidebar" class="sidebar">
+
     <ul class="sidebar-nav" id="sidebar-nav">
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="/admin/registered-accounts">
+      <li class="nav-item custom-card-hover" style="transition: all 0.3s;">
+        <a id="registered-accounts" class="nav-link collapsed" href="/admin/registered-accounts">
           <i class="bi bi-person-check"></i>
           <span>Registered Accounts</span>
         </a>
       </li><!-- Registered Accounts -->
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="/admin/partner-establishments">
-          <i class="bi bi-building"></i>
-          <span>Partner Establishments</span>
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="partner-agencies" class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse"
+          href="#">
+          <i class="bi bi-receipt"></i><span>Partner Establishments</span><i class="bi bi-chevron-down ms-auto"></i>
         </a>
-      </li><!-- Partner Establishments -->
+        <ul id="tables-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="/admin/partner-establishments">
+              <i class="bi bi-circle"></i><span>Partner Agencies</span>
+            </a>
+          </li>
+          <li>
+            <a href="/admin/agency-reviews">
+              <i class="bi bi-circle"></i><span>Agency Reviews</span>
+            </a>
+          </li>
+        </ul>
+      </li><!-- End Partner Establishments -->
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="/admin/downloadable">
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="downloadable" class="nav-link collapsed" href="/admin/downloadable">
           <i class="bi bi-file-earmark-arrow-down"></i>
           <span>Downloadable Forms</span>
         </a>
       </li><!-- Downloadable Forms -->
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="/admin/submitted-documents">
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="submitted-documents" class="nav-link collapsed" href="/admin/submitted-documents">
           <i class="bi bi-folder-check"></i>
           <span>Submitted Documents</span>
         </a>
-      </li><!-- Submitted Docs -->
+      </li><!-- Submitted Documents -->
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="/admin/student-progress">
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="student-progress" class="nav-link collapsed" href="/admin/student-progress">
           <i class="bi bi-clipboard-check"></i>
           <span>Student Progress</span>
         </a>
-      </li><!-- Checklist -->
+      </li><!-- Student Progress -->
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="/admin/publish-requirements">
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="publish-requirements" class="nav-link collapsed" href="/admin/publish-requirements">
           <i class="bi bi-calendar-check"></i>
           <span>Publish Requirements</span>
         </a>
-      </li><!-- Due -->
+      </li><!-- Publish Requirements -->
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="/admin/notifications">
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="notifications" class="nav-link collapsed" href="/admin/notifications">
           <i class="bi bi-bell"></i>
           <span>Notifications</span>
         </a>
-      </li><!-- Notif -->
+      </li><!-- Notifications -->
 
-      <li class="nav-heading">OTHER</li>
+      <li class="nav-heading mt-3">Other</li>
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="/admin/user-profile">
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="user-profile" class="nav-link collapsed" href="/admin/user-profile">
           <i class="bi bi-person"></i>
           <span>Admin Profile</span>
         </a>
-      </li><!-- Profile-->
+      </li><!-- Admin Profile -->
+
+      <li class="nav-item mt-3 custom-card-hover" style="transition: all 0.3s;">
+        <a id="logout" class="nav-link collapsed" href="/">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Log Out</span>
+        </a>
+      </li><!-- Log Out -->
 
     </ul>
-  </aside><!-- End Sidebar-->
+
+  </aside><!-- End Sidebar -->
+
 
 
   <main id="main" class="main">

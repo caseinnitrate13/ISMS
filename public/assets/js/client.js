@@ -834,31 +834,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
         displayList.forEach(requirement => {
             const now = new Date();
-            const dueDate = new Date(requirement.dueDate);
+            const dueDate = requirement.dueDate ? new Date(requirement.dueDate) : null;
 
-            if (now > dueDate && !["Pending", "Completed", "To Revise"].includes(requirement.status)) {
+            // ✅ Handle overdue
+            if (dueDate && !isNaN(dueDate) && now > dueDate && !["Pending", "Completed", "To Revise"].includes(requirement.status)) {
                 requirement.status = "Overdue";
                 requirement.pastDue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24)) + " days past due";
             }
 
-            const [datePart, timePart] = requirement.dueDate.split(',');
-            const formattedTime = new Date(`1970-01-01T${requirement.dueTime}`).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
+            // ✅ Format due date safely (Oct 17, 2025)
+            let formattedDate = "";
+            if (dueDate && !isNaN(dueDate)) {
+                formattedDate = dueDate.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                });
+            }
+
+            // ✅ Format due time safely (10:42 AM)
+            let formattedTime = "";
+            if (requirement.dueTime && !isNaN(new Date(`1970-01-01T${requirement.dueTime}`))) {
+                formattedTime = new Date(`1970-01-01T${requirement.dueTime}`).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                });
+            }
 
             const el = document.createElement("div");
             el.classList.add('p-3', 'd-flex', 'align-items-center', 'border-bottom', 'pointer');
             el.innerHTML = `
                 <i class='bi bi-circle-fill me-3 ${statusOrder[requirement.status]}'></i>
                 <div class='flex-grow-1'>
-                    <div class='fw-bold'>${requirement.title}</div>
-                    <div class='text-muted small'>${requirement.description}</div>
+                <div class='fw-bold'>${requirement.title || ""}</div>
+                <div class='text-muted small'>${requirement.description || ""}</div>
                 </div>
                 <div class='flex-grow-2 text-end'>
-                    <div class='small'>Due: ${datePart} <i class="text-secondary">${formattedTime}</i></div>
-                    <div class='badge ${statusOrder[requirement.status]} p-2'>${requirement.status}</div>
+                <div class='small'>
+                    ${formattedDate ? `Due: ${formattedDate}` : ""}
+                    ${formattedTime ? ` <i class="text-secondary">${formattedTime}</i>` : ""}
+                </div>
+                <div class='badge ${statusOrder[requirement.status]} p-2'>${requirement.status}</div>
                 </div>
             `;
 
@@ -866,6 +883,7 @@ document.addEventListener('DOMContentLoaded', function () {
             container.appendChild(el);
         });
     }
+
 
     // ✅ Dropdown filter handling
     document.querySelectorAll('.dropdown-menu .view-option').forEach(option => {
@@ -913,59 +931,84 @@ document.addEventListener('DOMContentLoaded', function () {
     async function openModal(requirement) {
         selectedRequirement = requirement;
         modalTitle.textContent = requirement.title;
-        modalDescription.textContent = requirement.description;
 
+        const modalBody = document.querySelector('#submissionModal .modal-body');
+        const modalDescription = document.getElementById('modaldescription');
+
+        // --- Clear old remarks if any ---
+        const oldRemarks = document.getElementById('remarksSection');
+        if (oldRemarks) oldRemarks.remove();
+
+        // --- Reset and prepare UI ---
         overdue.classList.add('d-none');
         modalFooter.classList.remove('d-flex', 'justify-content-between');
         cancelBtn.classList.remove("d-none");
         submitFile.classList.remove("d-none");
 
-        // Allow re-upload only for these statuses
+        // --- Define upload permission ---
         const allowedStatuses = ['To Submit', 'Pending', 'To Revise'];
         let canUpload = allowedStatuses.includes(requirement.status);
 
-        // Disable upload if overdue
+        // --- Disable upload if overdue ---
         if (requirement.status === 'Overdue') {
-            canUpload = false; // prevent upload
+            canUpload = false;
             overdue.classList.remove('d-none');
             overdue.textContent = `Overdue: ${requirement.pastDue || 'Past due'}`;
             modalFooter.classList.add('d-flex', 'justify-content-between');
         }
 
-        // Reset upload area
+        // --- Reset upload area ---
         resetUpload();
 
-        // Disable upload and submit buttons if not allowed
+        // --- Enable/disable upload buttons ---
+        const fileInput = document.getElementById('fileInput');
         if (!canUpload) {
             submitFile.setAttribute('disabled', true);
-            // If you have a drag-drop area or input field for file, disable it too:
-            const fileInput = document.getElementById('fileInput'); // replace with your actual input ID
             if (fileInput) fileInput.setAttribute('disabled', true);
         } else {
             submitFile.removeAttribute('disabled');
-            const fileInput = document.getElementById('fileInput');
             if (fileInput) fileInput.removeAttribute('disabled');
         }
 
-        // Check if there's already an uploaded document
+        // --- Get user + requirement IDs ---
         const studentData = JSON.parse(localStorage.getItem('studentData'));
         const studentID = studentData?.id;
         const requirementID = requirement.id || requirement.requirementID;
 
         try {
+            // ✅ Fetch the latest document record from the database
             const res = await fetch(`/api/document/${requirementID}/${studentID}`);
             const result = await res.json();
 
             if (result.success && result.data) {
                 const data = result.data;
-                showUploadedFile(data.path, canUpload);
+
+                // ✅ If there's an uploaded file, show it
+                if (data.path) showUploadedFile(data.path, canUpload);
+
+                // ✅ If the docustatus is "To Revise" and remarks exist
+                if (data.docustatus === "To Revise" && data.remarks) {
+                    const remarksDiv = document.createElement('div');
+                    remarksDiv.id = 'remarksSection';
+                    remarksDiv.classList.add('alert', 'alert-warning', 'py-2', 'px-3', 'mb-3');
+                    remarksDiv.innerHTML = `
+                    <strong>Remarks:</strong><br>
+                    <span>${data.remarks}</span>
+                `;
+                    modalBody.insertBefore(remarksDiv, modalDescription);
+                }
             }
         } catch (error) {
             console.error("Error loading existing document:", error);
         }
 
+        // --- Set modal description (always shown) ---
+        modalDescription.textContent = requirement.description || "No description available.";
+
+        // --- Show modal ---
         submissionModal.show();
     }
+
 
 
     function showUploadedFile(filePath, canUpload) {
@@ -1655,12 +1698,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         filtered.forEach(req => {
             const row = document.createElement("tr");
-            let badgeClass = statusOrder[req.status] || 'bg-secondary';
+            let badgeClass = statusOrder[req.status] || "bg-secondary";
 
             // ✅ Check for overdue
             if (req.status !== "Completed" && req.status !== "To Revise" && req.dueDate) {
-                // Combine dueDate and dueTime into a JS Date
-                let dueDateTime = new Date(req.dueDate); // parse dueDate
+                let dueDateTime = new Date(req.dueDate);
+
                 if (req.dueTime) {
                     const [hours, minutes] = req.dueTime.split(":").map(Number);
                     dueDateTime.setHours(hours, minutes);
@@ -1673,33 +1716,47 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             const statusCell = `<td><span class="badge ${badgeClass}">${req.status}</span></td>`;
-            const nameCell = `<td>${req.title}</td>`;
+            const nameCell = `<td>${req.title || ""}</td>`;
 
-            const formattedTime = new Date(`1970-01-01T${req.dueTime}`).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-
+            // ✅ Format due date & time
             let dueDateCell = `<td></td>`;
-            if (req.dueDate) {
-                dueDateCell = `<td>${req.dueDate} <span class="text-muted fst-italic">${formattedTime || ""}</span></td>`;
+            if (req.dueDate && !isNaN(new Date(req.dueDate))) {
+                const dueDateObj = new Date(req.dueDate);
+                const formattedDate = dueDateObj.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                });
+
+                let formattedTime = "";
+                if (req.dueTime && !isNaN(new Date(`1970-01-01T${req.dueTime}`))) {
+                    formattedTime = new Date(`1970-01-01T${req.dueTime}`).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                    });
+                }
+
+                dueDateCell = `<td>${formattedDate}${formattedTime ? ` <span class="text-muted fst-italic">${formattedTime}</span>` : ""}</td>`;
             }
 
+            // ✅ Format submitted date & time
             let submittedCell = `<td></td>`;
             if (req.createdAt) {
                 const createdAtDate = new Date(req.createdAt);
                 if (!isNaN(createdAtDate)) {
-                    const formattedSubDate = createdAtDate.toLocaleDateString('en-CA');
+                    const formattedSubDate = createdAtDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "2-digit",
+                        year: "numeric",
+                    });
                     const formattedSubTime = createdAtDate.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
                     });
 
-                    submittedCell = `<td>${formattedSubDate} <span class="text-muted fst-italic">${formattedSubTime || ""}</span></td>`;
-                } else {
-                    submittedCell = `<td>Invalid Date</td>`;
+                    submittedCell = `<td>${formattedSubDate}${formattedSubTime ? ` <span class="text-muted fst-italic">${formattedSubTime}</span>` : ""}</td>`;
                 }
             }
 
@@ -1707,6 +1764,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             tbody.appendChild(row);
         });
     }
+
 
     // 🔘 Calculate progress
     function calculateProgress(requirements) {

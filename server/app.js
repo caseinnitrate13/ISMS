@@ -463,6 +463,11 @@ app.get('/admin/partner-establishments', (req, res) => {
     res.send(adminTemplate.replace('{{content}}', partnerEstablishments));
 });
 
+app.get('/admin/agency-reviews', (req, res) => {
+    const agencyReviews = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'agency reviews.html'), 'utf-8');
+    res.send(adminTemplate.replace('{{content}}', agencyReviews));
+});
+
 app.post("/api/save-partner", upload.fields([
     { name: "companyProfile", maxCount: 1 },
     { name: "signedMoa", maxCount: 1 }
