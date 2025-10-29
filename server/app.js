@@ -4,6 +4,8 @@ const multer = require('multer');
 const path = require('path');
 const port = 3080;
 const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+dotenv.config();
 
 //Firebase Connection
 const { db } = require('./config');
@@ -42,7 +44,7 @@ app.get('/registration', (req, res) => {
 // });
 
 // 🔹 Initialize Resend
-const resend = new Resend(re_A66NiyTA_CmiJ3yRpnFFFGiB377mrKSJy);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // 🔹 Helper: Generate random password
 function generatePassword(length = 8) {

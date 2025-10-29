@@ -20,6 +20,7 @@
   "homepage": "https://github.com/caseinnitrate13/ISMS#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "firebase": "^11.6.0",
     "firebase-admin": "^13.5.0",
