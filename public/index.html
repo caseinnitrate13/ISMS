@@ -15,7 +15,9 @@
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+    rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -28,166 +30,147 @@
 
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
-
+  <link href="assets/css/admin.css" rel="stylesheet">
+  <link href="assets/css/client.css" rel="stylesheet">
 
 </head>
 
 <body>
   <main>
-        <div class="container-fluid">
-            <section class="section register min-vh-100 d-flex align-items-center justify-content-center py-4"
-                style="background: url('assets/img/OLLCF BG.png') no-repeat center center/cover;">
-                <div class="container">
-                    <div class="row justify-content-center">
-                        <!-- Right Column: Form (Widened to Avoid Scrolling) -->
-                        <div class="col-lg-8 col-xl-6 d-flex flex-column align-items-center justify-content-center">
-                            <div class="custom-right-content text-center w-100">
-                                <div class="d-flex justify-content-center py-4">
-                                    <div class="logo d-flex align-items-center w-auto">
-                                        <img src="assets/img/CCS_LOGO.png" alt="">
-                                        <div class="text-start">
-                                          <span class="d-none d-lg-block fs-4">CCS INTERNSHIP DOCUMENT MANAGEMENT SYSTEM</span>
-                                        </div>
-                                    </div>
-                                </div><!-- End Logo -->
-
-                                <div class="card mb-3">
-                                  <div class="card-body">
-                                    <div class="pt-4 pb-2">
-                                      <h5 class="card-title text-center pb-0 fs-4 main-color">Login</h5>
-                                      <p class="text-center small">Input your ID & Password to login</p>
-                                    </div>
-
-                                    <form class="row g-3 needs-validation" novalidate id="loginForm">
-                                      <div class="col-12">
-                                        <label for="studentID" class="form-label">ID No.<span class="text-danger">*</span></label>
-                                        <div class="input-group has-validation">
-                                          <input type="text" name="studentID" class="form-control" id="studentID" required>
-                                          <div class="invalid-feedback">Please enter your ID No.</div>
-                                        </div>
-                                      </div>
-
-                                      <div class="col-12">
-                                        <label for="yourPassword" class="form-label">Password<span class="text-danger">*</span></label>
-                                        <input type="password" name="password" class="form-control" id="yourPassword" required>
-                                        <div class="invalid-feedback">Please enter your password!</div>
-                                      </div>
-                                      <div class="col-12 text-end">
-                                        <a href="#" class="small text-primary" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
-                                          Forgot Password?
-                                        </a>
-                                      </div>
-
-                                      <div class="col-12">
-                                        <div class="form-check d-flex align-items-center">
-                                          <input class="form-check-input me-2" type="checkbox" name="remember" value="true" id="rememberMe">
-                                          <label class="form-check-label mb-0" for="rememberMe">Remember me</label>
-                                        </div>
-                                      </div>
-                                      
-
-                                      <div class="col-12">
-                                        <a href="reg-accounts.html" class="btn-login" id="loginButton">Login</a>
-                                      </div>
-                                    
-
-                                      <div class="col-12">
-                                        <p class="small mb-0">Don’t have an account? Please contact the Account Administrator.</p>
-                                      </div>
-                                    </form>
-                                  </div>
-                                </div>
-
-                                <!-- Forgot Password Modal -->
-                                <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
-                                  <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                      <form id="forgotPasswordForm">
-                                        <div class="modal-header">
-                                          <h5 class="modal-title">Reset Password</h5>
-                                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                          <!-- <p class="small">Enter your registered <b>Email Address</b> and we will send you a new temporary password.</p> -->
-                                          <p class="large">Please contact your Administrator to get new password.</p>
-                                          <!-- <div class="mb-3">
-                                            <label for="resetEmail" class="form-label">Email Address</label>
-                                            <input type="email" class="form-control" id="resetEmail" name="resetEmail" required>
-                                          </div> -->
-                                        </div>
-                                        <div class="modal-footer">
-                                          <button type="submit" class="btn btn-success" data-bs-dismiss="modal">Ok</button>
-                                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        </div>
-                                      </form>
-                                    </div>
-                                  </div>
-                                </div>
-
-                            </div> <!-- End custom-right-content -->
-                        </div><!-- End Right side content -->
+    <div class="container-fluid">
+      <section class="section register min-vh-100 d-flex align-items-center justify-content-center py-4"
+        style="background: url('assets/img/OLLCF BG.png') no-repeat center center/cover;">
+        <div class="container">
+          <div class="row justify-content-center">
+            <!-- Right Column: Form (Widened to Avoid Scrolling) -->
+            <div class="col-lg-8 col-xl-6 d-flex flex-column align-items-center justify-content-center">
+              <div class="custom-right-content text-center w-100">
+                <div class="d-flex justify-content-center py-4">
+                  <div class="logo d-flex align-items-center w-auto">
+                    <img src="assets/img/CCS_LOGO.png" alt="">
+                    <div class="text-start">
+                      <span class="d-none d-lg-block fs-4">CCS INTERNSHIP DOCUMENT MANAGEMENT SYSTEM</span>
                     </div>
+                  </div>
+                </div><!-- End Logo -->
+
+                <div class="card mb-3">
+                  <div class="card-body">
+                    <div class="pt-4 pb-2">
+                      <h5 class="card-title text-center pb-0 fs-4 main-color">Login</h5>
+                      <p class="text-center small">Input your ID & Password to login</p>
+                    </div>
+
+                    <form class="row g-3 needs-validation" novalidate id="loginForm">
+                      <div class="col-12">
+                        <label for="studentID" class="form-label">ID No.<span class="text-danger">*</span></label>
+                        <div class="input-group has-validation">
+                          <input type="text" name="studentID" class="form-control" id="studentID" required>
+                          <div class="invalid-feedback">Please enter your ID No.</div>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <label for="yourPassword" class="form-label">Password<span class="text-danger">*</span></label>
+                        <input type="password" name="password" class="form-control" id="yourPassword" required>
+                        <div class="invalid-feedback">Please enter your password!</div>
+                      </div>
+                      <div class="col-12 text-end">
+                        <a href="#" class="small text-primary" data-bs-toggle="modal"
+                          data-bs-target="#forgotPasswordModal">
+                          Forgot Password?
+                        </a>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-check d-flex align-items-center">
+                          <input class="form-check-input me-2" type="checkbox" name="remember" value="true"
+                            id="rememberMe">
+                          <label class="form-check-label mb-0" for="rememberMe">Remember me</label>
+                        </div>
+                      </div>
+
+
+                      <button type="submit"
+                        class="btn-login" id="loginButton">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status"
+                          aria-hidden="true"></span>
+                        <span class="btn-text">Login</span>
+                      </button>
+
+
+                      <div class="col-12">
+                        <p class="small mb-0">Don’t have an account? Please contact the Account Administrator.</p>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-            </section>
+
+                <!-- Forgot Password Modal -->
+                <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <form id="forgotPasswordForm">
+                        <div class="modal-header">
+                          <h5 class="modal-title">Reset Password</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                          <p class="small">Enter your registered <b>Email Address</b> and we will send you a new
+                            temporary password.</p>
+                          <div class="mb-3">
+                            <label for="resetEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="resetEmail" name="resetEmail" required>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-success d-flex align-items-center justify-content-center"
+                            id="forgotSubmitBtn">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" role="status"
+                              aria-hidden="true"></span>
+                            <span class="btn-text">Send New Password</span>
+                          </button>
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+              </div> <!-- End custom-right-content -->
+            </div><!-- End Right side content -->
+          </div>
         </div>
+      </section>
+    </div>
   </main><!-- End #main -->
 
-<script>
-// Generate random temporary password
-function generateTempPassword(length = 10) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
-  let password = "";
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-}
+  <!-- Feedback Modal -->
+  <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark-purple text-center m-0 p-0">
+        <div class="modal-body text-white small">
+          <p id="feedbackMessage" class="mb-0"></p>
+        </div>
+      </div>
+    </div>
 
-// Handle Forgot Password form
-document.getElementById("forgotPasswordForm").addEventListener("submit", function(e) {
-  e.preventDefault();
 
-  const email = document.getElementById("resetEmail").value;
-  const newTempPassword = generateTempPassword();
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+        class="bi bi-arrow-up-short main-color"></i></a>
 
-  // Example AJAX request (requires backend PHP/Node to send the email)
-  fetch("reset-password.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email, tempPassword: newTempPassword })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      alert("✅ A new temporary password has been sent to your email.");
-      document.getElementById("forgotPasswordForm").reset();
-      bootstrap.Modal.getInstance(document.getElementById("forgotPasswordModal")).hide();
-    } else {
-      alert("⚠️ Error: " + data.message);
-    }
-  })
-  .catch(error => {
-    console.error("Error:", error);
-    alert("⚠️ Something went wrong. Please try again.");
-  });
-});
+    <!-- Vendor JS Files -->
+    <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/chart.js/chart.umd.js"></script>
+    <script src="assets/vendor/echarts/echarts.min.js"></script>
+    <script src="assets/vendor/quill/quill.js"></script>
+    <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
+    <script src="assets/vendor/tinymce/tinymce.min.js"></script>
+    <script src="assets/vendor/php-email-form/validate.js"></script>
 
-</script>
-
-  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short main-color"></i></a>
-
-  <!-- Vendor JS Files -->
-  <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/chart.js/chart.umd.js"></script>
-  <script src="assets/vendor/echarts/echarts.min.js"></script>
-  <script src="assets/vendor/quill/quill.js"></script>
-  <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
-  <script src="assets/vendor/tinymce/tinymce.min.js"></script>
-  <script src="assets/vendor/php-email-form/validate.js"></script>
-
-  <!-- Template Main JS File -->
-  <script src="assets/js/main.js"></script>
+    <!-- Template Main JS File -->
+    <script src="assets/js/main.js"></script>
 
 </body>
 <script>

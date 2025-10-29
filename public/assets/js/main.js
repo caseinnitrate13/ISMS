@@ -291,19 +291,53 @@
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
   const loginButton = document.getElementById('loginButton');
+  const loginSpinner = loginButton.querySelector('.spinner-border');
+  const loginText = loginButton.querySelector('.btn-text');
 
-  loginButton.addEventListener('click', async (e) => {
+  const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+  const forgotSubmitBtn = document.getElementById('forgotSubmitBtn');
+  const forgotSpinner = forgotSubmitBtn.querySelector('.spinner-border');
+  const forgotText = forgotSubmitBtn.querySelector('.btn-text');
+  const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+  const feedbackMessage = document.getElementById('feedbackMessage');
+
+  // Helper: show feedback
+  function showFeedback(message, isSuccess = true) {
+    feedbackMessage.textContent = message;
+    feedbackMessage.style.color = isSuccess ? '#00ffb3' : '#ff6b6b';
+    feedbackModal.show();
+    setTimeout(() => feedbackModal.hide(), 2500);
+  }
+
+  // Helper: toggle spinner state
+  function toggleButtonLoading(button, spinner, textSpan, isLoading, textWhenDone) {
+    if (isLoading) {
+      button.disabled = true;
+      spinner.classList.remove('d-none');
+      textSpan.textContent = 'Please wait...';
+    } else {
+      button.disabled = false;
+      spinner.classList.add('d-none');
+      textSpan.textContent = textWhenDone;
+    }
+  }
+
+  // 🔹 Login Handler
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const studentID = document.getElementById('studentID').value.trim();
     const password = document.getElementById('yourPassword').value.trim();
+    const remember = document.getElementById('rememberMe').checked; // ✅ Get checkbox state
 
     if (!studentID || !password) {
-      alert('Please fill in all fields');
+      showFeedback('⚠️ Please fill in all fields.', false);
       return;
     }
 
     try {
+      toggleButtonLoading(loginButton, loginSpinner, loginText, true);
+
       const res = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -313,25 +347,84 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (data.success) {
-        // ✅ Save user info in localStorage for later use
+        // ✅ Save user data
         if (data.userRole === 'student' && data.student) {
           localStorage.setItem('studentData', JSON.stringify(data.student));
         } else if (data.userRole === 'faculty' && data.faculty) {
           localStorage.setItem('facultyData', JSON.stringify(data.faculty));
         }
 
-        // ✅ Redirect based on role
+        // ✅ Handle "Remember Me"
+        if (remember) {
+          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem('rememberedID', studentID);
+          localStorage.setItem('rememberedPass', password)
+        } else {
+          localStorage.removeItem('rememberMe');
+          localStorage.removeItem('rememberedID');
+          localStorage.removeItem('rememberedPass', password)
+        }
+
         window.location.href = data.redirect;
       } else {
-        alert(data.message);
+        showFeedback(data.message, false);
       }
     } catch (err) {
       console.error('Login error:', err);
-      alert('Error connecting to server');
+      showFeedback('❌ Error connecting to server.', false);
+    } finally {
+      toggleButtonLoading(loginButton, loginSpinner, loginText, false, 'Login');
+    }
+  });
+
+  // 🔹 Forgot Password Handler
+  forgotPasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('resetEmail').value.trim();
+    if (!email) {
+      showFeedback('⚠️ Please enter your email.', false);
+      return;
+    }
+
+    try {
+      toggleButtonLoading(forgotSubmitBtn, forgotSpinner, forgotText, true);
+
+      const res = await fetch('/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showFeedback('✅ A new password has been sent to your email.');
+        forgotPasswordForm.reset();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'));
+        modal.hide();
+      } else {
+        showFeedback(data.message || '❌ Unable to process request.', false);
+      }
+    } catch (err) {
+      console.error('Forgot password error:', err);
+      showFeedback('❌ Error connecting to server.', false);
+    } finally {
+      toggleButtonLoading(forgotSubmitBtn, forgotSpinner, forgotText, false, 'Send New Password');
     }
   });
 });
 
+// 🔹 Autofill remembered student ID
+document.addEventListener('DOMContentLoaded', () => {
+  const remembered = localStorage.getItem('rememberMe');
+  const rememberedID = localStorage.getItem('rememberedID');
+  const rememberedPass = localStorage.getItem('rememberedPass');
 
-
+  if (remembered && rememberedID) {
+    document.getElementById('studentID').value = rememberedID;
+    document.getElementById('yourPassword').value = rememberedPass;
+    document.getElementById('rememberMe').checked = true;
+  }
+});
 
