@@ -65,6 +65,14 @@ app.post('/login', async (req, res) => {
             if (studentSnap.exists()) {
                 const data = studentSnap.data();
 
+                // 🔹 Check account status
+                if (data.status && data.status.toLowerCase() !== 'active') {
+                    return res.status(403).send({
+                        success: false,
+                        message: 'Your account is inactive. Please contact the administrator.'
+                    });
+                }
+
                 if (data.password === password) {
                     return res.send({
                         success: true,
@@ -87,8 +95,18 @@ app.post('/login', async (req, res) => {
         // --- Check faculty (adjusted path) ---
         const facultyRef = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', studentID);
         const facultySnap = await getDoc(facultyRef);
+
         if (facultySnap.exists()) {
             const data = facultySnap.data();
+
+            // 🔹 Check account status
+            if (data.status && data.status.toLowerCase() !== 'active') {
+                return res.status(403).send({
+                    success: false,
+                    message: 'Your account is inactive. Please contact the administrator.'
+                });
+            }
+
             if (data.password === password) {
                 return res.send({
                     success: true,
@@ -116,6 +134,7 @@ app.post('/login', async (req, res) => {
         res.status(500).send({ success: false, message: 'Server error', error });
     }
 });
+
 
 // 🔹 Forgot Password route
 app.post('/forgot-password', async (req, res) => {
