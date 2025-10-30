@@ -550,7 +550,7 @@ app.post('/forgot-password', async (req, res) => {
                         subject: 'Password Reset - New Temporary Password',
                     },
                 ],
-                from: { email: 'no-reply@cssidms.sendgrid.net', name: 'CSS IDMS Support' },
+                from: { email: 'ismsmrn2025@gmail.com', name: 'CSS IDMS Support' },
                 reply_to: { email: 'ismsmrn2025@gmail.com' },
                 content: [
                     {
