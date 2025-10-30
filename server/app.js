@@ -10,9 +10,9 @@ dotenv.config();
 //Firebase Connection
 const { db } = require('./config');
 const { doc, setDoc, getDoc, getDocs, collection, deleteDoc, updateDoc, addDoc, serverTimestamp, writeBatch } = require('firebase/firestore');
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
 // const { Resend } = require('resend');
-// const axios = require('axios');
+const axios = require('axios');
 // const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 
 const app = express();
@@ -36,14 +36,14 @@ app.get('/registration', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'register.html'));
 });
 
-// 🔹 Configure Nodemailer
-const transporter = nodemailer.createTransport({
-    service: 'SendGrid',
-  auth: {
-    user: 'apikey', // literally the string 'apikey'
-    pass: process.env.SENDGRID_API_KEY // store your API key in .env
-  }
-});
+// // 🔹 Configure Nodemailer
+// const transporter = nodemailer.createTransport({
+//     service: 'SendGrid',
+//     auth: {
+//         user: 'apikey', // literally the string 'apikey'
+//         pass: process.env.SENDGRID_API_KEY // store your API key in .env
+//     }
+// });
 
 // // 🔹 Initialize Resend
 // const resend = new Resend(process.env.RESEND_API_KEY);
@@ -310,83 +310,83 @@ app.post('/login', async (req, res) => {
 // });
 
 
-// 🔹 Forgot Password route (RENDER)
-app.post('/forgot-password', async (req, res) => {
-    try {
-        const { email } = req.body;
-        if (!email) return res.status(400).send({ success: false, message: 'Email is required.' });
+// // 🔹 Forgot Password route (RENDER)
+// app.post('/forgot-password', async (req, res) => {
+//     try {
+//         const { email } = req.body;
+//         if (!email) return res.status(400).send({ success: false, message: 'Email is required.' });
 
-        let userFound = false;
-        let userPath = null;
-        let fullName = '';
-        let newPassword = generatePassword();
+//         let userFound = false;
+//         let userPath = null;
+//         let fullName = '';
+//         let newPassword = generatePassword();
 
-        // 🔍 Search in STUDENTS (Blocks A, B)
-        const blocks = ['A', 'B'];
-        for (const block of blocks) {
-            const studentsRef = collection(db, 'ACCOUNTS', 'STUDENTS', block);
-            const snapshot = await getDocs(studentsRef);
-            for (const docSnap of snapshot.docs) {
-                const data = docSnap.data();
-                if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
-                    userFound = true;
-                    userPath = doc(db, 'ACCOUNTS', 'STUDENTS', block, docSnap.id);
-                    fullName = `${data.firstname || ''} ${data.surname || ''}`.trim();
-                    break;
-                }
-            }
-            if (userFound) break;
-        }
+//         // 🔍 Search in STUDENTS (Blocks A, B)
+//         const blocks = ['A', 'B'];
+//         for (const block of blocks) {
+//             const studentsRef = collection(db, 'ACCOUNTS', 'STUDENTS', block);
+//             const snapshot = await getDocs(studentsRef);
+//             for (const docSnap of snapshot.docs) {
+//                 const data = docSnap.data();
+//                 if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
+//                     userFound = true;
+//                     userPath = doc(db, 'ACCOUNTS', 'STUDENTS', block, docSnap.id);
+//                     fullName = `${data.firstname || ''} ${data.surname || ''}`.trim();
+//                     break;
+//                 }
+//             }
+//             if (userFound) break;
+//         }
 
-        // 🔍 If not found, check FACULTY
-        if (!userFound) {
-            const facultyRef = collection(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS');
-            const snapshot = await getDocs(facultyRef);
-            for (const docSnap of snapshot.docs) {
-                const data = docSnap.data();
-                if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
-                    userFound = true;
-                    userPath = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', docSnap.id);
-                    fullName = `${data.firstname || ''} ${data.lastname || ''}`.trim();
-                    break;
-                }
-            }
-        }
+//         // 🔍 If not found, check FACULTY
+//         if (!userFound) {
+//             const facultyRef = collection(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS');
+//             const snapshot = await getDocs(facultyRef);
+//             for (const docSnap of snapshot.docs) {
+//                 const data = docSnap.data();
+//                 if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
+//                     userFound = true;
+//                     userPath = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', docSnap.id);
+//                     fullName = `${data.firstname || ''} ${data.lastname || ''}`.trim();
+//                     break;
+//                 }
+//             }
+//         }
 
-        if (!userFound) {
-            return res.status(404).send({ success: false, message: 'No account found with that email.' });
-        }
+//         if (!userFound) {
+//             return res.status(404).send({ success: false, message: 'No account found with that email.' });
+//         }
 
-        // 🔄 Update Firestore with new password
-        await updateDoc(userPath, {
-            password: newPassword,
-            updatedAt: new Date().toISOString(),
-        });
+//         // 🔄 Update Firestore with new password
+//         await updateDoc(userPath, {
+//             password: newPassword,
+//             updatedAt: new Date().toISOString(),
+//         });
 
-        // 📧 Send Email
-        const mailOptions = {
-            from: '"CSS IDMS Support" <ismsmrn2025@gmail.com>',
-            to: email,
-            subject: 'Password Reset - New Temporary Password',
-            html: `
-        <p>Dear ${fullName || 'User'},</p>
-        <p>Your password has been reset. Here is your new temporary password:</p>
-        <h3>${newPassword}</h3>
-        <p>Please log in and change your password immediately.</p>
-        <br>
-        <p>– CSS IDMS Support System</p>
-      `
-        };
+//         // 📧 Send Email
+//         const mailOptions = {
+//             from: '"CSS IDMS Support" <ismsmrn2025@gmail.com>',
+//             to: email,
+//             subject: 'Password Reset - New Temporary Password',
+//             html: `
+//         <p>Dear ${fullName || 'User'},</p>
+//         <p>Your password has been reset. Here is your new temporary password:</p>
+//         <h3>${newPassword}</h3>
+//         <p>Please log in and change your password immediately.</p>
+//         <br>
+//         <p>– CSS IDMS Support System</p>
+//       `
+//         };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Password reset email sent to ${email}`);
-        res.send({ success: true, message: 'New password sent successfully.' });
+//         await transporter.sendMail(mailOptions);
+//         console.log(`✅ Password reset email sent to ${email}`);
+//         res.send({ success: true, message: 'New password sent successfully.' });
 
-    } catch (error) {
-        console.error('❌ Forgot password error:', error);
-        res.status(500).send({ success: false, message: 'Server error.' });
-    }
-});
+//     } catch (error) {
+//         console.error('❌ Forgot password error:', error);
+//         res.status(500).send({ success: false, message: 'Server error.' });
+//     }
+// });
 
 // ADMIN SIDE PAGES
 
@@ -569,6 +569,103 @@ app.post('/forgot-password', async (req, res) => {
 //     }
 // });
 
+
+
+app.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email)
+            return res.status(400).send({ success: false, message: 'Email is required.' });
+
+        let userFound = false;
+        let userPath = null;
+        let fullName = '';
+        let newPassword = generatePassword();
+
+        // 🔍 Search in STUDENTS (Blocks A, B)
+        const blocks = ['A', 'B'];
+        for (const block of blocks) {
+            const studentsRef = collection(db, 'ACCOUNTS', 'STUDENTS', block);
+            const snapshot = await getDocs(studentsRef);
+            for (const docSnap of snapshot.docs) {
+                const data = docSnap.data();
+                if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
+                    userFound = true;
+                    userPath = doc(db, 'ACCOUNTS', 'STUDENTS', block, docSnap.id);
+                    fullName = `${data.firstname || ''} ${data.surname || ''}`.trim();
+                    break;
+                }
+            }
+            if (userFound) break;
+        }
+
+        // 🔍 If not found, check FACULTY
+        if (!userFound) {
+            const facultyRef = collection(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS');
+            const snapshot = await getDocs(facultyRef);
+            for (const docSnap of snapshot.docs) {
+                const data = docSnap.data();
+                if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
+                    userFound = true;
+                    userPath = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', docSnap.id);
+                    fullName = `${data.firstname || ''} ${data.lastname || ''}`.trim();
+                    break;
+                }
+            }
+        }
+
+        if (!userFound) {
+            return res.status(404).send({ success: false, message: 'No account found with that email.' });
+        }
+
+        // 🔄 Update Firestore with new password
+        await updateDoc(userPath, {
+            password: newPassword,
+            updatedAt: new Date().toISOString(),
+        });
+
+        // 📧 Send Email using SendGrid Web API
+        const sendGridResponse = await axios.post(
+            'https://api.sendgrid.com/v3/mail/send',
+            {
+                personalizations: [
+                    {
+                        to: [{ email }],
+                        subject: 'Password Reset - New Temporary Password',
+                    },
+                ],
+                from: { email: 'ismsmrn2025@gmail.com', name: 'CSS IDMS Support' },
+                reply_to: { email: 'ismsmrn2025@gmail.com' },
+                content: [
+                    {
+                        type: 'text/html',
+                        value: `
+              <p>Dear ${fullName || 'User'},</p>
+              <p>Your password has been reset. Here is your new temporary password:</p>
+              <h3>${newPassword}</h3>
+              <p>Please log in and change your password immediately.</p>
+              <br>
+              <p>– CSS IDMS Support System</p>
+            `,
+                    },
+                ],
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        console.log(`✅ Password reset email sent via SendGrid to ${email}`);
+        res.send({ success: true, message: 'New password sent successfully.' });
+
+    } catch (error) {
+        console.error('❌ Forgot password error:', error.response?.data || error.message);
+        res.status(500).send({ success: false, message: 'Server error.' });
+    }
+});
 
 const adminTemplate = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'template-admin.html'), 'utf-8');
 
