@@ -1646,7 +1646,6 @@ document.addEventListener('DOMContentLoaded', function () {
     loadNotifications();
 });
 
-
 // PROGRESS TRACKER
 document.addEventListener('DOMContentLoaded', async function () {
 
@@ -1689,7 +1688,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             return;
         }
 
-        const filtered = statusFilter === "All" ? requirements : requirements.filter(req => req.status === statusFilter);
+        const filtered = statusFilter === "All"
+            ? requirements
+            : requirements.filter(req => req.status === statusFilter);
 
         if (filtered.length === 0) {
             tbody.innerHTML = "<tr><td colspan='4' class='p-3 text-center'>No data to show</td></tr>";
@@ -1703,12 +1704,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             // ✅ Check for overdue
             if (req.status !== "Completed" && req.status !== "To Revise" && req.dueDate) {
                 let dueDateTime = new Date(req.dueDate);
-
                 if (req.dueTime) {
                     const [hours, minutes] = req.dueTime.split(":").map(Number);
                     dueDateTime.setHours(hours, minutes);
                 }
-
                 if (new Date() > dueDateTime) {
                     req.status = "Overdue";
                     badgeClass = statusOrder["Overdue"];
@@ -1765,7 +1764,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-
     // 🔘 Calculate progress
     function calculateProgress(requirements) {
         const total = requirements.length;
@@ -1805,35 +1803,40 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-    // 🎚️ Handle dropdown filter changes
-    document.querySelectorAll('.dropdown-menu .view-option').forEach(option => {
-        option.addEventListener('click', function (e) {
-            e.preventDefault();
-            const status = this.dataset.status;
-            const parentDropdown = this.closest('.dropdown');
+    // 🎚️ Handle dropdown filter changes (IMPROVED)
+    function attachDropdownFilters(groupedData) {
+        const dropdownMap = {
+            "initialDropdown": ["Initial Requirements", "initBody", "initialStatus"],
+            "preDepDropdown": ["Pre-Deployment Requirements", "preDepBody", "preDepStatus"],
+            "inProgressDropdown": ["In-Progress Requirements", "inProgressBody", "inProgressStatus"],
+            "finalDropdown": ["Final Requirements", "finalBody", "finalStatus"]
+        };
 
-            const dropdownMap = {
-                "initialDropdown": "Initial Requirements",
-                "preDepDropdown": "Pre-Deployment Requirements",
-                "inProgressDropdown": "In-Progress Requirements",
-                "finalDropdown": "Final Requirements"
-            };
+        Object.keys(dropdownMap).forEach(dropdownId => {
+            const [key, tableID, statusID] = dropdownMap[dropdownId];
+            const dropdown = document.getElementById(dropdownId);
 
-            const key = dropdownMap[parentDropdown.id];
-            filters[key] = status;
+            dropdown.querySelectorAll('.view-option').forEach(option => {
+                option.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const status = this.dataset.status;
+                    filters[key] = status;
 
-            document.getElementById(`${parentDropdown.id.replace('Dropdown', 'Status')}`).textContent = status;
+                    // Update dropdown label
+                    document.getElementById(statusID).textContent = status;
 
-            showTableData(`${parentDropdown.id.replace('Dropdown', 'Body')}`, groupedData[key], status);
+                    // Refresh table with filter
+                    showTableData(tableID, groupedData[key], filters[key]);
+                });
+            });
         });
-    });
-
+    }
 
     const studentData = JSON.parse(localStorage.getItem("studentData")) || {};
     const studentID = studentData.id; // Replace with actual logged-in student's ID
     const groupedData = await fetchProgressRequirements(studentID);
 
-    // Show table data
+    // Show table data initially
     showTableData('initBody', groupedData["Initial Requirements"], filters["Initial Requirements"]);
     showTableData('preDepBody', groupedData["Pre-Deployment Requirements"], filters["Pre-Deployment Requirements"]);
     showTableData('inProgressBody', groupedData["In-Progress Requirements"], filters["In-Progress Requirements"]);
@@ -1841,4 +1844,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Show progress circles
     buildProgressCards(groupedData);
+
+    // Attach improved dropdown filter functionality
+    attachDropdownFilters(groupedData);
 });
