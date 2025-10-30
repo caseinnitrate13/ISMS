@@ -10,9 +10,9 @@ dotenv.config();
 //Firebase Connection
 const { db } = require('./config');
 const { doc, setDoc, getDoc, getDocs, collection, deleteDoc, updateDoc, addDoc, serverTimestamp, writeBatch } = require('firebase/firestore');
-// const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 // const { Resend } = require('resend');
-const axios = require('axios');
+// const axios = require('axios');
 
 const app = express();
 app.use(express.json());
@@ -35,14 +35,14 @@ app.get('/registration', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'register.html'));
 });
 
-// // 🔹 Configure Nodemailer
-// const transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//         user: 'ismsmrn2025@gmail.com', // your Gmail
-//         pass: 'afwl hedv vawl uxvs' // generated app password
-//     }
-// });
+// 🔹 Configure Nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'ismsmrn2025@gmail.com', // your Gmail
+        pass: 'afwl hedv vawl uxvs' // generated app password
+    }
+});
 
 // // 🔹 Initialize Resend
 // const resend = new Resend(process.env.RESEND_API_KEY);
@@ -309,92 +309,11 @@ app.post('/login', async (req, res) => {
 // });
 
 
-// // 🔹 Forgot Password route (RENDER)
-// app.post('/forgot-password', async (req, res) => {
-//     try {
-//         const { email } = req.body;
-//         if (!email) return res.status(400).send({ success: false, message: 'Email is required.' });
-
-//         let userFound = false;
-//         let userPath = null;
-//         let fullName = '';
-//         let newPassword = generatePassword();
-
-//         // 🔍 Search in STUDENTS (Blocks A, B)
-//         const blocks = ['A', 'B'];
-//         for (const block of blocks) {
-//             const studentsRef = collection(db, 'ACCOUNTS', 'STUDENTS', block);
-//             const snapshot = await getDocs(studentsRef);
-//             for (const docSnap of snapshot.docs) {
-//                 const data = docSnap.data();
-//                 if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
-//                     userFound = true;
-//                     userPath = doc(db, 'ACCOUNTS', 'STUDENTS', block, docSnap.id);
-//                     fullName = `${data.firstname || ''} ${data.surname || ''}`.trim();
-//                     break;
-//                 }
-//             }
-//             if (userFound) break;
-//         }
-
-//         // 🔍 If not found, check FACULTY
-//         if (!userFound) {
-//             const facultyRef = collection(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS');
-//             const snapshot = await getDocs(facultyRef);
-//             for (const docSnap of snapshot.docs) {
-//                 const data = docSnap.data();
-//                 if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
-//                     userFound = true;
-//                     userPath = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', docSnap.id);
-//                     fullName = `${data.firstname || ''} ${data.lastname || ''}`.trim();
-//                     break;
-//                 }
-//             }
-//         }
-
-//         if (!userFound) {
-//             return res.status(404).send({ success: false, message: 'No account found with that email.' });
-//         }
-
-//         // 🔄 Update Firestore with new password
-//         await updateDoc(userPath, {
-//             password: newPassword,
-//             updatedAt: new Date().toISOString(),
-//         });
-
-//         // 📧 Send Email
-//         const mailOptions = {
-//             from: '"CSS IDMS Support" <ismsmrn2025@gmail.com>',
-//             to: email,
-//             subject: 'Password Reset - New Temporary Password',
-//             html: `
-//         <p>Dear ${fullName || 'User'},</p>
-//         <p>Your password has been reset. Here is your new temporary password:</p>
-//         <h3>${newPassword}</h3>
-//         <p>Please log in and change your password immediately.</p>
-//         <br>
-//         <p>– CSS IDMS Support System</p>
-//       `
-//         };
-
-//         await transporter.sendMail(mailOptions);
-//         console.log(`✅ Password reset email sent to ${email}`);
-//         res.send({ success: true, message: 'New password sent successfully.' });
-
-//     } catch (error) {
-//         console.error('❌ Forgot password error:', error);
-//         res.status(500).send({ success: false, message: 'Server error.' });
-//     }
-// });
-
-// ADMIN SIDE PAGES
-
-// 🔹 Forgot Password route (using Brevo)
+// 🔹 Forgot Password route (RENDER)
 app.post('/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email)
-            return res.status(400).send({ success: false, message: 'Email is required.' });
+        if (!email) return res.status(400).send({ success: false, message: 'Email is required.' });
 
         let userFound = false;
         let userPath = null;
@@ -437,45 +356,126 @@ app.post('/forgot-password', async (req, res) => {
             return res.status(404).send({ success: false, message: 'No account found with that email.' });
         }
 
-        // 🔄 Update Firestore
+        // 🔄 Update Firestore with new password
         await updateDoc(userPath, {
             password: newPassword,
             updatedAt: new Date().toISOString(),
         });
 
-        // 📧 Send email with Brevo API
-        const response = await axios.post(
-            'https://api.brevo.com/v3/smtp/email',
-            {
-                sender: { name: 'CSS IDMS Support', email: 'ismsmrn2025@gmail.com' },
-                to: [{ email: email, name: fullName }],
-                subject: 'Password Reset - New Temporary Password',
-                htmlContent: `
-          <p>Dear ${fullName || 'User'},</p>
-          <p>Your password has been reset. Here is your new temporary password:</p>
-          <h3>${newPassword}</h3>
-          <p>Please log in and change your password immediately.</p>
-          <br>
-          <p>– CSS IDMS Support System</p>
-        `,
-            },
-            {
-                headers: {
-                    'accept': 'application/json',
-                    'api-key': process.env.BREVO_API_KEY,
-                    'content-type': 'application/json',
-                },
-            }
-        );
+        // 📧 Send Email
+        const mailOptions = {
+            from: '"CSS IDMS Support" <ismsmrn2025@gmail.com>',
+            to: email,
+            subject: 'Password Reset - New Temporary Password',
+            html: `
+        <p>Dear ${fullName || 'User'},</p>
+        <p>Your password has been reset. Here is your new temporary password:</p>
+        <h3>${newPassword}</h3>
+        <p>Please log in and change your password immediately.</p>
+        <br>
+        <p>– CSS IDMS Support System</p>
+      `
+        };
 
-        console.log(`✅ Password reset email sent via Brevo to ${email}`);
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Password reset email sent to ${email}`);
         res.send({ success: true, message: 'New password sent successfully.' });
 
     } catch (error) {
-        console.error('❌ Forgot password error:', error.response?.data || error);
+        console.error('❌ Forgot password error:', error);
         res.status(500).send({ success: false, message: 'Server error.' });
     }
 });
+
+// ADMIN SIDE PAGES
+
+// // 🔹 Forgot Password route (using Brevo)
+// app.post('/forgot-password', async (req, res) => {
+//     try {
+//         const { email } = req.body;
+//         if (!email)
+//             return res.status(400).send({ success: false, message: 'Email is required.' });
+
+//         let userFound = false;
+//         let userPath = null;
+//         let fullName = '';
+//         let newPassword = generatePassword();
+
+//         // 🔍 Search in STUDENTS (Blocks A, B)
+//         const blocks = ['A', 'B'];
+//         for (const block of blocks) {
+//             const studentsRef = collection(db, 'ACCOUNTS', 'STUDENTS', block);
+//             const snapshot = await getDocs(studentsRef);
+//             for (const docSnap of snapshot.docs) {
+//                 const data = docSnap.data();
+//                 if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
+//                     userFound = true;
+//                     userPath = doc(db, 'ACCOUNTS', 'STUDENTS', block, docSnap.id);
+//                     fullName = `${data.firstname || ''} ${data.surname || ''}`.trim();
+//                     break;
+//                 }
+//             }
+//             if (userFound) break;
+//         }
+
+//         // 🔍 If not found, check FACULTY
+//         if (!userFound) {
+//             const facultyRef = collection(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS');
+//             const snapshot = await getDocs(facultyRef);
+//             for (const docSnap of snapshot.docs) {
+//                 const data = docSnap.data();
+//                 if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
+//                     userFound = true;
+//                     userPath = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', docSnap.id);
+//                     fullName = `${data.firstname || ''} ${data.lastname || ''}`.trim();
+//                     break;
+//                 }
+//             }
+//         }
+
+//         if (!userFound) {
+//             return res.status(404).send({ success: false, message: 'No account found with that email.' });
+//         }
+
+//         // 🔄 Update Firestore
+//         await updateDoc(userPath, {
+//             password: newPassword,
+//             updatedAt: new Date().toISOString(),
+//         });
+
+//         // 📧 Send email with Brevo API
+//         const response = await axios.post(
+//             'https://api.brevo.com/v3/smtp/email',
+//             {
+//                 sender: { name: 'CSS IDMS Support', email: 'ismsmrn2025@gmail.com' },
+//                 to: [{ email: email, name: fullName }],
+//                 subject: 'Password Reset - New Temporary Password',
+//                 htmlContent: `
+//           <p>Dear ${fullName || 'User'},</p>
+//           <p>Your password has been reset. Here is your new temporary password:</p>
+//           <h3>${newPassword}</h3>
+//           <p>Please log in and change your password immediately.</p>
+//           <br>
+//           <p>– CSS IDMS Support System</p>
+//         `,
+//             },
+//             {
+//                 headers: {
+//                     'accept': 'application/json',
+//                     'api-key': process.env.BREVO_API_KEY,
+//                     'content-type': 'application/json',
+//                 },
+//             }
+//         );
+
+//         console.log(`✅ Password reset email sent via Brevo to ${email}`);
+//         res.send({ success: true, message: 'New password sent successfully.' });
+
+//     } catch (error) {
+//         console.error('❌ Forgot password error:', error.response?.data || error);
+//         res.status(500).send({ success: false, message: 'Server error.' });
+//     }
+// });
 
 
 const adminTemplate = fs.readFileSync(path.join(__dirname, '..', 'public', 'admin-side', 'template-admin.html'), 'utf-8');
