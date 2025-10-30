@@ -1812,6 +1812,35 @@ document.addEventListener("DOMContentLoaded", () => {
   loadStudents();
 
   // --- Sorting Function ---
+
+  document.querySelectorAll('.blockA-filter-option').forEach(option => {
+    option.addEventListener('click', function () {
+      const value = this.getAttribute('data-value');
+      const select = document.getElementById('filterActionBlockA');
+      select.value = value;
+      const button = document.getElementById('filterActionBlockAButton');
+      button.innerHTML = `<i class="bi bi-funnel-fill"></i> ${value}`;
+      applyFilterSingle('blockATable', 'filterActionBlockA', 'noEntriesMessageBlockA');
+    });
+  });
+
+  // --- Connect dropdown items to hidden select ---
+  document.querySelectorAll('.blockB-filter-option').forEach(option => {
+    option.addEventListener('click', function () {
+      const value = this.getAttribute('data-value');
+      const select = document.getElementById('filterActionBlockB');
+      select.value = value; // update hidden select value
+
+      // Update dropdown button text for clarity
+      const button = document.getElementById('filterActionBlockBButton');
+      button.innerHTML = `<i class="bi bi-funnel-fill"></i> ${value}`;
+
+      // Trigger filter
+      applyFilterSingle('blockBTable', 'filterActionBlockB', 'noEntriesMessageBlockB');
+    });
+  });
+
+
   function makeTableSortable(tableId) {
     const table = document.getElementById(tableId);
     const headers = table.querySelectorAll("th");
@@ -1823,9 +1852,13 @@ document.addEventListener("DOMContentLoaded", () => {
       header.title = "Click to sort";
 
       header.addEventListener("click", () => {
-        const rows = Array.from(table.querySelector("tbody").querySelectorAll("tr:not([id])"));
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr:not([id])"))
+          // ✅ Only include visible rows
+          .filter(row => row.style.display !== "none");
+
         const type = header.getAttribute("data-type") || "string";
-        const asc = header.classList.contains("asc") ? false : true;
+        const asc = !header.classList.contains("asc");
 
         headers.forEach(h => h.classList.remove("asc", "desc"));
         header.classList.add(asc ? "asc" : "desc");
@@ -1847,7 +1880,8 @@ document.addEventListener("DOMContentLoaded", () => {
           return 0;
         });
 
-        rows.forEach(row => table.querySelector("tbody").appendChild(row));
+        // ✅ Append only sorted visible rows (keep hidden ones untouched)
+        rows.forEach(row => tbody.appendChild(row));
       });
     });
   }
@@ -1895,7 +1929,57 @@ document.addEventListener("DOMContentLoaded", () => {
   makeTableFilterable("blockATable", "filterActionBlockA", "noEntriesMessageBlockA");
   makeTableFilterable("blockBTable", "filterActionBlockB", "noEntriesMessageBlockB");
 
-  
+  // --- Search Function ---
+  function applySearchSingle(tableId, searchInputId, noEntriesMessageId) {
+    const table = document.getElementById(tableId);
+    const searchInput = document.getElementById(searchInputId);
+    const noEntriesMessage = document.getElementById(noEntriesMessageId);
+
+    if (!table || !searchInput || !noEntriesMessage) return;
+
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    let visibleRows = 0;
+
+    Array.from(table.querySelectorAll("tbody tr")).forEach(row => {
+      if (row.id && row.id === noEntriesMessageId) return;
+
+      // Combine all cell texts into one string
+      const rowText = Array.from(row.cells)
+        .map(cell => cell.innerText.trim().toLowerCase())
+        .join(" ");
+
+      if (rowText.includes(searchTerm)) {
+        row.style.display = "";
+        visibleRows++;
+      } else {
+        row.style.display = "none";
+      }
+    });
+
+    // Show "No Entries" if nothing is visible
+    noEntriesMessage.style.display = visibleRows === 0 ? "" : "none";
+  }
+
+  // --- Make Searchable ---
+  function makeTableSearchable(tableId, searchInputId, noEntriesMessageId) {
+    const searchInput = document.getElementById(searchInputId);
+    if (!searchInput) return;
+
+    // Trigger search on input
+    searchInput.addEventListener("input", () => {
+      applySearchSingle(tableId, searchInputId, noEntriesMessageId);
+    });
+
+    // Initial search
+    applySearchSingle(tableId, searchInputId, noEntriesMessageId);
+  }
+
+  // --- Initialize search ---
+  makeTableSearchable("blockATable", "searchInputBlockA", "noEntriesMessageBlockA");
+  makeTableSearchable("blockBTable", "searchInputBlockB", "noEntriesMessageBlockB");
+
+
+
   // --- Delete buttons logic ---
   const blockADeleteBtn = document.getElementById("blockADeleteBtn");
   const blockBDeleteBtn = document.getElementById("blockBDeleteBtn");
@@ -1999,7 +2083,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('regenPassBtn').addEventListener('click', function () {
     document.getElementById('tempPassword').value = generatePassword();
   });
-  
+
 
 });
 
