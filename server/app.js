@@ -13,6 +13,7 @@ const { doc, setDoc, getDoc, getDocs, collection, deleteDoc, updateDoc, addDoc, 
 const nodemailer = require('nodemailer');
 // const { Resend } = require('resend');
 // const axios = require('axios');
+// const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 
 const app = express();
 app.use(express.json());
@@ -37,11 +38,11 @@ app.get('/registration', (req, res) => {
 
 // 🔹 Configure Nodemailer
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'ismsmrn2025@gmail.com', // your Gmail
-        pass: 'afwl hedv vawl uxvs' // generated app password
-    }
+    service: 'SendGrid',
+  auth: {
+    user: 'apikey', // literally the string 'apikey'
+    pass: process.env.SENDGRID_API_KEY // store your API key in .env
+  }
 });
 
 // // 🔹 Initialize Resend
@@ -389,7 +390,7 @@ app.post('/forgot-password', async (req, res) => {
 
 // ADMIN SIDE PAGES
 
-// // 🔹 Forgot Password route (using Brevo)
+// // // 🔹 Forgot Password route (using Brevo)
 // app.post('/forgot-password', async (req, res) => {
 //     try {
 //         const { email } = req.body;
@@ -474,6 +475,97 @@ app.post('/forgot-password', async (req, res) => {
 //     } catch (error) {
 //         console.error('❌ Forgot password error:', error.response?.data || error);
 //         res.status(500).send({ success: false, message: 'Server error.' });
+//     }
+// });
+
+// // Initialize MailerSend
+// const mailerSend = new MailerSend({
+//     apiKey: process.env.MAILERSEND_API_KEY,
+// });
+
+// app.post('/forgot-password', async (req, res) => {
+//     try {
+//         const { email } = req.body;
+//         if (!email)
+//             return res.status(400).send({ success: false, message: 'Email is required.' });
+
+//         let userFound = false;
+//         let userPath = null;
+//         let fullName = '';
+//         let newPassword = generatePassword();
+
+//         // 🔍 Search in STUDENTS (Blocks A, B)
+//         const blocks = ['A', 'B'];
+//         for (const block of blocks) {
+//             const studentsRef = collection(db, 'ACCOUNTS', 'STUDENTS', block);
+//             const snapshot = await getDocs(studentsRef);
+//             for (const docSnap of snapshot.docs) {
+//                 const data = docSnap.data();
+//                 if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
+//                     userFound = true;
+//                     userPath = doc(db, 'ACCOUNTS', 'STUDENTS', block, docSnap.id);
+//                     fullName = `${data.firstname || ''} ${data.surname || ''}`.trim();
+//                     break;
+//                 }
+//             }
+//             if (userFound) break;
+//         }
+
+//         // 🔍 If not found, check FACULTY
+//         if (!userFound) {
+//             const facultyRef = collection(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS');
+//             const snapshot = await getDocs(facultyRef);
+//             for (const docSnap of snapshot.docs) {
+//                 const data = docSnap.data();
+//                 if (data.email && data.email.toLowerCase() === email.toLowerCase()) {
+//                     userFound = true;
+//                     userPath = doc(db, 'ACCOUNTS', 'FACULTY', 'ACCOUNTS', docSnap.id);
+//                     fullName = `${data.firstname || ''} ${data.lastname || ''}`.trim();
+//                     break;
+//                 }
+//             }
+//         }
+
+//         if (!userFound) {
+//             return res.status(404).send({ success: false, message: 'No account found with that email.' });
+//         }
+
+//         // 🔄 Update Firestore
+//         await updateDoc(userPath, {
+//             password: newPassword,
+//             updatedAt: new Date().toISOString(),
+//         });
+
+//         // 📧 Send Email using MailerSend
+//         const sentFrom = new Sender("no-reply@test-nrw7gymx0vng2k8e.mlsender.net", "CSS IDMS Support");
+//         const recipients = [new Recipient(email, fullName || "User")];
+
+//         const emailParams = new EmailParams()
+//             .setFrom(sentFrom)
+//             .setTo(recipients)
+//             .setSubject("Password Reset - New Temporary Password")
+//             .setHtml(`
+//         <p>Dear ${fullName || 'User'},</p>
+//         <p>Your password has been reset. Here is your new temporary password:</p>
+//         <h3>${newPassword}</h3>
+//         <p>Please log in and change your password immediately.</p>
+//         <br>
+//         <p>– CSS IDMS Support System</p>
+//       `)
+//             .setText(`Your new password is: ${newPassword}`);
+
+//         await mailerSend.email.send(emailParams);
+
+//         console.log(`✅ Password reset email sent via MailerSend to ${email}`);
+//         res.send({ success: true, message: 'New password sent successfully.' });
+
+//     } catch (error) {
+//         console.error('❌ Forgot password error:', error);
+//         res.status(500).send({
+//             success: false,
+//             message: 'Server error sending email.',
+//             error: error.message || error
+//         });
 //     }
 // });
 
