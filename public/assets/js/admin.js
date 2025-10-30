@@ -1895,6 +1895,7 @@ document.addEventListener("DOMContentLoaded", () => {
   makeTableFilterable("blockATable", "filterActionBlockA", "noEntriesMessageBlockA");
   makeTableFilterable("blockBTable", "filterActionBlockB", "noEntriesMessageBlockB");
 
+  
   // --- Delete buttons logic ---
   const blockADeleteBtn = document.getElementById("blockADeleteBtn");
   const blockBDeleteBtn = document.getElementById("blockBDeleteBtn");
@@ -1998,6 +1999,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('regenPassBtn').addEventListener('click', function () {
     document.getElementById('tempPassword').value = generatePassword();
   });
+  
 
 });
 

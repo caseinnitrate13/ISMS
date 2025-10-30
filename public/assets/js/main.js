@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (data.success) {
-        showFeedback('✅ A new password has been sent to your email.');
+        showFeedback('✅ A new password has been sent to your email. Please note that it may take a few minutes to arrive. If you don’t see it in your inbox, kindly check your Spam folder.');
         forgotPasswordForm.reset();
         const modal = bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'));
         modal.hide();
