@@ -1024,6 +1024,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // Enable/disable Edit button
     document.getElementById("editBtn").disabled = checked.length !== 1;
   });
+
+  // --- Search functionality ---
+  const searchInput = document.getElementById("searchInput");
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.trim().toLowerCase();
+    const container = document.getElementById("downloadablesContainer");
+    const cards = container.querySelectorAll(".col-md-3");
+
+    cards.forEach(card => {
+      const title = card.querySelector(".card-title")?.textContent.toLowerCase() || "";
+      const type = (card.dataset.requirementType || "").toLowerCase();
+      if (title.includes(query) || type.includes(query)) {
+        card.style.display = ""; // show
+      } else {
+        card.style.display = "none"; // hide
+      }
+    });
+  });
+
 });
 
 
@@ -3074,8 +3094,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const cards = Array.from(container.querySelectorAll('.col-md-4'));
 
       cards.sort((a, b) => {
-        const da = new Date(a.getAttribute("data-date-posted"));
-        const db = new Date(b.getAttribute("data-date-posted"));
+        // Use data-created-at first, then fallback to data-date-posted
+        const daStr = a.getAttribute("data-created-at") || a.getAttribute("data-date-posted");
+        const dbStr = b.getAttribute("data-created-at") || b.getAttribute("data-date-posted");
+
+        const da = new Date(daStr);
+        const db = new Date(dbStr);
 
         if (isNaN(da) && isNaN(db)) return 0;
         if (isNaN(da)) return sortType === 'newest' ? 1 : -1;
@@ -3084,9 +3108,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return sortType === 'newest' ? db - da : da - db;
       });
 
+      // Append sorted cards back to container
       cards.forEach(c => container.appendChild(c));
     });
   });
+
+
+
 
 });
 
