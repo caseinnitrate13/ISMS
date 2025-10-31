@@ -3114,8 +3114,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-
-
 });
 
 // STUDENT PROGRESS(STUDENT CHECKLIST)
@@ -3151,7 +3149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // enable/disable delete button for the block
   function updateDeleteButton(block) {
-    const tableId = `block${block}Table`;
+    const tableId = `progressblock${block}Table`;
     const deleteBtnId = `delete${block}`;
     const table = document.getElementById(tableId);
     const deleteBtn = document.getElementById(deleteBtnId);
@@ -3162,7 +3160,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Delete selected rows for a block (uses confirm())
   function setupDelete(block) {
-    const tableId = `block${block}Table`;
+    const tableId = `progressblock${block}Table`;
     const deleteBtnId = `delete${block}`;
     const table = document.getElementById(tableId);
     const deleteBtn = document.getElementById(deleteBtnId);
@@ -3262,25 +3260,57 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  // Setup sort menu listeners per block, scoped to .sort-option[data-block="..."]
+  // --- SORTING (per block) ---
   function setupSortOptions(block) {
-    const tableId = `block${block}Table`;
+    const tableId = `progressblock${block}Table`;
+
     document.querySelectorAll(`.sort-option[data-block="${block}"]`).forEach(option => {
       option.addEventListener("click", (ev) => {
         ev.preventDefault();
         const sortType = option.getAttribute("data-sort"); // asc | desc | name-asc | name-desc
-        if (sortType === "asc") {
-          sortTable(tableId, 2, "asc");     // Student ID ↑ (col index 2)
-        } else if (sortType === "desc") {
-          sortTable(tableId, 2, "desc");    // Student ID ↓
-        } else if (sortType === "name-asc") {
-          sortTable(tableId, 3, "asc");     // Name A–Z (col index 3)
-        } else if (sortType === "name-desc") {
-          sortTable(tableId, 3, "desc");    // Name Z–A
-        }
+        const table = document.getElementById(tableId);
+        if (!table || !table.tBodies[0]) return;
+
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+
+        rows.sort((a, b) => {
+          let valA, valB;
+
+          switch (sortType) {
+            case "asc":      // Student ID ↑
+            case "desc":     // Student ID ↓
+              valA = parseInt(a.cells[1]?.innerText.replace(/\D/g, ""), 10) || 0;
+              valB = parseInt(b.cells[1]?.innerText.replace(/\D/g, ""), 10) || 0;
+              return sortType === "asc" ? valA - valB : valB - valA;
+
+            case "name-asc": // Name A–Z
+            case "name-desc":// Name Z–A
+              valA = a.cells[2]?.innerText.trim().toLowerCase() || "";
+              valB = b.cells[2]?.innerText.trim().toLowerCase() || "";
+              if (valA < valB) return sortType === "name-asc" ? -1 : 1;
+              if (valA > valB) return sortType === "name-asc" ? 1 : -1;
+              return 0;
+
+            default:
+              return 0;
+          }
+        });
+
+        // Re-append sorted rows
+        rows.forEach(r => tbody.appendChild(r));
+
+        // Update row numbers
+        Array.from(tbody.rows).forEach((row, idx) => {
+          const numCell = row.querySelector(".row-num");
+          if (numCell) numCell.textContent = idx + 1;
+        });
       });
     });
   }
+
+  // Initialize sorting for both blocks
+  ["A", "B"].forEach(block => setupSortOptions(block));
 
   // Re-evaluate filters when a row's status-select changes
   function setupStatusChange(block) {
